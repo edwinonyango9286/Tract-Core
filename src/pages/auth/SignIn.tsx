@@ -53,7 +53,7 @@ const SignIn = () => {
   return (
     <Box sx={{ width:"100%", height:"100vh", display:"flex", alignItems:"center", justifyContent:"center"}}>
         <Paper elevation={0} sx={{ boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)' ,  paddingX:{xs:"20px", lg:"30px"}, paddingY:{xs:"30px", lg:"40px"},  borderRadius:"8px", margin:"14px", width:{xs:"100%", sm:"70%",md:"50%", lg:"30%", xl:"24%" }}}> 
-          <form onSubmit={formik.handleSubmit} style={{ width:"100%"}}>
+          <form onSubmit={()=>navigate("/dashboard")} style={{ width:"100%"}}>
             <Box sx={{ alignItems:"center", justifyContent:"center", width:"100%", display:"flex", flexDirection:"column", gap:'20px'}}>
                 <Box sx={{ width:"100%", alignItems:"center", justifyContent:"center", display:"flex", flexDirection:"column", gap:"10px"}}>
                  <Typography sx={{ textAlign:"center", fontSize:"26px", fontWeight:"700", color:"#272d3b"}}>Let’s sign you in!</Typography>
