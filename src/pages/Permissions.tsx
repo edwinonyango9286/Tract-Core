@@ -126,8 +126,8 @@ const Permissions = () => {
     setOpen(true);
   }, []);
 
-  const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
     setPaginationModel(prev => ({ ...prev, page: 0 })); 
   }, []);
 
@@ -275,7 +275,8 @@ const handleDeletePermission = useCallback(async () => {
       onClose={handleCloseDeleteModal} 
       title={"Delete Permission"} 
       onConfirm={handleDeletePermission} 
-      itemT0Delete={`${permissionName} permission`} />
+      itemT0Delete={`${permissionName} permission`}
+      />
 
       <Box sx={{ width: "100%", height: "70vh", marginTop: "20px" }}>
         <CustomDataGrid
