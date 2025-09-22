@@ -1,4 +1,4 @@
-import { Box, FormControl, InputLabel, MenuItem, Select, Input, type SelectChangeEvent } from '@mui/material';
+import { Box, InputLabel, MenuItem, Select, Input, type SelectChangeEvent } from '@mui/material';
 import { useState, useMemo, type FocusEvent } from "react";
 import SearchIcon from '@mui/icons-material/Search';
 
@@ -17,11 +17,12 @@ interface CustomSelectProps {
   onBlur?: (event: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   options: Option[];
   searchable?: boolean;
+  error?: boolean; 
+  helperText?: string | boolean; 
 }
 
-const CustomSelect: React.FC<CustomSelectProps> = ({label,disabled = false,name,id,value,onChange,onBlur,options, searchable = false}) => {
+const CustomSelect: React.FC<CustomSelectProps> = ({label, disabled = false, name,id,value,onChange,onBlur,options,searchable = false,  error = false, helperText }) => {
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [isFocused, setIsFocused] = useState<boolean>(false);
   
   const filteredOptions = useMemo(() => {
     if (!searchTerm) return options;
@@ -35,11 +36,10 @@ const CustomSelect: React.FC<CustomSelectProps> = ({label,disabled = false,name,
     e.nativeEvent.stopImmediatePropagation();
   };
 
-  const shouldLabelShrink = isFocused || (value !== null && value !== undefined && value !== '');
-
   return (
-    <FormControl fullWidth variant="outlined">
-      <InputLabel sx={{ color: '#333', backgroundColor: 'white', padding: '0 4px', left: '-4px', '&.Mui-focused': { color: '#333' },}} id={`${name}-label`} shrink={shouldLabelShrink}>
+    <Box sx={{ display:"flex", flexDirection:"column", gap:"6px"}}>
+      <InputLabel sx={{ fontSize:"14px", fontWeight:"500", color:"#032541"}} 
+        id={`${name}-label`}>
         {label}
       </InputLabel>
       <Select
@@ -48,22 +48,18 @@ const CustomSelect: React.FC<CustomSelectProps> = ({label,disabled = false,name,
         disabled={disabled}
         name={name}
         value={value ?? ''}
-        label={label}
         onChange={onChange}
-         onBlur={(e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-          setIsFocused(false);
-          if (onBlur) onBlur(e)
-        }}
-        onFocus={() => setIsFocused(true)}
+        onBlur={onBlur}
         sx={{ 
+          borderRadius:"8px",
           '& .MuiOutlinedInput-notchedOutline': {
-            borderColor: 'rgba(0, 0, 0, 0.23)',
+            borderColor: error ? '#d32f2f' : 'rgba(0, 0, 0, 0.23)',
           },
           '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#333', 
+            borderColor: error ? '#d32f2f' : '#333', 
           },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#333', 
+            borderColor: error ? '#d32f2f' : '#333', 
             borderWidth: '1px',
           },
           '& .MuiSelect-select': {
@@ -72,7 +68,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({label,disabled = false,name,
             alignItems: 'center',
           },
           '& .MuiSelect-icon': {
-            color: '#333',
+            color: error ? '#d32f2f' : '#333',
           }
         }}
         MenuProps={{
@@ -99,23 +95,14 @@ const CustomSelect: React.FC<CustomSelectProps> = ({label,disabled = false,name,
         }}
       >
         {searchable && (
-          <Box sx={{ 
-            padding: '8px 16px', 
-            borderBottom: '1px solid #eee',
-            backgroundColor: '#f9f9f9',
-          }}>
+          <Box sx={{ padding: '8px 16px', borderBottom: '1px solid #eee', backgroundColor: '#f9f9f9' }}>
             <Input
               fullWidth
               placeholder={`Search ${label.toLowerCase()}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               startAdornment={<SearchIcon sx={{ color: '#777', marginRight: '8px' }} />}
-              sx={{ 
-                padding: '4px 8px',
-                backgroundColor: 'white',
-                borderRadius: '4px',
-                '&:before, &:after': { border: 'none !important' }
-              }}
+              sx={{ padding: '4px 8px', backgroundColor: 'white', borderRadius: '4px', '&:before, &:after': { border: 'none !important' }}}
               onKeyDown={(e) => e.stopPropagation()}
               onClick={handleSearchClick}
               autoFocus
@@ -149,7 +136,10 @@ const CustomSelect: React.FC<CustomSelectProps> = ({label,disabled = false,name,
           ))
         )}
       </Select>
-    </FormControl>
+        {error && helperText && (<Box sx={{ color: '#d32f2f', fontSize:"12px",  }}>{helperText}
+        </Box>
+      )}
+    </Box>
   );
 };
 

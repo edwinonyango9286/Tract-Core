@@ -66,9 +66,6 @@ const Category = ()=>{
       if (!categoriesList) {
         return { rows: [], rowCount: 0 };
       }
-      if (Array.isArray(categoriesList)) {
-        return { rows: categoriesList, rowCount: categoriesList.length };
-      }
       const response = categoriesList as unknown as GetAllCategoriesResponse;
       return { 
         rows: response.data || [], 
