@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createSubCategoryService, deleteSubCategoryService, getSubCategoriesService, updateSubCategoryService } from "../services/subCategoryService";
 import type { GetSubCategoriesParams } from "../types/subCategory";
 
-export const useGetSubCategories = (params: GetSubCategoriesParams) => {
+export const useGetSubCategories = (params?: GetSubCategoriesParams) => {
   return useQuery({
     queryKey: ["subCategories", params],
     queryFn: () => getSubCategoriesService(params),
