@@ -12,7 +12,7 @@ import CustomTextField from "../Components/common/CustomTextField";
 import CustomCancelButton from "../Components/common/CustomCancelButton";
 import CustomSubmitButton from "../Components/common/CustomSubmitButton";
 import CustomDataGrid from "../Components/common/CustomDataGrid";
-import { useCreatePermission, usePermissions, useUpdatePermission } from "../hooks/usePermissions";
+import { useCreatePermission, useDeletePermission, usePermissions, useUpdatePermission } from "../hooks/usePermissions";
 import { FiberManualRecord } from "@mui/icons-material";
 import editIcon from "../assets/icons/editIcon.svg";
 import deleteIcon from "../assets/icons/deleteIcon.svg";
@@ -22,6 +22,7 @@ import { type Permission } from "../types/permissions";
 import { type PermissionsResponse } from "../types/permissions";
 import type { GridColDef, GridPaginationModel } from "@mui/x-data-grid";
 import { useDebounce } from "../hooks/useDebounce";
+import CustomDeleteComponent from "../Components/common/CustomDeleteComponent";
 
 const PermissionsSchema = Yup.object<PermissionsPayload>({
   permissionName: Yup.string().required("Please provide permission name."),
@@ -45,7 +46,9 @@ const Permissions = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 500); 
   const { data: permissionsList, isLoading, } = usePermissions({page: paginationModel.page + 1, limit: paginationModel.pageSize, search: debouncedSearchTerm});
   const createPermissionMutation = useCreatePermission();
+  const deletePermissionMutation = useDeletePermission();
   const updatePermissionMutation = useUpdatePermission();
+  const isDeleting = deletePermissionMutation.isPending;
   const [updatingPermission, setUpdatingPermission] = useState(false);
   const [permissionData, setPermissionData] = useState<Permission | null>(null);
   const [open, setOpen] = useState(false);
@@ -132,6 +135,37 @@ const Permissions = () => {
     setPaginationModel(newModel);
   }, []);
 
+
+  const [openDeleteModal,setOpenDeleteModal] = useState<boolean>(false);
+  const [selectedPermissionId,setSelectedPermissionId] = useState<number | null>(null);
+  const [permissionName,setPermissionName] = useState<string>("");
+
+   const handleOpenDeleteModal = (permissionId:number)=>{
+    setOpenDeleteModal(true);
+     setSelectedPermissionId(permissionId)
+    console.log(permissionId,"deletpermissionidhere..........")
+  }
+
+  const handleCloseDeleteModal = () =>{
+    setOpenDeleteModal(false);
+    setSelectedPermissionId(null);
+    setPermissionName("");
+  }
+
+const handleDeletePermission = useCallback(async () => {
+    if (selectedPermissionId) {
+        try {
+            await deletePermissionMutation.mutateAsync(selectedPermissionId);
+            showSnackbar("Permission deleted successfully.", "success");
+            handleCloseDeleteModal();
+        } catch (error) {
+            const err = error as AxiosError<{ message?: string }>;
+            showSnackbar(err.response?.data.message || err.message, "error");
+        }
+    }
+}, [selectedPermissionId,showSnackbar,deletePermissionMutation]);
+
+
   const columns: GridColDef[] = useMemo(() => [
     { field: 'id', headerName: '#',  },
     { field: 'permissionName', headerName: 'Permission Name', flex: 1 },
@@ -144,7 +178,7 @@ const Permissions = () => {
             <IconButton onClick={() => handleEdit(params.row as Permission)}>
               <img src={editIcon} alt="editIcon" style={{ width: "21px", height: "21px" }} />
             </IconButton>
-            <IconButton>
+            <IconButton onClick={()=>{handleOpenDeleteModal(params?.row?.id); setPermissionName(params?.row?.permissionName)}}>
               <img src={deleteIcon} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
             </IconButton>
             <IconButton>
@@ -234,6 +268,15 @@ const Permissions = () => {
         </Box>
       </Modal>
 
+      {/* delete modal here */}
+    <CustomDeleteComponent 
+      loading={isDeleting}
+      open={openDeleteModal}  
+      onClose={handleCloseDeleteModal} 
+      title={"Delete Permission"} 
+      onConfirm={handleDeletePermission} 
+      itemT0Delete={`${permissionName} permission`} />
+
       <Box sx={{ width: "100%", height: "70vh", marginTop: "20px" }}>
         <CustomDataGrid
           loading={isLoading}
@@ -245,6 +288,7 @@ const Permissions = () => {
           columns={columns}
         />
       </Box>
+
     </Box>
   );
 };
