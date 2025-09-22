@@ -6,7 +6,6 @@ export const getPermissionsService = async (params?: GetPermissionsParams): Prom
   try {
     const { page = 1, limit = 10, search = "" } = params || {}
     const response = await apiClient.get(`bursary-hub/permissions`, {params: {page,limit, search: search.trim() || undefined}});
-    console.log(response.data,"permissionsresponse,.............")
     return response.data;
   } catch (error) {
     console.log(error);
