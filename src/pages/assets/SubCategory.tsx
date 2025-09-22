@@ -75,10 +75,12 @@ const SubCategory = ()=>{
       }
       const response = subCategoriesList as unknown as GetSubCategoriesResponse;
       return { 
-        rows: response.data.content || [], 
-        rowCount: response.data.totalElements || 0 
+        rows: response.data.data.content || [], 
+        rowCount: response.data.data.totalElements || 0 
+
       };
     }, [subCategoriesList]);
+
 
 
   const handleSearchChange = useCallback((e:React.ChangeEvent<HTMLInputElement>)=>{
@@ -133,7 +135,8 @@ const SubCategory = ()=>{
       onSubmit: async (values, { setSubmitting, resetForm }) => {
         try {
           if (updatingSubCategory && subCategoryData) {
-            await updateSubCategoryMutation.mutateAsync(values);
+             const updatePayload = {...values,subCategoryCode: subCategoryData.code };
+            await updateSubCategoryMutation.mutateAsync(updatePayload);
             showSnackbar("Sub category updated successfully.", "success");
           } else {
             await createSubCategoryMutation.mutateAsync(values);
@@ -309,7 +312,7 @@ const SubCategory = ()=>{
           loading={isLoading}
           rows={rows}
           rowCount={rowCount}
-          getRowId={(row)=>row.id}
+          getRowId={(row)=>row.code}
           paginationModel={paginationModel}
           onPaginationModelChange={handlePaginationModelChange}
           columns={columns}
