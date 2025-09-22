@@ -26,6 +26,7 @@ function CustomSubmitButton({
         fontSize: "14px",
         borderRadius: "8px",
         textTransform: "none",
+        textWrap:"nowrap",
         height: "48px",
         boxShadow: "none",
         width: "100%",
