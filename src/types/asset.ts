@@ -22,35 +22,6 @@ export interface CreateAssetPayload {
   supportingDocs?:string;
 }
 
-
-
- "data": {
-    "id": "string",
-    "code": "string",
-    "name": "string",
-    "categoryName": "string",
-    "categoryCode": "string",
-    "subCategory": "string",
-    "model": "string",
-    "serialNumber": "string",
-    "manufacturer": "string",
-    "supplier": "string",
-    "assignedTo": "string",
-    "location": "string",
-    "conditionNote": "string",
-    "documentsUrl": "string",
-    "purchaseDate": "2025-09-23",
-    "warrantyExpiry": "2025-09-23",
-    "complianceExpiry": "2025-09-23",
-    "lastInspectionDate": "2025-09-23",
-    "nextInspectionDue": "2025-09-23",
-    "purchaseCost": 0,
-    "createdAt": "2025-09-23T07:58:08.482Z",
-    "updatedAt": "2025-09-23T07:58:08.482Z",
-    "status": "IN_USE"
-  },
-
-
 export interface Asset {
   id?: string;
   code?: string;
@@ -74,6 +45,7 @@ export interface Asset {
   complianceExpiry?:string;
   lastInspectionDate?:string;
   nextInspectionDue?:string;
+  supportingDocs?:string;
   createdAt?: string;
   updatedAt?: string;
 }

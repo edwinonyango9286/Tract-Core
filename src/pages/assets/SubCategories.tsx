@@ -16,12 +16,15 @@ import deleteIcon from "../../assets/icons/deleteIcon.svg"
 import dotsVertical from "../../assets/icons/dotsVertical.svg"
 import type { AxiosError } from "axios";
 import { useSnackbar } from "../../hooks/useSnackbar";
-import { useCreateCategory, useDeleteCategory, useGetCategories, useUpdateCategory } from "../../hooks/useCategories";
+import { useGetCategories } from "../../hooks/useCategories";
 import { useDebounce } from "../../hooks/useDebounce";
 import type { GridPaginationModel } from "@mui/x-data-grid";
-import type { Category, CreateCategoryPayload, GetAllCategoriesResponse } from "../../types/category";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import type { CreateSubCategoryPayload, GetSubCategoriesResponse, SubCategory } from "../../types/subCategory";
+import CustomSelect from "../../Components/common/CustomSelect";
+import type { Category } from "../../types/category";
+import { useCreateSubCategory, useDeleteSubCategory, useGetSubCategories, useUpdateSubCategory } from "../../hooks/useSubCategories";
 import { dateFormatter } from "../../utils/dateFormatter";
 
 const breadcrumbs = [
@@ -29,7 +32,7 @@ const breadcrumbs = [
     Dashboard
   </Typography>,
   <Typography key={2} style={{ cursor: "pointer", color: "#dc3545", fontSize: "14px" }}>
-    Category
+    Sub-Categories
   </Typography>,
 ];
   const style = {
@@ -44,35 +47,41 @@ const breadcrumbs = [
     paddingX: "30px",
     borderRadius: "8px"
   };
-  
-  const CategorySchema = Yup.object<CreateCategoryPayload>({
-    name:Yup.string().required("Please provide category name."),
-    description:Yup.string().required("Please provide category description"),
+
+  const SubCategorySchema = Yup.object<CreateSubCategoryPayload>({
+    name:Yup.string().required("Please provide sub category name."),
+    description:Yup.string().required("Please provide sub category description."),
+    categoryCode:Yup.string().required("Please select category."),
+    status:  Yup.string().oneOf(["ACTIVE","INACTIVE"]).required("Please select sub category status.")
   })
 
-const Category = ()=>{
+const SubCategories = ()=>{
   const navigate = useNavigate();
   const {showSnackbar} = useSnackbar();
-  const deleteCategoryMutation =  useDeleteCategory();
+  const deleteSubCategoryMutation =  useDeleteSubCategory();
   const [paginationModel,setPaginationModel] = useState({ page:0, pageSize:10 });
   const [searchTerm,setSearchTerm]= useState<string>("")
   const debouncedSearchTerm = useDebounce(searchTerm,500)
-  const isDeleting = deleteCategoryMutation.isPending;
-  const {data:categoriesList,isLoading} = useGetCategories({ page:paginationModel.page, size:paginationModel.pageSize, search:debouncedSearchTerm} )
-  const createCategoryMutation= useCreateCategory();
-  const updateCategoryMutation = useUpdateCategory();
-  const [categoryData,setCategoryData] = useState<Category | null>(null)
+  const isDeleting = deleteSubCategoryMutation.isPending;
+  const {data:categoriesList } = useGetCategories()
+  const {data:subCategoriesList, isLoading} = useGetSubCategories({ page:paginationModel.page, size:paginationModel.pageSize, search:debouncedSearchTerm })
+  const createSubCategoryMutation= useCreateSubCategory();
+  const updateSubCategoryMutation = useUpdateSubCategory();
+  const [subCategoryData,setSubCategoryData] = useState<SubCategory | null>(null);
+
 
     const { rows, rowCount } = useMemo(() => {
-      if (!categoriesList) {
+      if (!subCategoriesList) {
         return { rows: [], rowCount: 0 };
       }
-      const response = categoriesList as unknown as GetAllCategoriesResponse;
+      const response = subCategoriesList as unknown as GetSubCategoriesResponse;
       return { 
-        rows: response.data || [], 
-        rowCount: response.data.length || 0 
+        rows: response.data.data.content || [], 
+        rowCount: response.data.data.totalElements || 0 
+
       };
-    }, [categoriesList]);
+    }, [subCategoriesList]);
+
 
 
   const handleSearchChange = useCallback((e:React.ChangeEvent<HTMLInputElement>)=>{
@@ -86,7 +95,7 @@ const Category = ()=>{
 
   const [openDeleteModal,setOpenDeleteModal] = useState<boolean>(false);
   const [selectedCategoryId,setSelectedCategoryId] = useState<string>("");
-  const [categoryName,setCategoryName] =useState<string>("");
+  const [subCategoryName,setSubCategoryName] =useState<string>("");
 
 
   const handleOpenDeleteModal = (categoryId:string)=>{
@@ -97,14 +106,13 @@ const Category = ()=>{
   const handleCloseDeleteModal = ()=>{
     setOpenDeleteModal(false);
     setSelectedCategoryId("");
-    setCategoryName("");
+    setSubCategoryName("");
   }
   const [open, setOpen] = useState(false);
-
   const handleDeleteCategory = useCallback(async()=>{
     if(selectedCategoryId){
       try {
-       await deleteCategoryMutation.mutateAsync(selectedCategoryId);
+       await deleteSubCategoryMutation.mutateAsync(selectedCategoryId);
        showSnackbar("Category deleted successfully.", "success");
        handleCloseDeleteModal();
     } catch (error) {
@@ -112,24 +120,28 @@ const Category = ()=>{
       showSnackbar(err.response?.data.message || err.message )
     }
     }
-  },[selectedCategoryId,showSnackbar, deleteCategoryMutation])
+  },[selectedCategoryId,showSnackbar, deleteSubCategoryMutation])
 
-  const [updatingCategory,setUpdatingCategory] = useState<boolean>(false)
-   const CategoryFormik = useFormik<CreateCategoryPayload>({
+
+  const [updatingSubCategory,setUpdatingSubCategory] = useState<boolean>(false)
+   const SubCategoryFormik = useFormik<CreateSubCategoryPayload>({
       initialValues: {
-        name: categoryData?.name || "",
-        description: categoryData?.description || "",
+        name: subCategoryData?.name || "",
+        description: subCategoryData?.description || "",
+        categoryCode:subCategoryData?.categoryCode || "",
+        status:subCategoryData?.status || "ACTIVE"
       },
-      validationSchema: CategorySchema,
+      validationSchema: SubCategorySchema,
       enableReinitialize: true, 
       onSubmit: async (values, { setSubmitting, resetForm }) => {
         try {
-          if (updatingCategory && categoryData) {
-            await updateCategoryMutation.mutateAsync({ code: categoryData.code, ...values });
-            showSnackbar("Category updated successfully.", "success");
+          if (updatingSubCategory && subCategoryData) {
+             const updatePayload = {...values,subCategoryCode: subCategoryData.code };
+            await updateSubCategoryMutation.mutateAsync(updatePayload);
+            showSnackbar("Sub category updated successfully.", "success");
           } else {
-            await createCategoryMutation.mutateAsync(values);
-            showSnackbar("Category created successfully.", "success");
+            await createSubCategoryMutation.mutateAsync(values);
+            showSnackbar("Sub category created successfully.", "success");
           }
           resetForm();
           handleClose();
@@ -145,44 +157,41 @@ const Category = ()=>{
 
       const handleOpen = useCallback(() => {
         setOpen(true);
-        setUpdatingCategory(false);
-        setCategoryData(null);
+        setUpdatingSubCategory(false);
+        setSubCategoryData(null);
       }, []);
     
       const handleClose = useCallback(() => {
         setOpen(false);
-        CategoryFormik.resetForm();
-        setUpdatingCategory(false);
-        setCategoryData(null);
-      }, [CategoryFormik]);
+        SubCategoryFormik.resetForm();
+        setUpdatingSubCategory(false);
+        setSubCategoryData(null);
+      }, [SubCategoryFormik]);
     
-      const handleEdit = useCallback((category: Category) => {
-        setCategoryData(category);
-        setUpdatingCategory(true);
+      const handleEdit = useCallback((subCategory: SubCategory) => {
+        setSubCategoryData(subCategory);
+        setUpdatingSubCategory(true);
         setOpen(true);
       }, []);
 
 
-      
   const columns: GridColDef[] = useMemo(() => [
     { field: 'code', headerName: 'Code', flex:1 },
     { field: 'name', headerName: 'Name', flex: 1 },
     { field: 'description', headerName: 'Description', flex: 1 },
-    { field: 'createdAt', headerName: 'Created At', flex: 1,
-      renderCell:(params)=>dateFormatter(params.value)
-    },
-    { field: 'updatedAt', headerName: 'Updated At', flex: 1,
-      renderCell:(params)=>dateFormatter(params.value)
-    },
+    { field: 'categoryName', headerName: 'Category', flex: 1 },
+    { field:"status", headerName:"status", flex:1},
+    { field:"createdAt", headerName:"Created At", flex:1,renderCell:(params)=>dateFormatter(params.value)},
+    { field:"updatedAt", headerName:"Updated At", flex:1, renderCell:(params)=>dateFormatter(params.value)},
     {
       field: 'action', headerName: 'Action', flex: 1,
       renderCell: (params) => {
         return (
           <Box sx={{ display: "flex", gap: "10px" }}>
-            <IconButton onClick={() => handleEdit(params.row as Category)}>
+            <IconButton onClick={() => handleEdit(params.row as SubCategory)}>
               <img src={editIcon} alt="editIcon" style={{ width: "21px", height: "21px" }} />
             </IconButton>
-            <IconButton onClick={()=>{handleOpenDeleteModal(params?.row?.code); setCategoryName(params?.row?.name)}}>
+            <IconButton onClick={()=>{handleOpenDeleteModal(params?.row?.code); setSubCategoryName(params?.row?.name)}}>
               <img src={deleteIcon} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
             </IconButton>
             <IconButton>
@@ -202,9 +211,9 @@ const Category = ()=>{
           <IconButton onClick={() => navigate(-1)}>
             <ArrowBackIosNewIcon />
           </IconButton>
-          <Typography sx={{ fontSize: "25px", fontWeight: "600", color: "#032541" }}>Categories</Typography>
+          <Typography sx={{ fontSize: "25px", fontWeight: "600", color: "#032541" }}>Sub Categories</Typography>
         </Box>
-        <CustomAddButton variant="contained" label="Add Category" onClick={handleOpen} />
+        <CustomAddButton variant="contained" label="Add Sub category" onClick={handleOpen} />
       </Box>
 
        <Box sx={{ width: "100%", marginTop: "-10px", marginLeft: "40px" }}>
@@ -227,9 +236,9 @@ const Category = ()=>{
       {/* category modal */}
       <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
         <Box sx={style}>
-          <form style={{ width: "100%" }} onSubmit={CategoryFormik.handleSubmit}>
+          <form style={{ width: "100%" }} onSubmit={SubCategoryFormik.handleSubmit}>
             <Typography sx={{ fontSize: "20px", fontWeight: "700" }}>
-              {updatingCategory ? "Update Category Details" : "Add Category"}
+              {updatingSubCategory ? "Update Sub Category Details" : "Add Sub Category"}
             </Typography>
             <Box sx={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "20px" }}>
               <CustomTextField
@@ -238,10 +247,10 @@ const Category = ()=>{
                 label="Name"
                 type="text"
                 placeholder="Name"
-                onChange={CategoryFormik.handleChange}
-                value={CategoryFormik.values.name}
-                onBlur={CategoryFormik.handleBlur}
-                errorMessage={CategoryFormik.touched.name && CategoryFormik.errors.name}
+                onChange={SubCategoryFormik.handleChange}
+                value={SubCategoryFormik.values.name}
+                onBlur={SubCategoryFormik.handleBlur}
+                errorMessage={SubCategoryFormik.touched.name && SubCategoryFormik.errors.name}
               />
               <CustomTextField
                 id="description"
@@ -249,11 +258,27 @@ const Category = ()=>{
                 name="description"
                 label="Description"
                 placeholder="Description"
-                onChange={CategoryFormik.handleChange}
-                value={CategoryFormik.values.description}
-                onBlur={CategoryFormik.handleBlur}
-                errorMessage={CategoryFormik.touched.description && CategoryFormik.errors.description}
+                onChange={SubCategoryFormik.handleChange}
+                value={SubCategoryFormik.values.description}
+                onBlur={SubCategoryFormik.handleBlur}
+                errorMessage={SubCategoryFormik.touched.description && SubCategoryFormik.errors.description}
               />
+             <CustomSelect
+                label="Category"
+                name="categoryCode"
+                id="categoryCode"
+                value={SubCategoryFormik.values.categoryCode}
+                onChange={SubCategoryFormik.handleChange}
+                onBlur={SubCategoryFormik.handleBlur}
+                options={categoriesList?.data.map((category:Category) => ({
+                  value: category.code, 
+                  label: category.name   
+                })) || []} 
+                searchable
+                error={SubCategoryFormik.touched.categoryCode && Boolean(SubCategoryFormik.errors.categoryCode)}
+                helperText={SubCategoryFormik.touched.categoryCode && SubCategoryFormik.errors.categoryCode}
+              />
+
               <Box sx={{
                 marginBottom: "20px",
                 marginTop:"10px",
@@ -265,8 +290,8 @@ const Category = ()=>{
               }}>
                 <CustomCancelButton onClick={handleClose} label="Cancel" />
                 <CustomSubmitButton
-                  loading={CategoryFormik.isSubmitting}
-                  label={updatingCategory ? "Update Category" : "Create Category"}
+                  loading={SubCategoryFormik.isSubmitting}
+                  label={updatingSubCategory ? "Update Sub Category" : "Create Sub Category"}
                 />
               </Box>
             </Box>
@@ -281,7 +306,7 @@ const Category = ()=>{
       onClose={handleCloseDeleteModal} 
       title={"Delete Category"} 
       onConfirm={handleDeleteCategory} 
-      itemT0Delete={`${categoryName} category`}
+      itemT0Delete={`${subCategoryName} category`}
       />
 
         <Box sx={{ width: "100%", height: "70vh", marginTop: "20px" }}>
@@ -289,7 +314,7 @@ const Category = ()=>{
           loading={isLoading}
           rows={rows}
           rowCount={rowCount}
-          getRowId={(row)=>row.id}
+          getRowId={(row)=>row.code}
           paginationModel={paginationModel}
           onPaginationModelChange={handlePaginationModelChange}
           columns={columns}
@@ -299,8 +324,9 @@ const Category = ()=>{
   )
 }
 
-export default Category
+export default SubCategories
 
-// https://asset-inventory-management-production.up.railway.app/api/v1/aims/categories?page=0&size=20
-// https://asset-inventory-management-production.up.railway.app/api/v1/aims/categories?page=1&size=10
+
+
+
 
