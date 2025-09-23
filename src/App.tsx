@@ -8,14 +8,16 @@ import Roles from "./pages/roles/Roles";
 import Dashboard from "./pages/Dashboard";
 import Category from "./pages/assets/Category";
 import SubCategory from "./pages/assets/SubCategory";
-import Stack from "./pages/Inventory/Stack";
 import Users from "./pages/Users";
 import Permissions from "./pages/Permissions";
-import Pallet from "./pages/Inventory/Pallet";
-import Movement from "./pages/Movement";
+import Movements from "./pages/Movements";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PublicRoutes } from "./utils/PublicRoutes";
 import { PrivateRoutes } from "./utils/PrivateRoutes";
+import Assets from "./pages/assets/Assets";
+import Stacks from "./pages/Inventory/Stacks";
+import Pallets from "./pages/Inventory/Pallets";
+
 
 const queryClient = new QueryClient();
 
@@ -35,11 +37,12 @@ function App() {
               <Route path="roles" element={<Roles />} />
               <Route path="category" element={<Category />} />
               <Route path="sub-category" element={<SubCategory />} />
-              <Route path="stack" element={<Stack />} />
-              <Route path="pallet" element={<Pallet />} />
+              <Route path="stack" element={<Stacks />} />
+              <Route path="assets" element={<Assets/>}/>
+              <Route path="pallet" element={<Pallets />} />
               <Route path="permissions" element={<Permissions />} />
               <Route path="users" element={<Users />} />
-              <Route path="movement" element={<Movement />} />
+              <Route path="movement" element={<Movements />} />
             </Route>
           </Routes>
         </BrowserRouter>

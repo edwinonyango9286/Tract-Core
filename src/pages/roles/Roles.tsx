@@ -139,10 +139,9 @@ const handleSearchChange = useCallback((e:React.ChangeEvent<HTMLInputElement>)=>
   }, []);
 
   const columns: GridColDef[] = useMemo(() => [
-      { field: 'roleCode', headerName: '#',},
       { field: 'roleName', headerName: 'Name', flex:1},
       { field: 'roleShortDesc', headerName: 'Short Description', flex:1 },
-      { field: 'roleDescription', headerName: 'Status', flex:1 },
+      { field: 'roleDescription', headerName: 'Description', flex:1 },
       { field: 'roleStatus', headerName: 'Status', flex:1 },
       { field: 'createDate', headerName: 'Created At', flex:1,
          renderCell:(params)=>(dateFormatter(params.row.createDate))

@@ -13,6 +13,8 @@ import LayersIcon from '@mui/icons-material/Layers';
 import PaletteIcon from '@mui/icons-material/Palette';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import InventoryIcon from '@mui/icons-material/Inventory';
+import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
+
 
 type DrawerItem = {
   id: string;
@@ -44,6 +46,7 @@ const Drawer = ({open,children}: DrawerProps) => {
     { id: 'users', text: <Typography sx={{ fontSize:"16px", fontWeight:"700", textAlign:"start"}}>Users</Typography>, icon: <GroupAddIcon/>, path:"users",},
     { id: 'assets', text: <Typography sx={{ fontSize:"16px", fontWeight:"700", textAlign:"start"}}>Assets</Typography>, icon: <FolderIcon/>,
       children: [
+        { id: 'assets', text: <Typography sx={{ fontSize:"16px", fontWeight:"700", textAlign:"start"}}>Assets</Typography>, icon: <BusinessCenterIcon/>, path: 'assets'},
         { id: 'category', text: <Typography sx={{ fontSize:"16px", fontWeight:"700", textAlign:"start"}}>Category</Typography>, icon: <CategoryIcon/>, path: 'category'},
         { id: 'sub-category', text: <Typography sx={{ fontSize:"16px", fontWeight:"700", textAlign:"start"}}>Sub-Category</Typography>, icon: <SubdirectoryArrowRightIcon />, path: 'sub-category'},
       ]

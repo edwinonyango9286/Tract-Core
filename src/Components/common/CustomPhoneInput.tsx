@@ -13,7 +13,7 @@ interface CustomPhoneInputProps {
 }
 const CustomPhoneInput = ({ name, id, value,label,onChange,onBlur, errorMessage }: CustomPhoneInputProps) => {
   return (
-    <Box sx={{ width: "100%", display: "flex", flexDirection: "column", gap: "10px" }}>
+    <Box sx={{ width: "100%", display: "flex", flexDirection: "column", gap: "4px" }}>
       <InputLabel sx={{ fontSize: "14px", fontWeight: "500", color: "#032541" }}>
         {label}
       </InputLabel>
