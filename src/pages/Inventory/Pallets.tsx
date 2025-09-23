@@ -1,28 +1,28 @@
 import { Box, Breadcrumbs, IconButton, Modal, Typography } from "@mui/material"
-import CustomSearchTextField from "../Components/common/CustomSearchTextField";
 import { FiberManualRecord } from "@mui/icons-material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import CustomAddButton from "../Components/common/CustomAddButton";
 import { useNavigate } from "react-router-dom";
-import CustomTextField from "../Components/common/CustomTextField";
-import CustomCancelButton from "../Components/common/CustomCancelButton";
-import CustomSubmitButton from "../Components/common/CustomSubmitButton";
-import CustomDeleteComponent from "../Components/common/CustomDeleteComponent";
-import CustomDataGrid from "../Components/common/CustomDataGrid";
 import type { GridColDef } from "@mui/x-data-grid";
 import React, { useCallback, useMemo, useState } from "react";
-import editIcon from "../assets/icons/editIcon.svg";
-import deleteIcon from "../assets/icons/deleteIcon.svg"
-import dotsVertical from "../assets/icons/dotsVertical.svg"
+import editIcon from "../../assets/icons/editIcon.svg";
+import deleteIcon from "../../assets/icons/deleteIcon.svg"
+import dotsVertical from "../../assets/icons/dotsVertical.svg"
 import type { AxiosError } from "axios";
-import { useSnackbar } from "../hooks/useSnackbar";
-import { useCreatePallet, useDeletePallet, useGetPallets, useUpdatePallet } from "../hooks/usePallets";
-import { useDebounce } from "../hooks/useDebounce";
 import type { GridPaginationModel } from "@mui/x-data-grid";
-import type { Pallet, CreatePalletPayload, GetAllPalletsResponse } from "../types/pallet";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { dateFormatter } from "../utils/dateFormatter";
+import { useSnackbar } from "../../hooks/useSnackbar";
+import type { CreatePalletPayload, GetAllPalletsResponse, Pallet } from "../../types/pallet";
+import { useCreatePallet, useDeletePallet, useGetPallets, useUpdatePallet } from "../../hooks/usePallets";
+import { useDebounce } from "../../hooks/useDebounce";
+import { dateFormatter } from "../../utils/dateFormatter";
+import CustomAddButton from "../../Components/common/CustomAddButton";
+import CustomSearchTextField from "../../Components/common/CustomSearchTextField";
+import CustomTextField from "../../Components/common/CustomTextField";
+import CustomCancelButton from "../../Components/common/CustomCancelButton";
+import CustomSubmitButton from "../../Components/common/CustomSubmitButton";
+import CustomDeleteComponent from "../../Components/common/CustomDeleteComponent";
+import CustomDataGrid from "../../Components/common/CustomDataGrid";
 
 const breadcrumbs = [
   <Typography key={1} style={{ cursor: "pointer", color: "#707070", fontSize: "14px" }}>

@@ -179,15 +179,21 @@ const Assets = () => {
   }, []);
 
   const columns: GridColDef[] = useMemo(() => [
-    { field: 'code', headerName: 'Code', flex: 1 },
     { field: 'name', headerName: 'Name', flex: 1 },
-    { field: 'category', headerName: 'Category', flex: 1 },
+    { field: 'categoryName', headerName: 'Category Name', flex: 1 },
+    { field: 'subCategory', headerName: 'Sub Category Name', flex: 1 },
+    { field: 'model', headerName: 'Model', flex: 1 },
     { field: 'serialNumber', headerName: 'Serial Number', flex: 1 },
-    { field: 'condition', headerName: 'Condition', flex: 1 },
+    { field: 'lastInspectionDate', headerName: 'Last Inspection Date', flex: 1,
+      renderCell:(params)=>dateFormatter(params.value)
+    },
+    { field: 'nextInspectionDue', headerName: 'Next Inspection Due Date', flex: 1,
+      renderCell:(params)=>dateFormatter(params.value)
+     },
+    { field: 'assignedTo', headerName: 'Assigned To', flex: 1 },
     { field: 'location', headerName: 'Location', flex: 1 },
-    { field: 'status', headerName: 'Status', flex: 1 },
     {
-      field: 'purchasePrice', headerName: 'Purchase Price', flex: 1,
+      field: 'purchaseCost', headerName: 'Purchase Cost', flex: 1,
       renderCell: (params) => `$${params.value?.toLocaleString() || 0}`
     },
     {
@@ -198,6 +204,7 @@ const Assets = () => {
       field: 'updatedAt', headerName: 'Updated At', flex: 1,
       renderCell: (params) => dateFormatter(params.value)
     },
+    { field: 'status', headerName: 'Status', flex: 1 },
     {
       field: 'action', headerName: 'Action', flex: 1,
       renderCell: (params) => {

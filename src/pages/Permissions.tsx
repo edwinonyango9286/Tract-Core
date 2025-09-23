@@ -167,9 +167,14 @@ const handleDeletePermission = useCallback(async () => {
 
 
   const columns: GridColDef[] = useMemo(() => [
-    { field: 'id', headerName: '#',  },
-    { field: 'permissionName', headerName: 'Permission Name', flex: 1 },
-    { field: 'permissionDescription', headerName: 'Permission Description', flex: 1 },
+    { field: 'permissionName', headerName: 'Name', flex: 1 },
+    { field: 'permissionDescription', headerName: 'Description', flex: 1 },
+    { field: 'createdAt', headerName: 'Created At', flex: 1,
+      renderCell:(params)=>{return <Typography>{params.value || "N/A"}</Typography>}
+     },
+    { field: 'updatedAt', headerName: 'Updated At', flex: 1,
+      renderCell:(params)=>{return <Typography>{params.value || "N/A"}</Typography> }
+    },
     {
       field: 'action', headerName: 'Action', flex: 1,
       renderCell: (params) => {

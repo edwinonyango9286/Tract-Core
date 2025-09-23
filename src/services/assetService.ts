@@ -12,13 +12,12 @@ export const createAssetService = async (assetData: CreateAssetPayload) => {
   }
 };
 
-
 export const getAllAssetsService = async (params?: GetAssetsParams): Promise<GetAllAssetsResponse> => {
   try {
     const { page = 0, size = 10, search = "" } = params || {};
-    let url = `aims/assets?page=${page}&size=${size}`;
+    let url = `aims/assets/search?page=${page}&size=${size}&sortBy=createdAt&direction=desc`;
     if (search) {
-      url = `/aims/assets/search?q=${search}&page=${page}&size=${size}`;
+      url=`aims/assets/search?keyword=${search}&page=${page}&size=${size}&sortBy=createdAt&direction=desc`
     }
     const response = await apiClient.get(url);
     return response.data;

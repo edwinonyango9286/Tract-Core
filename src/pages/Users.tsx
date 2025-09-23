@@ -41,12 +41,14 @@ const style = {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 800,
+  width: 500,
   bgcolor: 'background.paper',
   boxShadow: 24,
   paddingY: "10px",
   paddingX: "30px",
-  borderRadius: "8px"
+  borderRadius: "8px",
+  maxHeight: "90vh",
+  overflowY: "auto"
 };
 
 const UserSchema = Yup.object<CreateUserPayload>({
@@ -178,22 +180,13 @@ const Users = () => {
 
 
   const columns: GridColDef[] = useMemo(() => [
-    { field: 'id', headerName: 'Code', flex: 1 },
     { field: 'firstname', headerName: 'First Name', flex: 1 },
     { field: 'lastname', headerName: 'Last Name', flex: 1 },
-    { field: 'email', headerName: 'email', flex: 1 },
-    { field: 'userPhoneNumber', headerName: 'userPhoneNumber', flex: 1 },
-    { field: 'userIdNumber', headerName: 'userIdNumber', flex: 1 },
-    { field: 'phoneVerified', headerName: 'phoneVerified', flex: 1, renderCell:(params)=>  { return params.value ? <Typography>Yes</Typography>: <Typography>No</Typography> }},
+    { field: 'email', headerName: 'Email', flex: 1 },
+    { field: 'userPhoneNumber', headerName: 'Phone Number', flex: 1 },
+    { field: 'userIdNumber', headerName: 'Id Number', flex: 1 },
+    { field: 'phoneVerified', headerName: 'Phone Verified', flex: 1, renderCell:(params)=>  { return params.value ? <Typography>Yes</Typography>: <Typography>No</Typography> }},
     { field: "roleDescription", headerName:"Role Description", flex:1},
-    // {
-    //   field: 'createdAt', headerName: 'Created At', flex: 1,
-    //   renderCell: (params) => dateFormatter(params.value)
-    // },
-    // {
-    //   field: 'updatedAt', headerName: 'Updated At', flex: 1,
-    //   renderCell: (params) => dateFormatter(params.value)
-    // },
     {
       field: 'action', headerName: 'Action', flex: 1,
       renderCell: (params) => {
@@ -247,9 +240,9 @@ const Users = () => {
             <Typography sx={{ fontSize: "20px", fontWeight: "700" }}>
               {updatingUser ? "Update User Details" : "Add User"}
             </Typography>
-            <Box sx={{ marginBottom:"10px", width:"100%", marginTop: "10px", display: "flex", gap: "20px" }}>
-              <Box sx={{ width:"50%", display:"flex", flexDirection:"column", gap:"20px"}}>
-              <CustomTextField
+
+             <Box sx={{ width:"100%", marginTop:"20px", display:"flex", gap:"20px"}}>
+                <CustomTextField
                 id="firstName"
                 name="firstName"
                 label="First name"
@@ -260,7 +253,7 @@ const Users = () => {
                 onBlur={UserFormik.handleBlur}
                 errorMessage={UserFormik.touched.firstName && UserFormik.errors.firstName}
               />
-              <CustomTextField
+               <CustomTextField
                 id="lastName"
                 name="lastName"
                 label="Last name"
@@ -271,6 +264,8 @@ const Users = () => {
                 onBlur={UserFormik.handleBlur}
                 errorMessage={UserFormik.touched.lastName && UserFormik.errors.lastName}
               />
+              </Box>
+             <Box sx={{ width:"100%", marginTop:"20px" }}>
               <CustomTextField
                 id="email"
                 type="email"
@@ -283,9 +278,8 @@ const Users = () => {
                 errorMessage={UserFormik.touched.email && UserFormik.errors.email}
               />
               </Box>
-
-              <Box sx={{ width:"50%", display:"flex", flexDirection:"column", gap:"20px"}}>
-              <CustomTextField
+              <Box sx={{ width:"100%", marginTop:"20px", display:"flex", gap:"20px"}}>
+               <CustomTextField
                 id="idNo"
                 type="number"
                 name="idNo"
@@ -296,6 +290,7 @@ const Users = () => {
                 onBlur={UserFormik.handleBlur}
                 errorMessage={UserFormik.touched.idNo && UserFormik.errors.idNo}
               />
+              <Box sx={{ width:"50%"}}>
               <CustomPhoneInput 
                name="phone"
                label="Phone Number"
@@ -305,6 +300,9 @@ const Users = () => {
                value={UserFormik.values.phone}
                errorMessage={UserFormik.touched.phone && UserFormik.errors.phone}
               />
+              </Box>
+              </Box>
+              <Box sx={{ width:"100%", marginTop:"20px", marginBottom:"20px"}}>
               <CustomSelect 
                 id="role"
                 label="Role"
@@ -320,12 +318,11 @@ const Users = () => {
                 error={UserFormik.touched.role && Boolean(UserFormik.errors.role)}
                 helperText ={UserFormik.touched.role && UserFormik.errors.role}
               />
-              <Box sx={{ marginBottom: "20px",marginTop: "10px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Box sx={{ marginBottom: "20px",marginTop: "30px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <CustomCancelButton onClick={handleClose} label="Cancel" />
                 <CustomSubmitButton loading={UserFormik.isSubmitting} label={updatingUser ? "Update User" : "Create User"}/>
               </Box>
               </Box>
-            </Box>
           </form>
         </Box>
       </Modal>
