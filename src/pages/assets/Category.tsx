@@ -22,6 +22,7 @@ import type { GridPaginationModel } from "@mui/x-data-grid";
 import type { Category, CreateCategoryPayload, GetAllCategoriesResponse } from "../../types/category";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { dateFormatter } from "../../utils/dateFormatter";
 
 const breadcrumbs = [
   <Typography key={1} style={{ cursor: "pointer", color: "#707070", fontSize: "14px" }}>
@@ -162,10 +163,17 @@ const Category = ()=>{
       }, []);
 
 
+      
   const columns: GridColDef[] = useMemo(() => [
     { field: 'code', headerName: 'Code', flex:1 },
     { field: 'name', headerName: 'Name', flex: 1 },
     { field: 'description', headerName: 'Description', flex: 1 },
+    { field: 'createdAt', headerName: 'Created At', flex: 1,
+      renderCell:(params)=>dateFormatter(params.value)
+    },
+    { field: 'updatedAt', headerName: 'Updated At', flex: 1,
+      renderCell:(params)=>dateFormatter(params.value)
+    },
     {
       field: 'action', headerName: 'Action', flex: 1,
       renderCell: (params) => {

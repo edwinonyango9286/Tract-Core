@@ -25,6 +25,7 @@ import type { CreateSubCategoryPayload, GetSubCategoriesResponse, SubCategory } 
 import CustomSelect from "../../Components/common/CustomSelect";
 import type { Category } from "../../types/category";
 import { useCreateSubCategory, useDeleteSubCategory, useGetSubCategories, useUpdateSubCategory } from "../../hooks/useSubCategories";
+import { dateFormatter } from "../../utils/dateFormatter";
 
 const breadcrumbs = [
   <Typography key={1} style={{ cursor: "pointer", color: "#707070", fontSize: "14px" }}>
@@ -180,6 +181,8 @@ const SubCategory = ()=>{
     { field: 'description', headerName: 'Description', flex: 1 },
     { field: 'categoryName', headerName: 'Category', flex: 1 },
     { field:"status", headerName:"status", flex:1},
+    { field:"createdAt", headerName:"Created At", flex:1,renderCell:(params)=>dateFormatter(params.value)},
+    { field:"updatedAt", headerName:"Updated At", flex:1, renderCell:(params)=>dateFormatter(params.value)},
     {
       field: 'action', headerName: 'Action', flex: 1,
       renderCell: (params) => {
@@ -260,7 +263,6 @@ const SubCategory = ()=>{
                 onBlur={SubCategoryFormik.handleBlur}
                 errorMessage={SubCategoryFormik.touched.description && SubCategoryFormik.errors.description}
               />
-
              <CustomSelect
                 label="Category"
                 name="categoryCode"
