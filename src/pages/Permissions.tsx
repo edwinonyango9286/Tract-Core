@@ -142,8 +142,7 @@ const Permissions = () => {
 
    const handleOpenDeleteModal = (permissionId:number)=>{
     setOpenDeleteModal(true);
-     setSelectedPermissionId(permissionId)
-    console.log(permissionId,"deletpermissionidhere..........")
+    setSelectedPermissionId(permissionId)
   }
 
   const handleCloseDeleteModal = () =>{

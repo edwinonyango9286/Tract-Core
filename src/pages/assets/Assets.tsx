@@ -240,11 +240,11 @@ const Assets = () => {
             <IconButton onClick={() => handleEdit(params.row as Asset)}>
               <img src={editIcon} alt="editIcon" style={{ width: "21px", height: "21px" }} />
             </IconButton>
-            <IconButton onClick={() => { handleOpenDeleteModal(params?.row?.code); setAssetName(params?.row?.name) }}>
+            <IconButton onClick={() => {handleOpenDeleteModal(params?.row?.code); setAssetName(params?.row?.name) }}>
               <img src={deleteIcon} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
             </IconButton>
             <IconButton>
-              <img src={dotsVertical} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
+              <img src={dotsVertical} alt="dotsvertical" style={{ width: "24px", height: "24px" }} />
             </IconButton>
           </Box>
         );
@@ -548,10 +548,6 @@ const Assets = () => {
                 />
                 </Box>
               </Box>
-
-       
-              
-
               <Box sx={{ marginBottom: "20px", marginTop: "10px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center"}}>
                 <CustomCancelButton onClick={handleClose} label="Cancel" />
                 <CustomSubmitButton  loading={AssetFormik.isSubmitting} label={updatingAsset ? "Update Asset" : "Create Asset"}/>

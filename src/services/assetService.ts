@@ -29,7 +29,7 @@ export const getAllAssetsService = async (params?: GetAssetsParams): Promise<Get
 
 export const deleteAssetService = async (code: string) => {
   try {
-    const response = await apiClient.delete(`aims/assets/${code}`);
+    const response = await apiClient.delete(`aims/assets/delete/${code}`);
     return response;
   } catch (error) {
     console.log(error);
