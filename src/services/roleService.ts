@@ -31,3 +31,13 @@ export const updateRoleService = async ({roleCode, ...roleData }:Role ): Promise
     throw error;
   }
 }
+
+export const deletRoleService = async(roleCode:number)=>{
+  try {
+    const response = await apiClient.delete(`aims/roles/${roleCode}`);
+    return response;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}

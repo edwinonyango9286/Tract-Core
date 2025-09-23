@@ -26,6 +26,7 @@ import CustomPhoneInput from "../Components/common/CustomPhoneInput";
 import CustomSelect from "../Components/common/CustomSelect";
 import { useRoles } from "../hooks/useRoles";
 import type { Role } from "../types/roles";
+import { generateUserPassword } from "../utils/generateUserPassword";
 
 const breadcrumbs = [
   <Typography key={1} style={{ cursor: "pointer", color: "#707070", fontSize: "14px" }}>
@@ -128,6 +129,7 @@ const Users = () => {
 
   const [updatingUser, setUpdatingUser] = useState<boolean>(false)
 
+
   const UserFormik = useFormik<CreateUserPayload>({
     initialValues: {
       email: userData?.email || "",
@@ -142,10 +144,13 @@ const Users = () => {
     onSubmit: async (values, { setSubmitting, resetForm }) => {
       try {
         if (updatingUser && userData) {
-          await updateUserMutation.mutateAsync({id: userData.id, ...values });
+          const updateUserPayload ={...values, userId: userData.id}
+          await updateUserMutation.mutateAsync(updateUserPayload);
           showSnackbar("User updated successfully.", "success");
         } else {
-          await createUserMutation.mutateAsync(values);
+          const password =  generateUserPassword()
+          const payload = {...values, password:password}
+          await createUserMutation.mutateAsync(payload);
           showSnackbar("User created successfully.", "success");
         }
         resetForm();

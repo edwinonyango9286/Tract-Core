@@ -13,7 +13,7 @@ import CustomMultiSelect from "../../Components/common/CustomMultiSelect"
 import CustomSubmitButton from "../../Components/common/CustomSubmitButton"
 import CustomCancelButton from "../../Components/common/CustomCancelButton"
 import CustomDataGrid from "../../Components/common/CustomDataGrid"
-import { useCreateRole, useRoles, useUpdateRole } from "../../hooks/useRoles"
+import { useCreateRole, useDeleteRole, useRoles, useUpdateRole } from "../../hooks/useRoles"
 import { FiberManualRecord } from "@mui/icons-material"
 import { useDebounce } from "../../hooks/useDebounce"
 import CustomSearchTextField from "../../Components/common/CustomSearchTextField"
@@ -24,6 +24,7 @@ import dotsVertical from "../../assets/icons/dotsVertical.svg";
 import { usePermissions } from "../../hooks/usePermissions"
 import type { Permission } from "../../types/permissions"
 import { dateFormatter } from "../../utils/dateFormatter"
+import CustomDeleteComponent from "../../Components/common/CustomDeleteComponent"
 
 
 const RolesSchema = Yup.object<RolesPayload>({
@@ -55,6 +56,8 @@ const Roles = () => {
   const { data: rolesList, isLoading } = useRoles({ page:paginationModel.page + 1, limit:paginationModel.pageSize, search:debouncedSearchTerm });
   const {data:permissionList } = usePermissions()
   const updateRoleMutation =useUpdateRole();
+  const deleteRoleMutation =useDeleteRole();
+  const isDeletingRole = deleteRoleMutation.isPending 
 
    const { rows, rowCount } = useMemo(() => {
       if (!rolesList) {
@@ -83,7 +86,8 @@ const Roles = () => {
      onSubmit: async (values, { setSubmitting, resetForm }) => {
       try {
         if(updatingRole && roleData){
-        await updateRoleMutation.mutateAsync({ roleCode:roleData.roleCode, ...values});
+          const updatePayload = {...values, roleCode:roleData.roleCode}
+        await updateRoleMutation.mutateAsync(updatePayload);
         showSnackbar("Role updated successfully.", "success");
         }else{
         await createRoleMutation.mutateAsync(values);
@@ -138,6 +142,36 @@ const handleSearchChange = useCallback((e:React.ChangeEvent<HTMLInputElement>)=>
     setOpen(true);
   }, []);
 
+
+
+const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
+const [selectedRoleCode,setSelectedRoleCode] = useState<number | null>(null);
+const [selectedRoleName,setSelectedRoleName] = useState<string>("");
+
+const handleOpenDeleteModal = (roleCode:number)=>{
+  setOpenDeleteModal(true);
+  setSelectedRoleCode(roleCode);
+}
+
+const handleCloseDeleteModal = ()=>{
+  setOpenDeleteModal(false);
+  setSelectedRoleCode(null);
+  setSelectedRoleName("");
+}
+
+const handleDeleteRole =  useCallback(async()=>{
+  if(selectedRoleCode){
+    try {
+      await deleteRoleMutation.mutateAsync(selectedRoleCode);
+      showSnackbar("Role deleted successfully","success");
+      handleCloseDeleteModal();
+    } catch (error) {
+      const err = error as AxiosError<{message?:string}>
+      showSnackbar(err.response?.data.message || err.message,"error")
+    }
+  }
+},[selectedRoleCode, showSnackbar, deleteRoleMutation])
+
   const columns: GridColDef[] = useMemo(() => [
       { field: 'roleName', headerName: 'Name', flex:1},
       { field: 'roleShortDesc', headerName: 'Short Description', flex:1 },
@@ -158,8 +192,8 @@ const handleSearchChange = useCallback((e:React.ChangeEvent<HTMLInputElement>)=>
             <IconButton onClick={() => handleEdit(params.row as Role)}>
               <img src={editIcon} alt="editIcon" style={{ width: "21px", height: "21px" }} />
             </IconButton>
-            <IconButton>
-              <img src={deleteIcon} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
+            <IconButton onClick={()=>{handleOpenDeleteModal(params.row.roleCode); setSelectedRoleName(params.row.roleName)}}>
+              <img src={deleteIcon}  alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
             </IconButton>
             <IconButton>
               <img src={dotsVertical} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
@@ -177,6 +211,10 @@ const handleSearchChange = useCallback((e:React.ChangeEvent<HTMLInputElement>)=>
   const handlePermissionsChange = (event: SelectChangeEvent<(string | number)[]>) => {
   roleFormik.setFieldValue('permissions', event.target.value);
 };
+
+
+
+
 
   return (
     <Box sx={{ width:"100%", height:"auto"}}>
@@ -251,7 +289,7 @@ const handleSearchChange = useCallback((e:React.ChangeEvent<HTMLInputElement>)=>
             onChange={handlePermissionsChange} 
             onBlur={roleFormik.handleBlur} 
             options={permissionList?.map((permission: Permission) => ({
-              value: Number(permission.id),
+              value: permission.id,
               label: permission.permissionName
             })) || []}
             searchable={true}
@@ -269,6 +307,17 @@ const handleSearchChange = useCallback((e:React.ChangeEvent<HTMLInputElement>)=>
         </Box>
       </Modal>
 
+
+    {/* delete modal here */}
+    <CustomDeleteComponent
+      loading={isDeletingRole}
+      open={openDeleteModal}  
+      onClose={handleCloseDeleteModal} 
+      title={"Delete Permission"} 
+      onConfirm={handleDeleteRole} 
+      itemT0Delete={`${selectedRoleName} permission`}
+      />
+
       <Box sx={{ width:"100%" , height:"70vh", marginTop:"20px"}}>
         <CustomDataGrid
           loading={isLoading}
@@ -280,6 +329,10 @@ const handleSearchChange = useCallback((e:React.ChangeEvent<HTMLInputElement>)=>
           columns={columns}
         />
       </Box>
+
+
+
+
     </Box>
   )
 }
