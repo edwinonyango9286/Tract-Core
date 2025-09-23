@@ -1,10 +1,10 @@
-import { Box, InputLabel, MenuItem, Select, Input, type SelectChangeEvent } from '@mui/material';
+import { Box, InputLabel, MenuItem, Select, Input, type SelectChangeEvent, Typography } from '@mui/material';
 import { useState, useMemo, type FocusEvent } from "react";
 import SearchIcon from '@mui/icons-material/Search';
 
 interface Option {
-  value: string | number;
-  label: string;
+  value?: string | number;
+  label?: string;
 }
 
 interface CustomSelectProps {
@@ -15,7 +15,7 @@ interface CustomSelectProps {
   value: string | number | null | undefined;
   onChange: (event: SelectChangeEvent<string | number>) => void;
   onBlur?: (event: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  options: Option[];
+  options?: Option[];
   searchable?: boolean;
   error?: boolean; 
   helperText?: string | boolean; 
@@ -26,8 +26,8 @@ const CustomSelect: React.FC<CustomSelectProps> = ({label, disabled = false, nam
   
   const filteredOptions = useMemo(() => {
     if (!searchTerm) return options;
-    return options.filter(option => 
-      option.label.toLowerCase().includes(searchTerm.toLowerCase())
+    return options?.filter(option => 
+      option?.label?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [options, searchTerm]);
 
@@ -90,7 +90,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({label, disabled = false, nam
           if (!selected && selected !== 0) {
             return <span style={{ color: '#777', opacity: 0.7 }}>Select {label.toLowerCase()}</span>;
           }
-          const selectedOption = options.find(opt => opt.value === selected);
+          const selectedOption = options?.find(opt => opt.value === selected);
           return selectedOption?.label || selected;
         }}
       >
@@ -110,14 +110,14 @@ const CustomSelect: React.FC<CustomSelectProps> = ({label, disabled = false, nam
           </Box>
         )}
         
-        {filteredOptions.length === 0 ? (
+        {filteredOptions?.length === 0 ? (
           <MenuItem disabled sx={{ padding: '10px 16px' }}>
             <Box sx={{ color: '#777', fontStyle: 'italic', textAlign: 'center', width: '100%'}}>
               No options available
             </Box>
           </MenuItem>
         ) : (
-          filteredOptions.map((option) => (
+          filteredOptions?.map((option) => (
             <MenuItem 
               key={option.value} 
               value={option.value}
@@ -136,10 +136,8 @@ const CustomSelect: React.FC<CustomSelectProps> = ({label, disabled = false, nam
           ))
         )}
       </Select>
-        {error && helperText && (<Box sx={{ color: '#d32f2f', fontSize:"12px",  }}>{helperText}
-        </Box>
-      )}
-    </Box>
+     {error && helperText && (<Typography sx={{ color: '#d32f2f', fontSize:"12px",  }}>{helperText}</Typography>)}
+     </Box>
   );
 };
 

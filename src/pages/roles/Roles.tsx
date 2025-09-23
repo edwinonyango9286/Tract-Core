@@ -23,6 +23,7 @@ import deleteIcon from "../../assets/icons/deleteIcon.svg";
 import dotsVertical from "../../assets/icons/dotsVertical.svg";
 import { usePermissions } from "../../hooks/usePermissions"
 import type { Permission } from "../../types/permissions"
+import { dateFormatter } from "../../utils/dateFormatter"
 
 
 const RolesSchema = Yup.object<RolesPayload>({
@@ -30,10 +31,7 @@ const RolesSchema = Yup.object<RolesPayload>({
   shortDesc:Yup.string().required("Please provide role short description."),
   description:Yup.string().required("Please provide role description."),
   status:Yup.string().oneOf(["ACTIVE","INACTIVE"]).required("Please select role status."),
-   permissions: Yup.array()
-    .of(Yup.number().required("Permission ID is required"))
-    .min(1, 'At least one permission is required')
-    .required("Please select at least one permission")
+  permissions: Yup.array().of(Yup.number().required("Permission ID is required")).min(1, 'At least one permission is required').required("Please select at least one permission")
 })
 
   const breadcrumbs = [
@@ -146,7 +144,14 @@ const handleSearchChange = useCallback((e:React.ChangeEvent<HTMLInputElement>)=>
       { field: 'roleShortDesc', headerName: 'Short Description', flex:1 },
       { field: 'roleDescription', headerName: 'Status', flex:1 },
       { field: 'roleStatus', headerName: 'Status', flex:1 },
-    {
+      { field: 'createDate', headerName: 'Created At', flex:1,
+         renderCell:(params)=>(dateFormatter(params.row.createDate))
+      },
+      { field: 'lastModified', headerName: 'Updated At', flex:1,
+        renderCell:(params)=>(dateFormatter(params.row.lastModified))
+       },
+      
+      {
       field: 'action', headerName: 'Action', flex: 1,
       renderCell: (params) => {
         return (

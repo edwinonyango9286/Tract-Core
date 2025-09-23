@@ -5,7 +5,7 @@ import  PhoneInput from "react-phone-input-2"
 interface CustomPhoneInputProps {
   name: string;
   id: string;
-  value: string;
+  value?: string;
   label?: string;
   onChange: (value: string) => void;
   onBlur: (e: React.FocusEvent<HTMLInputElement>) => void;

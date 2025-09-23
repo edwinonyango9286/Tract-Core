@@ -100,7 +100,6 @@ const CreateAccount = () => {
                     <Box sx={{ display:"flex", flexDirection:"column", gap:"10px"}}>
                     <CustomPhoneInput 
                       onBlur={formik.handleBlur}
-                      // label={"Phone Number"}
                       onChange={(value) => formik.setFieldValue("userPhoneNumber", value)}
                       id={"userPhoneNumber"}
                       name={"userPhoneNumber"}
