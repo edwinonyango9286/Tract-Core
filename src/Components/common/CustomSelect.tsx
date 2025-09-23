@@ -43,6 +43,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({label, disabled = false, nam
         {label}
       </InputLabel>
       <Select
+        fullWidth
         labelId={`${name}-label`}
         id={id}
         disabled={disabled}

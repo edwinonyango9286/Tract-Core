@@ -4,7 +4,7 @@ import { apiClient } from "../utils/apiClient";
 
 export const createAssetService = async (assetData: CreateAssetPayload) => {
   try {
-    const response = await apiClient.post(`aims/assets`, assetData);
+    const response = await apiClient.post(`aims/assets/create`, assetData);
     return response;
   } catch (error) {
     console.log(error);

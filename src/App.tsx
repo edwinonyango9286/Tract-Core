@@ -6,8 +6,6 @@ import { SnackbarProvider } from "./Components/common/SnackbarProvider";
 import DashboardLayout from "./Components/common/DashboardLayout";
 import Roles from "./pages/roles/Roles";
 import Dashboard from "./pages/Dashboard";
-import Category from "./pages/assets/Category";
-import SubCategory from "./pages/assets/SubCategory";
 import Users from "./pages/Users";
 import Permissions from "./pages/Permissions";
 import Movements from "./pages/Movements";
@@ -17,6 +15,8 @@ import { PrivateRoutes } from "./utils/PrivateRoutes";
 import Assets from "./pages/assets/Assets";
 import Stacks from "./pages/Inventory/Stacks";
 import Pallets from "./pages/Inventory/Pallets";
+import Categories from "./pages/assets/Categories";
+import SubCategories from "./pages/assets/SubCategories";
 
 
 const queryClient = new QueryClient();
@@ -35,8 +35,8 @@ function App() {
             <Route path="/dashboard" element={<DashboardLayout /> }>
               <Route index element={<Dashboard />}></Route>
               <Route path="roles" element={<Roles />} />
-              <Route path="category" element={<Category />} />
-              <Route path="sub-category" element={<SubCategory />} />
+              <Route path="category" element={<Categories/>} />
+              <Route path="sub-category" element={<SubCategories />} />
               <Route path="stack" element={<Stacks />} />
               <Route path="assets" element={<Assets/>}/>
               <Route path="pallet" element={<Pallets />} />
