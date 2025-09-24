@@ -218,19 +218,19 @@ const Assets = () => {
       renderCell:(params)=>dateFormatter(params.value)
      },
     { field: 'assignedTo', headerName: 'Assigned To', flex: 1 },
-    { field: 'location', headerName: 'Location', flex: 1 },
-    {
-      field: 'purchaseCost', headerName: 'Purchase Cost', flex: 1,
-      renderCell: (params) => `$${params.value?.toLocaleString() || 0}`
-    },
+    // { field: 'location', headerName: 'Location', flex: 1 },
+    // {
+    //    field: 'purchaseCost', headerName: 'Purchase Cost', flex: 1,
+    //   renderCell: (params) => `$${params.value?.toLocaleString() || 0}`
+    // },
     {
       field: 'createdAt', headerName: 'Created At', flex: 1,
       renderCell: (params) => dateFormatter(params.value)
     },
-    {
-      field: 'updatedAt', headerName: 'Updated At', flex: 1,
-      renderCell: (params) => dateFormatter(params.value)
-    },
+    // {
+    //   field: 'updatedAt', headerName: 'Updated At', flex: 1,
+    //   renderCell: (params) => dateFormatter(params.value)
+    // },
     { field: 'status', headerName: 'Status', flex: 1 },
     {
       field: 'action', headerName: 'Action', flex: 1,

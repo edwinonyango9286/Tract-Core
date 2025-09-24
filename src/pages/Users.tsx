@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, IconButton, Modal, Typography } from "@mui/material"
+import { Box, Breadcrumbs, IconButton, Menu, MenuItem, Modal, Typography } from "@mui/material"
 import CustomSearchTextField from "../Components/common/CustomSearchTextField";
 import { FiberManualRecord } from "@mui/icons-material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
@@ -129,6 +129,16 @@ const Users = () => {
 
   const [updatingUser, setUpdatingUser] = useState<boolean>(false)
 
+  // Action menu state
+  const [anchorElementAction, setAnchorElementAction] = useState<null | HTMLElement>(null);
+  const openActionMenu = Boolean(anchorElementAction);
+  const handleClickActionMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorElementAction(event.currentTarget);
+  };
+  const handleCloseActionMenu = () => {
+    setAnchorElementAction(null);
+  };
+
 
   const UserFormik = useFormik<CreateUserPayload>({
     initialValues: {
@@ -203,9 +213,32 @@ const Users = () => {
             <IconButton onClick={() => {handleOpenDeleteModal(params?.row?.id); setUserName(`${params.row.firstname} ${params.row.lastname}`) }}>
               <img src={deleteIcon} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
             </IconButton>
-            <IconButton>
-              <img src={dotsVertical} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
+            <IconButton 
+              id="basic-button"
+              aria-controls={openActionMenu ? 'basic-menu' : undefined}
+              aria-haspopup="true"
+              aria-expanded={openActionMenu ? 'true' : undefined}
+              onClick={handleClickActionMenu}
+            >
+              <img src={dotsVertical} alt="dotsVertical" style={{ width: "24px", height: "24px" }} />
             </IconButton>
+
+            {/* Action Menu */}
+            <Menu
+              id="basic-menu"
+              anchorEl={anchorElementAction}
+              open={openActionMenu}
+              onClose={handleCloseActionMenu}
+              slotProps={{
+                list: {
+                  'aria-labelledby': 'basic-button',
+                },
+              }}
+            >
+              <MenuItem onClick={handleCloseActionMenu}>View Details</MenuItem>
+              <MenuItem onClick={handleCloseActionMenu}>Reset Password</MenuItem>
+              <MenuItem onClick={handleCloseActionMenu}>Send Invitation</MenuItem>
+            </Menu>
           </Box>
         );
       }

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createPermissionService, deletePermissionService, getPermissionsService, updatePermissionService } from "../services/permissionsService";
+import { createPermissionService, deactivatePermissionService, deletePermissionService, getPermissionsService, updatePermissionService } from "../services/permissionsService";
 import type { GetPermissionsParams } from "../types/permissions";
 
 export const usePermissions = (params?: GetPermissionsParams) => {
@@ -39,5 +39,15 @@ export const useDeletePermission = () => {
     },
   });
 };
+
+export const useDeactivatePermission = ()=>{
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deactivatePermissionService,
+    onSuccess :()=>{
+      queryClient.invalidateQueries({ queryKey: ["permissions"]})
+    }
+  })
+}
 
 

@@ -17,7 +17,7 @@ export const getAllAssetsService = async (params?: GetAssetsParams): Promise<Get
     const { page = 0, size = 10, search = "" } = params || {};
     let url = `aims/assets/search?page=${page}&size=${size}&sortBy=createdAt&direction=desc`;
     if (search) {
-      url=`aims/assets/search?keyword=${search}&page=${page}&size=${size}&sortBy=createdAt&direction=desc`
+      url=`aims/assets/search?keyword=${encodeURIComponent(search.trim())}&page=${page}&size=${size}&sortBy=createdAt&direction=desc`
     }
     const response = await apiClient.get(url);
     return response.data;
