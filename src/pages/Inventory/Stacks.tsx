@@ -308,7 +308,7 @@ const Stacks = () => {
           loading={isLoading}
           rows={rows}
           rowCount={rowCount}
-          getRowId={(row) => row.id}
+          getRowId={(row) => row.code}
           paginationModel={paginationModel}
           onPaginationModelChange={handlePaginationModelChange}
           columns={columns}
