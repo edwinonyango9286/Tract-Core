@@ -1,7 +1,7 @@
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import type { AxiosError } from "axios";
-import { Box, Breadcrumbs, IconButton, Modal, Typography } from "@mui/material";
+import { Box, Breadcrumbs, CircularProgress, Divider, IconButton, Menu, MenuItem, Modal, Typography } from "@mui/material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import { useNavigate } from "react-router-dom";
 import { useState, useCallback, useMemo } from "react";
@@ -12,7 +12,7 @@ import CustomTextField from "../Components/common/CustomTextField";
 import CustomCancelButton from "../Components/common/CustomCancelButton";
 import CustomSubmitButton from "../Components/common/CustomSubmitButton";
 import CustomDataGrid from "../Components/common/CustomDataGrid";
-import { useCreatePermission, useDeletePermission, usePermissions, useUpdatePermission } from "../hooks/usePermissions";
+import { useCreatePermission, useDeactivatePermission, useDeletePermission, usePermissions, useUpdatePermission } from "../hooks/usePermissions";
 import { FiberManualRecord } from "@mui/icons-material";
 import editIcon from "../assets/icons/editIcon.svg";
 import deleteIcon from "../assets/icons/deleteIcon.svg";
@@ -23,6 +23,10 @@ import { type PermissionsResponse } from "../types/permissions";
 import type { GridColDef, GridPaginationModel } from "@mui/x-data-grid";
 import { useDebounce } from "../hooks/useDebounce";
 import CustomDeleteComponent from "../Components/common/CustomDeleteComponent";
+import { dateFormatter } from "../utils/dateFormatter";
+import dropDownIcon from "../assets/icons/dropDownIcon.svg";
+import refreshIcon from "../assets/icons/refreshIcon.svg"
+import type { DeactivatePermissionPayload } from "../services/permissionsService";
 
 const PermissionsSchema = Yup.object<PermissionsPayload>({
   permissionName: Yup.string().required("Please provide permission name."),
@@ -44,7 +48,7 @@ const Permissions = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
   const [searchTerm, setSearchTerm] = useState<string>("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500); 
-  const { data: permissionsList, isLoading, } = usePermissions({page: paginationModel.page + 1, limit: paginationModel.pageSize, search: debouncedSearchTerm});
+  const { data: permissionsList, isLoading, refetch } = usePermissions({page: paginationModel.page , size: paginationModel.pageSize, search: debouncedSearchTerm});
   const createPermissionMutation = useCreatePermission();
   const deletePermissionMutation = useDeletePermission();
   const updatePermissionMutation = useUpdatePermission();
@@ -57,13 +61,10 @@ const Permissions = () => {
     if (!permissionsList) {
       return { rows: [], rowCount: 0 };
     }
-    if (Array.isArray(permissionsList)) {
-      return { rows: permissionsList, rowCount: permissionsList.length };
-    }
     const response = permissionsList as unknown as PermissionsResponse;
     return { 
-      rows: response.data || [], 
-      rowCount: response.total || 0 
+      rows: response.content || [], 
+      rowCount: response.totalElements || 0 
     };
   }, [permissionsList]);
 
@@ -164,16 +165,49 @@ const handleDeletePermission = useCallback(async () => {
     }
 }, [selectedPermissionId,showSnackbar,deletePermissionMutation]);
 
+  const [anchorElelementAction, setAnchorElelementAction] = useState<null | HTMLElement>(null);
+  const [selectedPermission,setSelectedPermisson] = useState<Permission | null>(null);  
+  const openActionMenu = Boolean(anchorElelementAction);
+  const handleClickActionMenu = (event: React.MouseEvent<HTMLButtonElement>, permission :Permission) => {
+    setAnchorElelementAction(event.currentTarget);
+    setSelectedPermisson(permission);
+  };
+  const handleCloseActionMenu = () => {
+    setAnchorElelementAction(null);
+    setSelectedPermisson(null);
+  };
 
-  const columns: GridColDef[] = useMemo(() => [
+  const deactivatePermissionMutation = useDeactivatePermission();
+  const isDeactivating = deactivatePermissionMutation.isPending;
+
+  const handleDeactivatePermission =  async() => {
+    try {
+      if(selectedPermission){
+        let deactivatePermissionPayload:DeactivatePermissionPayload = { }
+        if(selectedPermission.status === "ACTIVE"){
+          deactivatePermissionPayload = { id:selectedPermission.id, status:"INACTIVE" }
+        }
+        else if (selectedPermission.status ==="INACTIVE"){
+          deactivatePermissionPayload ={ id:selectedPermission.id, status:"ACTIVE"}
+        }
+        await deactivatePermissionMutation.mutateAsync(deactivatePermissionPayload)
+      }
+      handleCloseActionMenu();
+      showSnackbar(`Permission status updated successfully`, "success")
+    } catch (error) {
+      const err = error as AxiosError<{message?:string}>
+      showSnackbar(err.response?.data.message || err.message)
+    }
+  }
+
+
+
+  const columns: GridColDef[] =  [
     { field: 'permissionName', headerName: 'Name', flex: 1 },
     { field: 'permissionDescription', headerName: 'Description', flex: 1 },
-    { field: 'createdAt', headerName: 'Created At', flex: 1,
-      renderCell:(params)=>{return <Typography>{params.value || "N/A"}</Typography>}
-     },
-    { field: 'updatedAt', headerName: 'Updated At', flex: 1,
-      renderCell:(params)=>{return <Typography>{params.value || "N/A"}</Typography> }
-    },
+    { field: 'createdAt', headerName: 'Created At', flex: 1,renderCell:(params)=>dateFormatter(params.value)},
+    { field: 'updatedAt', headerName: 'Updated At', flex: 1,renderCell:(params)=> dateFormatter(params.value)},
+    { field: 'status', headerName:"Status", flex:1},
     {
       field: 'action', headerName: 'Action', flex: 1,
       renderCell: (params) => {
@@ -185,14 +219,51 @@ const handleDeletePermission = useCallback(async () => {
             <IconButton onClick={()=>{handleOpenDeleteModal(params?.row?.id); setPermissionName(params?.row?.permissionName)}}>
               <img src={deleteIcon} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
             </IconButton>
-            <IconButton>
+            <IconButton sx={{ }}  id="action-menu-button"  aria-controls={openActionMenu ? 'action-menu' : undefined} aria-haspopup="true" aria-expanded={openActionMenu ? 'true' : undefined} onClick={(event) => handleClickActionMenu(event, params.row as Permission)}>
               <img src={dotsVertical} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
             </IconButton>
+      
+            {/* dots vertical action menu here */}
+            <Menu id="action-menu" anchorEl={anchorElelementAction}  open={openActionMenu} onClose={handleCloseActionMenu}  slotProps={{ list: { 'aria-labelledby': 'action-menu-button'}}}>
+               <MenuItem onClick={handleCloseActionMenu}>View Details</MenuItem>
+               {selectedPermission?.status === "ACTIVE" && (<MenuItem onClick={handleDeactivatePermission}>{isDeactivating ? <CircularProgress  thickness={5} size={20} sx={{ marginLeft:"30px", color:"#333"}} /> : "Deactivate"}</MenuItem>)} 
+               {selectedPermission?.status === "INACTIVE" && (<MenuItem onClick={handleDeactivatePermission}> {isDeactivating ? <CircularProgress thickness={5} size={20} sx={{ marginLeft:"30px", alignSelf:"center", color:"#333"}} /> : "Active"}</MenuItem>)} 
+            </Menu>
           </Box>
         );
       }
     },
-  ], [handleEdit]);
+  ];
+
+const [isRefreshing, setIsRefreshing] = useState(false);
+const handleRefreshPermissions = useCallback(async () => {
+  try {
+    setIsRefreshing(true);
+    setSearchTerm("");
+    setPaginationModel({ page: 0, pageSize: 10 });
+    await refetch();
+    showSnackbar("Permissions refreshed successfully", "success");
+  } catch (error) {
+    console.log(error);
+  } finally {
+    setIsRefreshing(false);
+  }
+}, [refetch, showSnackbar]);
+
+
+  const [anchorElementPageSizeMenu, setAnchorElementPageSizeMenu] =useState<null | HTMLElement>(null);
+  const openPageSizeMenu = Boolean(anchorElementPageSizeMenu);
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorElementPageSizeMenu(event.currentTarget);
+  };
+  const handleClosePageSizeMenu = () => {
+    setAnchorElementPageSizeMenu(null);
+  };
+
+  const handlePageSizeSelection = (size:number)=>{
+    setPaginationModel({ page:0, pageSize:size});
+    handleClosePageSizeMenu()
+  }
 
   return (
     <Box sx={{ width: "100%", height: "auto" }}>
@@ -205,6 +276,7 @@ const handleDeletePermission = useCallback(async () => {
         </Box>
         <CustomAddButton variant="contained" label="Add Permission" onClick={handleOpen} />
       </Box>
+
       <Box sx={{ width: "100%", marginTop: "-10px", marginLeft: "40px" }}>
         <Breadcrumbs
           style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }}
@@ -214,12 +286,30 @@ const handleDeletePermission = useCallback(async () => {
           {breadcrumbs}
         </Breadcrumbs>
       </Box>
-      <Box sx={{ display: "flex", width: "100%", justifyContent: "flex-start", marginTop: "20px" }}>
-        <CustomSearchTextField
-          value={searchTerm}
-          onChange={handleSearchChange}
-          placeholder="Search permissions..."
-        />
+      <Box sx={{  alignItems:"center", display: "flex", width: "100%", justifyContent: "space-between", marginTop: "20px" }}>
+         <Box sx={{ display:"flex", backgroundColor:"#fff", alignItems:"center", padding:"12px", border:"1px solid #D1D5DB", borderRadius:"8px",  width:"112px", height:"44px"}}>
+          <Box id="page-size-button" aria-controls={openPageSizeMenu ? 'page-size-menu' : undefined}  aria-haspopup="true" aria-expanded={openPageSizeMenu ? 'true' : undefined} onClick={handleClick} sx={{ border:"none", alignItems:"center", justifyContent:"center", cursor:"pointer", display:"flex"}}>
+            <Typography   sx={{ fontSize:"14px", fontWeight:"500", textAlign:"center"}}>
+              {paginationModel.pageSize}
+           </Typography>
+           <IconButton>
+            <img src={dropDownIcon} alt={"drop down icon"} />
+           </IconButton>
+          </Box>
+            <Divider orientation="vertical" sx={{ height:"42px", borderWidth:"1px" }}/>
+          <Box sx={{ }}>
+           <IconButton onClick={handleRefreshPermissions} disabled={isRefreshing} sx={{ transition: 'transform 0.3s','&:hover': { transform: 'rotate(90deg)' }, '&:disabled': {  opacity: 0.5}}}>
+              <img src={refreshIcon} alt="refresh icon" style={{ marginLeft:"2px", width: "20px", height: "20px", animation: isRefreshing ? 'spin 1s linear infinite' : 'none'}}/>
+          </IconButton>
+          </Box>
+         </Box>
+        <Menu  id="page-size-menu" anchorEl={anchorElementPageSizeMenu} open={openPageSizeMenu} onClose={handleClosePageSizeMenu} slotProps={{ list: {'aria-labelledby': 'page-size-button'}}}>
+          {[10,20,50,100].map((pageSize, index)=>(
+           <MenuItem key={index} onClick={ ()=>{handlePageSizeSelection(pageSize)}}>{pageSize}</MenuItem>
+          ))}
+       </Menu>
+       <Box sx={{ display:"flex", gap:"20px" }}></Box>
+        <CustomSearchTextField value={searchTerm} onChange={handleSearchChange}  placeholder="Search permissions..." />
       </Box>
 
       {/* Add/Edit Permission Modal */}
@@ -284,7 +374,7 @@ const handleDeletePermission = useCallback(async () => {
 
       <Box sx={{ width: "100%", height: "70vh", marginTop: "20px" }}>
         <CustomDataGrid
-          loading={isLoading}
+          loading={isLoading || isRefreshing}
           rows={rows}
           rowCount={rowCount}
           getRowId={(row)=>row.id}

@@ -4,8 +4,12 @@ import type { Permission } from "../types/permissions";
 
 export const getPermissionsService = async (params?: GetPermissionsParams): Promise<PermissionsResponse> => {
   try {
-    const { page = 1, limit = 10, search = "" } = params || {}
-    const response = await apiClient.get(`bursary-hub/permissions`, {params: {page,limit, search: search.trim() || undefined}});
+    const { page = 0, size = 10, search = "", status = "" } = params || {}
+    let url=`bursary-hub/permissions/search?page=${page}&size=${size}&sortBy=createdAt&sortDir=DESC`
+    if(search){
+      url =`bursary-hub/permissions/search?keyword=${encodeURIComponent(search.trim())}&page=${page}&size=${size}&sortBy=createdAt&sortDir=DESC`
+    }
+    const response = await apiClient.get(url);
     return response.data;
   } catch (error) {
     console.log(error);
@@ -40,3 +44,18 @@ export const deletePermissionService = async (id: number): Promise<void> => {
     throw error;
   }
 };
+
+export interface DeactivatePermissionPayload {
+  id?:number;
+  status?:string;
+}
+
+export const deactivatePermissionService = async (deactivateData:DeactivatePermissionPayload)=>{
+  try {
+    const response = await apiClient.patch(`bursary-hub/permissions/${deactivateData.id}/status`, deactivateData);
+    return response;
+  } catch (error) {
+    console.log(error);
+    throw error
+  }
+}

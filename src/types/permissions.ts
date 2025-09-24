@@ -3,22 +3,23 @@ export interface PermissionsPayload {
   permissionDescription: string;
 }
 
-
 export interface Permission {
   id: number;
   permissionName: string;
   permissionDescription: string;
+  status:string;
+  createdAt?:string;
+  updatedAt?:string;
 }
 
 export interface PermissionsResponse {
-  data: Permission[];
-  total: number;
-  page: number;
-  limit: number;
+  content: Permission[];
+  totalElements: number;
 }
 
- export interface GetPermissionsParams {
+export interface GetPermissionsParams {
   page?: number;
-  limit?: number;
+  size?: number;
   search?: string;
+  status?: string;
 }
