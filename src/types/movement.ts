@@ -1,33 +1,29 @@
 export interface CreateMovementPayload {
-  type: string;
-  itemId: string;
-  itemType: string;
+  palletCode: string;
+  movementType: string;
   fromLocation: string;
   toLocation: string;
-  quantity: number;
-  reason: string;
-  performedBy: string;
+  fromStackCode: string;
+  toStackCode: string;
+  reference: string;
   notes?: string;
-  priority: string;
+  operatorName?: string;
+  returnCondition: string;
 }
 
 export interface Movement {
-  id?: string;
-  code?: string;
-  type?: string;
-  itemId?: string;
-  itemType?: string;
+  moveId?: string;
+  palletCode?: string;
+  movementType?: string;
   fromLocation?: string;
   toLocation?: string;
-  quantity?: number;
-  reason?: string;
-  performedBy?: string;
+  fromStackCode?: string;
+  toStackCode?: string;
+  reference?: string;
+  operatorName?: string;
   notes?: string;
-  priority?: string;
-  status?: string;
-  completedAt?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  returnCondition?: string;
+  moveAt?: string;
 }
 
 export interface GetMovementsParams {
@@ -41,7 +37,10 @@ export interface GetAllMovementsResponse {
   responseCode: number;
   responseMessage: string;
   message: string;
-  data: Movement[];
-  requestId: number;
-  timestamp: Date;
+  data: {
+    totalElements: number;
+    content: Movement[];
+  };
+  requestId: string;
+  timestamp: string;
 }

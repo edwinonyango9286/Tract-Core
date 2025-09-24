@@ -23,6 +23,7 @@ import type { Movement, CreateMovementPayload, GetAllMovementsResponse } from ".
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { dateFormatter } from "../utils/dateFormatter";
+import CustomSelect from "../Components/common/CustomSelect";
 
 const breadcrumbs = [
   <Typography key={1} style={{ cursor: "pointer", color: "#707070", fontSize: "14px" }}>
@@ -49,16 +50,16 @@ const style = {
 };
 
 const MovementSchema = Yup.object<CreateMovementPayload>({
-  type: Yup.string().required("Please provide movement type."),
-  itemId: Yup.string().required("Please provide item ID."),
-  itemType: Yup.string().required("Please provide item type."),
+  palletCode: Yup.string().required("Please select pallet."),
+  movementType: Yup.string().required("Please provide item ID."),
+  fromStackCode: Yup.string().required("Please Select from stack."),
   fromLocation: Yup.string().required("Please provide from location."),
   toLocation: Yup.string().required("Please provide to location."),
-  quantity: Yup.number().required("Please provide quantity.").min(1, "Quantity must be at least 1"),
-  reason: Yup.string().required("Please provide movement reason."),
-  performedBy: Yup.string().required("Please provide who performed the movement."),
-  priority: Yup.string().required("Please provide movement priority."),
+  toStackCode: Yup.string().required("Please select to stack."),
+  reference: Yup.string().optional(),
   notes: Yup.string().optional(),
+  operatorName: Yup.string().required("Please provide who performed the movement."),
+  returnCondition: Yup.string().optional(),
 })
 
 const Movements = () => {
@@ -69,22 +70,14 @@ const Movements = () => {
   const [searchTerm, setSearchTerm] = useState<string>("")
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
   const isDeleting = deleteMovementMutation.isPending;
-  const { data: movementsList, isLoading } = useGetMovements({ page: paginationModel.page, size: paginationModel.pageSize, search: debouncedSearchTerm })
+  const { data: response, isLoading } = useGetMovements({ page: paginationModel.page, size: paginationModel.pageSize, search: debouncedSearchTerm })
   const createMovementMutation = useCreateMovement();
   const updateMovementMutation = useUpdateMovement();
   const [movementData, setMovementData] = useState<Movement | null>(null)
 
-  const { rows, rowCount } = useMemo(() => {
-    if (!movementsList) {
-      return { rows: [], rowCount: 0 };
-    }
-    const response = movementsList as unknown as GetAllMovementsResponse;
-    return {
-      rows: response.data || [],
-      rowCount: response.data.length || 0
-    };
-  }, [movementsList]);
-
+  const movementsList = response?.data?.content || [];
+  const rowCount = response?.data.totalElements || 0
+  
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
     setPaginationModel((prev) => ({ ...prev, page: 0 }))
@@ -126,16 +119,16 @@ const Movements = () => {
   const [updatingMovement, setUpdatingMovement] = useState<boolean>(false)
   const MovementFormik = useFormik<CreateMovementPayload>({
     initialValues: {
-      type: movementData?.type || "",
-      itemId: movementData?.itemId || "",
-      itemType: movementData?.itemType || "",
+      palletCode: movementData?.palletCode || "",
+      movementType: movementData?.movementType || "",
       fromLocation: movementData?.fromLocation || "",
       toLocation: movementData?.toLocation || "",
-      quantity: movementData?.quantity || 0,
-      reason: movementData?.reason || "",
-      performedBy: movementData?.performedBy || "",
-      priority: movementData?.priority || "",
+      fromStackCode: movementData?.fromStackCode || "",
+      toStackCode: movementData?.toStackCode || "",
+      reference: movementData?.reference || "",
+      operatorName: movementData?.operatorName || "",
       notes: movementData?.notes || "",
+      returnCondition: movementData?.returnCondition || "",
     },
     validationSchema: MovementSchema,
     enableReinitialize: true,
@@ -179,21 +172,17 @@ const Movements = () => {
   }, []);
 
   const columns: GridColDef[] = useMemo(() => [
-    { field: 'code', headerName: 'Code', flex: 1 },
-    { field: 'type', headerName: 'Type', flex: 1 },
-    { field: 'itemId', headerName: 'Item ID', flex: 1 },
-    { field: 'itemType', headerName: 'Item Type', flex: 1 },
+    { field: 'palletCode', headerName: 'Pallet Code', flex: 1 },
+    { field: 'Movement Type', headerName: 'Movement Type', flex: 1 },
+    { field: 'fromStackCode', headerName: 'From Stack', flex: 1 },
+    { field: 'toStackCode', headerName: 'To Stack', flex: 1 },
     { field: 'fromLocation', headerName: 'From', flex: 1 },
     { field: 'toLocation', headerName: 'To', flex: 1 },
-    { field: 'quantity', headerName: 'Quantity', flex: 1 },
-    { field: 'reason', headerName: 'Reason', flex: 1 },
-    { field: 'performedBy', headerName: 'Performed By', flex: 1 },
-    { field: 'priority', headerName: 'Priority', flex: 1 },
-    { field: 'status', headerName: 'Status', flex: 1 },
-    {
-      field: 'completedAt', headerName: 'Completed At', flex: 1,
-      renderCell: (params) => params.value ? dateFormatter(params.value) : 'Pending'
-    },
+    { field: 'reference', headerName: 'Reference', flex: 1 },
+    { field: 'operatorName', headerName: 'Operator Name', flex: 1 },
+    { field: 'notes', headerName: 'Notes', flex: 1 },
+    { field: 'returnCondition', headerName: 'returnCondition', flex: 1 },
+    { field: 'moveAt', headerName: 'Move At', flex: 1 },
     {
       field: 'createdAt', headerName: 'Created At', flex: 1,
       renderCell: (params) => dateFormatter(params.value)
@@ -256,53 +245,77 @@ const Movements = () => {
               {updatingMovement ? "Update Movement Details" : "Add Movement"}
             </Typography>
             <Box sx={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "20px" }}>
-              <Box sx={{ display: "flex", gap: "15px" }}>
-                <CustomTextField
-                  id="type"
-                  name="type"
+              <Box sx={{ width:"100%", display: "flex", gap: "15px" }}>
+                <Box sx={{ width:"50%"}}>
+                  <CustomSelect
+                  id="palletCode"
+                  name="palletCode"
+                  label="Pallet"
+                  searchable
+                  options={[
+                    {value:"Individual",label:"Individual"},
+                    {value:"Organization",label:"Organization"}
+                  ]}
+                  onChange={MovementFormik.handleChange}
+                  value={MovementFormik.values.palletCode}
+                  onBlur={MovementFormik.handleBlur}
+                  error={MovementFormik.touched.palletCode && Boolean(MovementFormik.errors.palletCode)}
+                  helperText={MovementFormik.touched.palletCode && MovementFormik.errors.palletCode}
+                />
+                </Box>
+                <Box sx={{width:"50%" }}>
+                  <CustomSelect
+                  id="movementType"
+                  name="movementType"
                   label="Movement Type"
-                  type="text"
-                  placeholder="e.g., Transfer, Relocation"
+                  searchable
+                  options={[
+                    {value:"Individual",label:"Individual"},
+                    {value:"Organization",label:"Organization"}
+                  ]}
                   onChange={MovementFormik.handleChange}
-                  value={MovementFormik.values.type}
+                  value={MovementFormik.values.movementType}
                   onBlur={MovementFormik.handleBlur}
-                  errorMessage={MovementFormik.touched.type && MovementFormik.errors.type}
+                  error={MovementFormik.touched.movementType && Boolean(MovementFormik.errors.movementType)}
+                  helperText={MovementFormik.touched.movementType && MovementFormik.errors.movementType}
                 />
-                <CustomTextField
-                  id="priority"
-                  name="priority"
-                  label="Priority"
-                  type="text"
-                  placeholder="e.g., High, Medium, Low"
-                  onChange={MovementFormik.handleChange}
-                  value={MovementFormik.values.priority}
-                  onBlur={MovementFormik.handleBlur}
-                  errorMessage={MovementFormik.touched.priority && MovementFormik.errors.priority}
-                />
+                </Box>
               </Box>
               <Box sx={{ display: "flex", gap: "15px" }}>
-                <CustomTextField
-                  id="itemId"
-                  name="itemId"
-                  label="Item ID"
-                  type="text"
-                  placeholder="Item Identifier"
+                <Box sx={{ width:"50%"}}>
+                <CustomSelect
+                  id="fromStackCode"
+                  name="fromStackCode"
+                  label="Stack From"
+                  searchable
+                  options={[
+                    {value:"Individual",label:"Individual"},
+                    {value:"Organization",label:"Organization"}
+                  ]}
                   onChange={MovementFormik.handleChange}
-                  value={MovementFormik.values.itemId}
+                  value={MovementFormik.values.fromStackCode}
                   onBlur={MovementFormik.handleBlur}
-                  errorMessage={MovementFormik.touched.itemId && MovementFormik.errors.itemId}
+                  error={MovementFormik.touched.fromStackCode && Boolean(MovementFormik.errors.fromStackCode)}
+                  helperText={MovementFormik.touched.fromStackCode && MovementFormik.errors.fromStackCode}
                 />
-                <CustomTextField
-                  id="itemType"
-                  name="itemType"
-                  label="Item Type"
-                  type="text"
-                  placeholder="e.g., Asset, Pallet, Stack"
+                </Box>
+                <Box sx={{ width:"50%"}}>
+               <CustomSelect
+                  id="toStackCode"
+                  name="toStackCode"
+                  label="Stack To"
+                  searchable
+                  options={[
+                    {value:"Individual",label:"Individual"},
+                    {value:"Organization",label:"Organization"}
+                  ]}
                   onChange={MovementFormik.handleChange}
-                  value={MovementFormik.values.itemType}
+                  value={MovementFormik.values.toStackCode}
                   onBlur={MovementFormik.handleBlur}
-                  errorMessage={MovementFormik.touched.itemType && MovementFormik.errors.itemType}
+                  error={MovementFormik.touched.toStackCode && Boolean(MovementFormik.errors.toStackCode)}
+                  helperText={MovementFormik.touched.toStackCode && MovementFormik.errors.toStackCode}
                 />
+                </Box>
               </Box>
               <Box sx={{ display: "flex", gap: "15px" }}>
                 <CustomTextField
@@ -330,64 +343,57 @@ const Movements = () => {
               </Box>
               <Box sx={{ display: "flex", gap: "15px" }}>
                 <CustomTextField
-                  id="quantity"
-                  type="number"
-                  name="quantity"
-                  label="Quantity"
-                  placeholder="Quantity to move"
+                  id="reference"
+                  type="text"
+                  name="reference"
+                  label="Reference"
+                  placeholder="Reference"
                   onChange={MovementFormik.handleChange}
-                  value={MovementFormik.values.quantity}
+                  value={MovementFormik.values.reference}
                   onBlur={MovementFormik.handleBlur}
-                  errorMessage={MovementFormik.touched.quantity && MovementFormik.errors.quantity}
+                  errorMessage={MovementFormik.touched.reference && MovementFormik.errors.reference}
                 />
                 <CustomTextField
-                  id="performedBy"
+                  id="operatorName"
                   type="text"
-                  name="performedBy"
-                  label="Performed By"
-                  placeholder="Person performing movement"
+                  name="operatorName"
+                  label="Operator Name"
+                  placeholder="Operator Name"
                   onChange={MovementFormik.handleChange}
-                  value={MovementFormik.values.performedBy}
+                  value={MovementFormik.values.operatorName}
                   onBlur={MovementFormik.handleBlur}
-                  errorMessage={MovementFormik.touched.performedBy && MovementFormik.errors.performedBy}
+                  errorMessage={MovementFormik.touched.operatorName && MovementFormik.errors.operatorName}
                 />
               </Box>
-              <CustomTextField
-                id="reason"
-                type="text"
-                name="reason"
-                label="Reason"
-                placeholder="Reason for movement"
-                onChange={MovementFormik.handleChange}
-                value={MovementFormik.values.reason}
-                onBlur={MovementFormik.handleBlur}
-                errorMessage={MovementFormik.touched.reason && MovementFormik.errors.reason}
-              />
               <CustomTextField
                 id="notes"
                 type="text"
                 name="notes"
                 label="Notes"
-                placeholder="Additional notes (Optional)"
+                placeholder="Notes"
                 onChange={MovementFormik.handleChange}
                 value={MovementFormik.values.notes}
                 onBlur={MovementFormik.handleBlur}
                 errorMessage={MovementFormik.touched.notes && MovementFormik.errors.notes}
               />
-              <Box sx={{
-                marginBottom: "20px",
-                marginTop: "10px",
-                gap: "20px",
-                width: "100%",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center"
-              }}>
-                <CustomCancelButton onClick={handleClose} label="Cancel" />
-                <CustomSubmitButton
-                  loading={MovementFormik.isSubmitting}
-                  label={updatingMovement ? "Update Movement" : "Create Movement"}
+              <CustomSelect
+                  id="returnCondition"
+                  name="returnCondition"
+                  label="Return Condition"
+                  searchable
+                  options={[
+                    {value:"Individual",label:"Individual"},
+                    {value:"Organization",label:"Organization"}
+                  ]}
+                  onChange={MovementFormik.handleChange}
+                  value={MovementFormik.values.returnCondition}
+                  onBlur={MovementFormik.handleBlur}
+                  error={MovementFormik.touched.returnCondition && Boolean(MovementFormik.errors.returnCondition)}
+                  helperText={MovementFormik.touched.returnCondition && MovementFormik.errors.returnCondition}
                 />
+              <Box sx={{ marginBottom: "20px",marginTop: "10px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between",alignItems: "center" }}>
+                <CustomCancelButton onClick={handleClose} label="Cancel" />
+                <CustomSubmitButton loading={MovementFormik.isSubmitting} label={updatingMovement ? "Update Movement" : "Create Movement"}/>
               </Box>
             </Box>
           </form>
@@ -407,7 +413,7 @@ const Movements = () => {
       <Box sx={{ width: "100%", height: "70vh", marginTop: "20px" }}>
         <CustomDataGrid
           loading={isLoading}
-          rows={rows}
+          rows={movementsList}
           rowCount={rowCount}
           getRowId={(row) => row.id}
           paginationModel={paginationModel}
