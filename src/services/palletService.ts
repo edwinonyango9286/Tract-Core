@@ -16,9 +16,9 @@ export const createPalletService = async (palletData: CreatePalletPayload) => {
 export const getAllPalletsService = async (params?: GetPalletsParams): Promise<GetAllPalletsResponse> => {
   try {
     const { page = 0, size = 10, search = "" } = params || {};
-    let url = `aims/pallets?page=${page}&size=${size}`;
+    let url = `aims/pallets/search?page=${page}&size=${size}&sortBy=lastMoveAt&direction=desc`;
     if (search) {
-      url = `/aims/pallets/search?q=${search}&page=${page}&size=${size}`;
+      url = `aims/pallets/search?keyword=${encodeURIComponent(search.trim())}page=${page}&size=${size}&sortBy=lastMoveAt&direction=desc`;
     }
     const response = await apiClient.get(url);
     return response.data;
