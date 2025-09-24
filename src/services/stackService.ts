@@ -4,7 +4,7 @@ import { apiClient } from "../utils/apiClient";
 
 export const createStackService = async (stackData: CreateStackPayload) => {
   try {
-    const response = await apiClient.post(`aims/stacks`, stackData);
+    const response = await apiClient.post(`/aims/stacks`, stackData);
     return response;
   } catch (error) {
     console.log(error);
@@ -16,9 +16,9 @@ export const createStackService = async (stackData: CreateStackPayload) => {
 export const getAllStacksService = async (params?: GetStacksParams): Promise<GetAllStacksResponse> => {
   try {
     const { page = 0, size = 10, search = "" } = params || {};
-    let url = `aims/stacks?page=${page}&size=${size}`;
+    let url = `/aims/stacks`;
     if (search) {
-      url = `/aims/stacks/search?q=${search}&page=${page}&size=${size}`;
+      url = `/aims/stacks`;
     }
     const response = await apiClient.get(url);
     return response.data;

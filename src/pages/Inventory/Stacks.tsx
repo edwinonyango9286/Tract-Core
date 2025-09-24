@@ -38,7 +38,7 @@ const style = {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 500,
+  width: 400,
   bgcolor: 'background.paper',
   boxShadow: 24,
   paddingY: "10px",
@@ -49,16 +49,10 @@ const style = {
 };
 
 const StackSchema = Yup.object<CreateStackPayload>({
-  name: Yup.string().required("Please provide stack name."),
+  warehouse: Yup.string().required("Please provide stack warehouse."),
+  zone: Yup.string().required("Please provide stack zone."),
+  capacity: Yup.number().required("Please provide maximum capacity.").min(0, "Capacity must be positive"),
   description: Yup.string().required("Please provide stack description."),
-  type: Yup.string().required("Please provide stack type."),
-  height: Yup.number().required("Please provide stack height.").min(0, "Height must be positive"),
-  maxCapacity: Yup.number().required("Please provide maximum capacity.").min(0, "Capacity must be positive"),
-  currentLoad: Yup.number().required("Please provide current load.").min(0, "Load must be positive"),
-  location: Yup.string().required("Please provide stack location."),
-  status: Yup.string().required("Please provide stack status."),
-  palletId: Yup.string().optional(),
-  zone: Yup.string().optional(),
 })
 
 const Stacks = () => {
@@ -126,16 +120,10 @@ const Stacks = () => {
   const [updatingStack, setUpdatingStack] = useState<boolean>(false)
   const StackFormik = useFormik<CreateStackPayload>({
     initialValues: {
-      name: stackData?.name || "",
-      description: stackData?.description || "",
-      type: stackData?.type || "",
-      height: stackData?.height || 0,
-      maxCapacity: stackData?.maxCapacity || 0,
-      currentLoad: stackData?.currentLoad || 0,
-      location: stackData?.location || "",
-      status: stackData?.status || "",
-      palletId: stackData?.palletId || "",
+      warehouse: stackData?.warehouse || "",
       zone: stackData?.zone || "",
+      capacity: stackData?.capacity || 0,
+      description: stackData?.description || "",
     },
     validationSchema: StackSchema,
     enableReinitialize: true,
@@ -178,30 +166,12 @@ const Stacks = () => {
     setOpen(true);
   }, []);
 
-  const columns: GridColDef[] = useMemo(() => [
-    { field: 'code', headerName: 'Code', flex: 1 },
-    { field: 'name', headerName: 'Name', flex: 1 },
-    { field: 'type', headerName: 'Type', flex: 1 },
-    { field: 'location', headerName: 'Location', flex: 1 },
+  const columns: GridColDef[] = [
+    { field: 'warehouse', headerName: 'Warehouse', flex: 1 },
     { field: 'zone', headerName: 'Zone', flex: 1 },
+    { field: 'capacity', headerName: 'Capacity', flex: 1 },
+    { field: 'description', headerName: 'Description', flex: 1 },
     { field: 'status', headerName: 'Status', flex: 1 },
-    {
-      field: 'height', headerName: 'Height (m)', flex: 1,
-      renderCell: (params) => `${params.value || 0} m`
-    },
-    {
-      field: 'currentLoad', headerName: 'Current Load', flex: 1,
-      renderCell: (params) => {
-        const current = params.value || 0;
-        const max = params.row.maxCapacity || 0;
-        const percentage = max > 0 ? Math.round((current / max) * 100) : 0;
-        return `${current}/${max} (${percentage}%)`;
-      }
-    },
-    {
-      field: 'maxCapacity', headerName: 'Max Capacity', flex: 1,
-      renderCell: (params) => `${params.value || 0} units`
-    },
     {
       field: 'createdAt', headerName: 'Created At', flex: 1,
       renderCell: (params) => dateFormatter(params.value)
@@ -228,7 +198,7 @@ const Stacks = () => {
         );
       }
     },
-  ], [handleEdit]);
+  ];
 
   return (
     <Box sx={{ width: "100%", height: "100vh" }}>
@@ -268,138 +238,55 @@ const Stacks = () => {
               {updatingStack ? "Update Stack Details" : "Add Stack"}
             </Typography>
             <Box sx={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "20px" }}>
-              <Box sx={{ display: "flex", gap: "15px" }}>
                 <CustomTextField
-                  id="name"
-                  name="name"
-                  label="Name"
-                  type="text"
-                  placeholder="Stack Name"
+                  id="warehouse"
+                  type="warehouse"
+                  name="warehouse"
+                  label="Warehouse"
+                  placeholder="Warehouse"
                   onChange={StackFormik.handleChange}
-                  value={StackFormik.values.name}
+                  value={StackFormik.values.warehouse}
                   onBlur={StackFormik.handleBlur}
-                  errorMessage={StackFormik.touched.name && StackFormik.errors.name}
+                  errorMessage={StackFormik.touched.warehouse && StackFormik.errors.warehouse}
                 />
                 <CustomTextField
-                  id="type"
-                  name="type"
-                  label="Type"
-                  type="text"
-                  placeholder="e.g., Storage, Buffer"
-                  onChange={StackFormik.handleChange}
-                  value={StackFormik.values.type}
-                  onBlur={StackFormik.handleBlur}
-                  errorMessage={StackFormik.touched.type && StackFormik.errors.type}
-                />
-              </Box>
-              <CustomTextField
-                id="description"
-                type="text"
-                name="description"
-                label="Description"
-                placeholder="Stack Description"
-                onChange={StackFormik.handleChange}
-                value={StackFormik.values.description}
-                onBlur={StackFormik.handleBlur}
-                errorMessage={StackFormik.touched.description && StackFormik.errors.description}
-              />
-              <Box sx={{ display: "flex", gap: "15px" }}>
-                <CustomTextField
-                  id="height"
+                  id="capacity"
                   type="number"
-                  name="height"
-                  label="Height (m)"
-                  placeholder="Height in meters"
+                  name="capacity"
+                  label="Capacity"
+                  placeholder="Capacity"
                   onChange={StackFormik.handleChange}
-                  value={StackFormik.values.height}
+                  value={StackFormik.values.capacity}
                   onBlur={StackFormik.handleBlur}
-                  errorMessage={StackFormik.touched.height && StackFormik.errors.height}
+                  errorMessage={StackFormik.touched.capacity && StackFormik.errors.capacity}
                 />
-                <CustomTextField
-                  id="maxCapacity"
-                  type="number"
-                  name="maxCapacity"
-                  label="Max Capacity"
-                  placeholder="Maximum capacity"
-                  onChange={StackFormik.handleChange}
-                  value={StackFormik.values.maxCapacity}
-                  onBlur={StackFormik.handleBlur}
-                  errorMessage={StackFormik.touched.maxCapacity && StackFormik.errors.maxCapacity}
-                />
-              </Box>
-              <Box sx={{ display: "flex", gap: "15px" }}>
-                <CustomTextField
-                  id="currentLoad"
-                  type="number"
-                  name="currentLoad"
-                  label="Current Load"
-                  placeholder="Current load"
-                  onChange={StackFormik.handleChange}
-                  value={StackFormik.values.currentLoad}
-                  onBlur={StackFormik.handleBlur}
-                  errorMessage={StackFormik.touched.currentLoad && StackFormik.errors.currentLoad}
-                />
-                <CustomTextField
-                  id="status"
-                  type="text"
-                  name="status"
-                  label="Status"
-                  placeholder="e.g., Active, Inactive"
-                  onChange={StackFormik.handleChange}
-                  value={StackFormik.values.status}
-                  onBlur={StackFormik.handleBlur}
-                  errorMessage={StackFormik.touched.status && StackFormik.errors.status}
-                />
-              </Box>
-              <Box sx={{ display: "flex", gap: "15px" }}>
-                <CustomTextField
-                  id="location"
-                  type="text"
-                  name="location"
-                  label="Location"
-                  placeholder="Stack Location"
-                  onChange={StackFormik.handleChange}
-                  value={StackFormik.values.location}
-                  onBlur={StackFormik.handleBlur}
-                  errorMessage={StackFormik.touched.location && StackFormik.errors.location}
-                />
+              
                 <CustomTextField
                   id="zone"
                   type="text"
                   name="zone"
                   label="Zone"
-                  placeholder="Zone (Optional)"
+                  placeholder="Zone"
                   onChange={StackFormik.handleChange}
                   value={StackFormik.values.zone}
                   onBlur={StackFormik.handleBlur}
                   errorMessage={StackFormik.touched.zone && StackFormik.errors.zone}
                 />
-              </Box>
+                
               <CustomTextField
-                id="palletId"
+                id="description"
                 type="text"
-                name="palletId"
-                label="Pallet ID"
-                placeholder="Associated Pallet ID (Optional)"
+                name="description"
+                label="Description"
+                placeholder="Description"
                 onChange={StackFormik.handleChange}
-                value={StackFormik.values.palletId}
+                value={StackFormik.values.description}
                 onBlur={StackFormik.handleBlur}
-                errorMessage={StackFormik.touched.palletId && StackFormik.errors.palletId}
+                errorMessage={StackFormik.touched.description && StackFormik.errors.description}
               />
-              <Box sx={{
-                marginBottom: "20px",
-                marginTop: "10px",
-                gap: "20px",
-                width: "100%",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center"
-              }}>
+              <Box sx={{ marginBottom: "20px", marginTop: "10px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <CustomCancelButton onClick={handleClose} label="Cancel" />
-                <CustomSubmitButton
-                  loading={StackFormik.isSubmitting}
-                  label={updatingStack ? "Update Stack" : "Create Stack"}
-                />
+                <CustomSubmitButton  loading={StackFormik.isSubmitting} label={updatingStack ? "Update Stack" : "Create Stack"} />
               </Box>
             </Box>
           </form>

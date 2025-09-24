@@ -23,6 +23,7 @@ import CustomCancelButton from "../../Components/common/CustomCancelButton";
 import CustomSubmitButton from "../../Components/common/CustomSubmitButton";
 import CustomDeleteComponent from "../../Components/common/CustomDeleteComponent";
 import CustomDataGrid from "../../Components/common/CustomDataGrid";
+import CustomSelect from "../../Components/common/CustomSelect";
 
 const breadcrumbs = [
   <Typography key={1} style={{ cursor: "pointer", color: "#707070", fontSize: "14px" }}>
@@ -38,7 +39,7 @@ const style = {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 500,
+  width: 400,
   bgcolor: 'background.paper',
   boxShadow: 24,
   paddingY: "10px",
@@ -49,17 +50,11 @@ const style = {
 };
 
 const PalletSchema = Yup.object<CreatePalletPayload>({
-  name: Yup.string().required("Please provide pallet name."),
-  description: Yup.string().required("Please provide pallet description."),
-  type: Yup.string().required("Please provide pallet type."),
-  dimensions: Yup.string().required("Please provide pallet dimensions."),
-  weight: Yup.number().required("Please provide pallet weight.").min(0, "Weight must be positive"),
-  capacity: Yup.number().required("Please provide pallet capacity.").min(0, "Capacity must be positive"),
-  material: Yup.string().required("Please provide pallet material."),
-  condition: Yup.string().required("Please provide pallet condition."),
-  location: Yup.string().required("Please provide pallet location."),
-  status: Yup.string().required("Please provide pallet status."),
-  supplier: Yup.string().optional(),
+  type: Yup.string().required("Please provide select pallet type."),
+  owner: Yup.string().required("Please provide pallet owner."),
+  initialStackCode: Yup.string().required("Please select pallet stack."),
+  initialLocation: Yup.string().required("Please provide pallet location."),
+  notes: Yup.string() 
 })
 
 const Pallets = () => {
@@ -81,8 +76,8 @@ const Pallets = () => {
     }
     const response = palletsList as unknown as GetAllPalletsResponse;
     return {
-      rows: response.data || [],
-      rowCount: response.data.length || 0
+      rows: response.data.content || [],
+      rowCount: response.data.totalElements || 0
     };
   }, [palletsList]);
 
@@ -127,17 +122,11 @@ const Pallets = () => {
   const [updatingPallet, setUpdatingPallet] = useState<boolean>(false)
   const PalletFormik = useFormik<CreatePalletPayload>({
     initialValues: {
-      name: palletData?.name || "",
-      description: palletData?.description || "",
       type: palletData?.type || "",
-      dimensions: palletData?.dimensions || "",
-      weight: palletData?.weight || 0,
-      capacity: palletData?.capacity || 0,
-      material: palletData?.material || "",
-      condition: palletData?.condition || "",
-      location: palletData?.location || "",
-      status: palletData?.status || "",
-      supplier: palletData?.supplier || "",
+      owner: palletData?.owner || "",
+      initialStackCode: palletData?.currentStackCode || "",
+      initialLocation: palletData?.currentLocation || "",
+      notes: palletData?.notes || "",
     },
     validationSchema: PalletSchema,
     enableReinitialize: true,
@@ -180,23 +169,15 @@ const Pallets = () => {
     setOpen(true);
   }, []);
 
-  const columns: GridColDef[] = useMemo(() => [
-    { field: 'code', headerName: 'Code', flex: 1 },
-    { field: 'name', headerName: 'Name', flex: 1 },
-    { field: 'type', headerName: 'Type', flex: 1 },
-    { field: 'dimensions', headerName: 'Dimensions', flex: 1 },
-    { field: 'material', headerName: 'Material', flex: 1 },
-    { field: 'condition', headerName: 'Condition', flex: 1 },
-    { field: 'location', headerName: 'Location', flex: 1 },
+  const columns: GridColDef[] = [
+    { field: 'type', headerName: 'type', flex: 1 },
+    { field: 'currentStackCode', headerName: 'Current Stack Code', flex: 1 },
+    { field: 'currentLocation', headerName: 'Current Location', flex: 1 },
+    { field: 'owner', headerName: 'Owner', flex: 1 },
+    { field: 'lastReference', headerName: 'Last Reference', flex: 1 },
+    { field: 'lastMoveAt', headerName: 'Last Moved At', flex: 1 },
+    { field: 'notes', headerName: 'Notes', flex: 1 },
     { field: 'status', headerName: 'Status', flex: 1 },
-    {
-      field: 'weight', headerName: 'Weight (kg)', flex: 1,
-      renderCell: (params) => `${params.value || 0} kg`
-    },
-    {
-      field: 'capacity', headerName: 'Capacity (kg)', flex: 1,
-      renderCell: (params) => `${params.value || 0} kg`
-    },
     {
       field: 'createdAt', headerName: 'Created At', flex: 1,
       renderCell: (params) => dateFormatter(params.value)
@@ -223,7 +204,7 @@ const Pallets = () => {
         );
       }
     },
-  ], [handleEdit]);
+  ];
 
   return (
     <Box sx={{ width: "100%", height: "100vh" }}>
@@ -263,153 +244,74 @@ const Pallets = () => {
               {updatingPallet ? "Update Pallet Details" : "Add Pallet"}
             </Typography>
             <Box sx={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "20px" }}>
-              <Box sx={{ display: "flex", gap: "15px" }}>
-                <CustomTextField
-                  id="name"
-                  name="name"
-                  label="Name"
-                  type="text"
-                  placeholder="Pallet Name"
-                  onChange={PalletFormik.handleChange}
-                  value={PalletFormik.values.name}
-                  onBlur={PalletFormik.handleBlur}
-                  errorMessage={PalletFormik.touched.name && PalletFormik.errors.name}
-                />
-                <CustomTextField
+                <CustomSelect
                   id="type"
                   name="type"
                   label="Type"
-                  type="text"
-                  placeholder="Pallet Type"
+                  searchable
+                  options={[
+                    {value:"Individual",label:"Individual"},
+                    {value:"Organization",label:"Organization"}
+                  ]}
                   onChange={PalletFormik.handleChange}
                   value={PalletFormik.values.type}
                   onBlur={PalletFormik.handleBlur}
-                  errorMessage={PalletFormik.touched.type && PalletFormik.errors.type}
+                  error={PalletFormik.touched.type && Boolean(PalletFormik.errors.type)}
+                  helperText={PalletFormik.touched.type && PalletFormik.errors.type}
+                />
+                <CustomTextField
+                  id="owner"
+                  name="owner"
+                  label="Pallet Owner"
+                  type="text"
+                  placeholder="Pallet Owner"
+                  onChange={PalletFormik.handleChange}
+                  value={PalletFormik.values.owner}
+                  onBlur={PalletFormik.handleBlur}
+                  errorMessage={PalletFormik.touched.owner && PalletFormik.errors.owner}
+                />
+                  <CustomSelect
+                  id="initialStackCode"
+                  name="initialStackCode"
+                  label="Initial Stack"
+                  searchable
+                  options={[
+                    {value:"Individual",label:"Individual"},
+                    {value:"Organization",label:"Organization"}
+                  ]}
+                  onChange={PalletFormik.handleChange}
+                  value={PalletFormik.values.initialStackCode}
+                  onBlur={PalletFormik.handleBlur}
+                  error={PalletFormik.touched.initialStackCode && Boolean(PalletFormik.errors.initialStackCode)}
+                  helperText={PalletFormik.touched.initialStackCode && PalletFormik.errors.initialStackCode}
+                />
+                 <CustomTextField
+                  id="initialLocation"
+                  type="initialLocation"
+                  name="initialLocation"
+                  label="Initial Location"
+                  placeholder="Initial Location"
+                  onChange={PalletFormik.handleChange}
+                  value={PalletFormik.values.initialLocation}
+                  onBlur={PalletFormik.handleBlur}
+                  errorMessage={PalletFormik.touched.initialLocation && PalletFormik.errors.initialLocation}
+                />
+                <CustomTextField
+                  id="notes"
+                  type="text"
+                  name="notes"
+                  label="Notes"
+                  placeholder="Notes"
+                  onChange={PalletFormik.handleChange}
+                  value={PalletFormik.values.notes}
+                  onBlur={PalletFormik.handleBlur}
+                  errorMessage={PalletFormik.touched.notes && PalletFormik.errors.notes}
                 />
               </Box>
-              <CustomTextField
-                id="description"
-                type="text"
-                name="description"
-                label="Description"
-                placeholder="Pallet Description"
-                onChange={PalletFormik.handleChange}
-                value={PalletFormik.values.description}
-                onBlur={PalletFormik.handleBlur}
-                errorMessage={PalletFormik.touched.description && PalletFormik.errors.description}
-              />
-              <Box sx={{ display: "flex", gap: "15px" }}>
-                <CustomTextField
-                  id="dimensions"
-                  type="text"
-                  name="dimensions"
-                  label="Dimensions"
-                  placeholder="e.g., 120x80x15 cm"
-                  onChange={PalletFormik.handleChange}
-                  value={PalletFormik.values.dimensions}
-                  onBlur={PalletFormik.handleBlur}
-                  errorMessage={PalletFormik.touched.dimensions && PalletFormik.errors.dimensions}
-                />
-                <CustomTextField
-                  id="material"
-                  type="text"
-                  name="material"
-                  label="Material"
-                  placeholder="e.g., Wood, Plastic"
-                  onChange={PalletFormik.handleChange}
-                  value={PalletFormik.values.material}
-                  onBlur={PalletFormik.handleBlur}
-                  errorMessage={PalletFormik.touched.material && PalletFormik.errors.material}
-                />
-              </Box>
-              <Box sx={{ display: "flex", gap: "15px" }}>
-                <CustomTextField
-                  id="weight"
-                  type="number"
-                  name="weight"
-                  label="Weight (kg)"
-                  placeholder="Weight in kg"
-                  onChange={PalletFormik.handleChange}
-                  value={PalletFormik.values.weight}
-                  onBlur={PalletFormik.handleBlur}
-                  errorMessage={PalletFormik.touched.weight && PalletFormik.errors.weight}
-                />
-                <CustomTextField
-                  id="capacity"
-                  type="number"
-                  name="capacity"
-                  label="Capacity (kg)"
-                  placeholder="Capacity in kg"
-                  onChange={PalletFormik.handleChange}
-                  value={PalletFormik.values.capacity}
-                  onBlur={PalletFormik.handleBlur}
-                  errorMessage={PalletFormik.touched.capacity && PalletFormik.errors.capacity}
-                />
-              </Box>
-              <Box sx={{ display: "flex", gap: "15px" }}>
-                <CustomTextField
-                  id="condition"
-                  type="text"
-                  name="condition"
-                  label="Condition"
-                  placeholder="e.g., New, Good, Fair"
-                  onChange={PalletFormik.handleChange}
-                  value={PalletFormik.values.condition}
-                  onBlur={PalletFormik.handleBlur}
-                  errorMessage={PalletFormik.touched.condition && PalletFormik.errors.condition}
-                />
-                <CustomTextField
-                  id="status"
-                  type="text"
-                  name="status"
-                  label="Status"
-                  placeholder="e.g., Available, In Use"
-                  onChange={PalletFormik.handleChange}
-                  value={PalletFormik.values.status}
-                  onBlur={PalletFormik.handleBlur}
-                  errorMessage={PalletFormik.touched.status && PalletFormik.errors.status}
-                />
-              </Box>
-              <Box sx={{ display: "flex", gap: "15px" }}>
-                <CustomTextField
-                  id="location"
-                  type="text"
-                  name="location"
-                  label="Location"
-                  placeholder="Pallet Location"
-                  onChange={PalletFormik.handleChange}
-                  value={PalletFormik.values.location}
-                  onBlur={PalletFormik.handleBlur}
-                  errorMessage={PalletFormik.touched.location && PalletFormik.errors.location}
-                />
-                <CustomTextField
-                  id="supplier"
-                  type="text"
-                  name="supplier"
-                  label="Supplier"
-                  placeholder="Supplier (Optional)"
-                  onChange={PalletFormik.handleChange}
-                  value={PalletFormik.values.supplier}
-                  onBlur={PalletFormik.handleBlur}
-                  errorMessage={PalletFormik.touched.supplier && PalletFormik.errors.supplier}
-                />
-              </Box>
-              <Box sx={{
-                marginBottom: "20px",
-                marginTop: "10px",
-                gap: "20px",
-                width: "100%",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center"
-              }}>
+              <Box sx={{ marginBottom: "20px", marginTop: "30px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center"}}>
                 <CustomCancelButton onClick={handleClose} label="Cancel" />
-                <CustomSubmitButton
-                  loading={PalletFormik.isSubmitting}
-                  label={updatingPallet ? "Update Pallet" : "Create Pallet"}
-                />
+                <CustomSubmitButton loading={PalletFormik.isSubmitting} label={updatingPallet ? "Update Pallet" : "Create Pallet"}/>
               </Box>
-            </Box>
           </form>
         </Box>
       </Modal>
