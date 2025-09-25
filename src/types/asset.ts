@@ -1,25 +1,22 @@
 export interface CreateAssetPayload {
   name: string;
-  categoryCode:string;
+  categoryCode: string;
   subCategory?: string;
-  model:string;
-  manufacturer:string;
-  supplier:string;
-  description: string;
-  category: string;
+  model: string;
+  manufacturer: string;
+  supplier: string;
   serialNumber: string;
   purchaseDate: string;
   purchaseCost: number;
-  warrantyExpiry:string;
-  status:string;
-  conditionNote:string;
-  complianceExpiry:string;
-  lastInspectionDate:string;
-  nextInspectionDue:string;
-  condition: string;
+  warrantyExpiry: string;
+  status: string;
+  conditionNote: string;
+  complianceExpiry: string;
+  lastInspectionDate: string;
+  nextInspectionDue: string;
   location: string;
   assignedTo?: string;
-  supportingDocs?:string;
+  supportingDocs?: string;
 }
 
 export interface Asset {
@@ -27,25 +24,25 @@ export interface Asset {
   code?: string;
   name?: string;
   categoryName?: string;
-  categoryCode?:string;
+  categoryCode?: string;
   subCategory?: string;
-  model?:string;
+  model?: string;
   serialNumber?: string;
-  manufacturer?:string;
-  supplier?:string;
+  manufacturer?: string;
+  supplier?: string;
   purchaseDate?: string;
   purchaseCost?: number;
   condition?: string;
   location?: string;
   assignedTo?: string;
-  conditionNote?:string;
-  documentsUrl?:string;
+  conditionNote?: string;
+  documentsUrl?: string;
   status?: string;
-  warrantyExpiry?:string;
-  complianceExpiry?:string;
-  lastInspectionDate?:string;
-  nextInspectionDue?:string;
-  supportingDocs?:string;
+  warrantyExpiry?: string;
+  complianceExpiry?: string;
+  lastInspectionDate?: string;
+  nextInspectionDue?: string;
+  supportingDocs?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -59,7 +56,28 @@ export interface GetAllAssetsResponse {
   responseCode: number;
   responseMessage: string;
   message: string;
-  data: Asset[];
+  data: {
+    content: Asset[];
+    totalElements: number;
+  };
   requestId: number;
   timestamp: Date;
+}
+
+export interface GetAssetKPIResponse {
+  success: boolean;
+  responseCode: number;
+  responseMessage: string;
+  message: string;
+  data: {
+    [categoryName: string]: number;
+  };
+  timestamp: string;
+  requestId: string | null;
+}
+
+export interface AssignAssetToUserPayload {
+  code?: string;
+  assignedTo?: string;
+  location?: string;
 }

@@ -24,6 +24,8 @@ import CustomSubmitButton from "../../Components/common/CustomSubmitButton";
 import CustomDeleteComponent from "../../Components/common/CustomDeleteComponent";
 import CustomDataGrid from "../../Components/common/CustomDataGrid";
 import CustomSelect from "../../Components/common/CustomSelect";
+import { useGetStacks } from "../../hooks/useStacks";
+import type { Stack } from "../../types/stack";
 
 const breadcrumbs = [
   <Typography key={1} style={{ cursor: "pointer", color: "#707070", fontSize: "14px" }}>
@@ -206,6 +208,9 @@ const Pallets = () => {
     },
   ];
 
+  const {data:stackResponse } = useGetStacks();
+  const stackList = stackResponse?.data || [];
+
   return (
     <Box sx={{ width: "100%", height: "100vh" }}>
       <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
@@ -250,8 +255,9 @@ const Pallets = () => {
                   label="Type"
                   searchable
                   options={[
-                    {value:"Individual",label:"Individual"},
-                    {value:"Organization",label:"Organization"}
+                    {value:"Wooden",label:"Wooden"},
+                    {value:"Plastic",label:"Plastic"},
+                    {value:"Metalic", label:"Metalic"}
                   ]}
                   onChange={PalletFormik.handleChange}
                   value={PalletFormik.values.type}
@@ -275,10 +281,7 @@ const Pallets = () => {
                   name="initialStackCode"
                   label="Initial Stack"
                   searchable
-                  options={[
-                    {value:"Individual",label:"Individual"},
-                    {value:"Organization",label:"Organization"}
-                  ]}
+                  options={stackList?.map((stack:Stack)=>({value:stack.code,label:stack.warehouse}))}
                   onChange={PalletFormik.handleChange}
                   value={PalletFormik.values.initialStackCode}
                   onBlur={PalletFormik.handleBlur}
