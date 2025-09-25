@@ -54,7 +54,8 @@ const Roles = () => {
   const debouncedSearchTerm = useDebounce(searchTerm,500);
   const [paginationModel,setPaginationModel] = useState({ page:0, pageSize:10 });
   const { data: rolesList, isLoading } = useRoles({ page:paginationModel.page + 1, limit:paginationModel.pageSize, search:debouncedSearchTerm });
-  const {data:permissionList } = usePermissions()
+  const {data:permissionResponse } = usePermissions()
+  const permissionsList =permissionResponse?.content || [];
   const updateRoleMutation =useUpdateRole();
   const deleteRoleMutation =useDeleteRole();
   const isDeletingRole = deleteRoleMutation.isPending 
@@ -288,7 +289,7 @@ const handleDeleteRole =  useCallback(async()=>{
             value={roleFormik.values.permissions} 
             onChange={handlePermissionsChange} 
             onBlur={roleFormik.handleBlur} 
-            options={permissionList?.map((permission: Permission) => ({
+            options={permissionsList?.map((permission: Permission) => ({
               value: permission.id,
               label: permission.permissionName
             })) || []}

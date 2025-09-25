@@ -11,7 +11,7 @@ const CustomAddButton = ({label,onClick, variant="contained"}:CustomAddButtonPro
   return (
     <Button
      type="button"
-     sx={{fontSize:"14px", textWrap:"nowrap", width:"auto", minWidth:"132px", height:"48px", fontWeight:"500", color:'#fff', borderRadius:"8px", backgroundColor:"#032541", textTransform:"none"}}
+     sx={{fontSize:"14px", boxShadow:"none", ":hover":{boxShadow:"none"}, textWrap:"nowrap", width:"auto", minWidth:"132px", height:"48px", fontWeight:"500", color:'#fff', borderRadius:"8px", backgroundColor:"#032541", textTransform:"none"}}
      onClick={onClick}
      variant={variant}
     >{label}</Button>

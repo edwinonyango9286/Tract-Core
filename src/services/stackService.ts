@@ -39,9 +39,9 @@ export const deleteStackService = async (code: string) => {
 };
 
 
-export const updateStackService = async ({ code, ...stackData }: Stack) => {
+export const updateStackService = async (stackData : Stack) => {
   try {
-    const response = await apiClient.put(`aims/stacks/${code}`, stackData);
+    const response = await apiClient.put(`aims/stacks/${stackData.code}`, stackData);
     return response;
   } catch (error) {
     console.log(error);
