@@ -10,9 +10,10 @@ interface CustomCancelButton extends Omit<ButtonProps, "variant"> {
   onClick?: MouseEventHandler<HTMLButtonElement>
 }
 
-function CustomCancelButton({variant = "outlined", onClick, label}: CustomCancelButton) {
+function CustomCancelButton({ style, variant = "outlined", onClick, label}: CustomCancelButton) {
   return (
     <Button
+      style={style}
       type="button"
       variant={variant}
       onClick={onClick}

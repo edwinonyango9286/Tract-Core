@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, Button, CircularProgress, IconButton, Menu, MenuItem, Modal, Typography } from "@mui/material"
+import { Box, Breadcrumbs, Button, CircularProgress, Divider, IconButton, Menu, MenuItem, Modal, Typography } from "@mui/material"
 import CustomSearchTextField from "../../Components/common/CustomSearchTextField";
 import { FiberManualRecord } from "@mui/icons-material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
@@ -266,8 +266,6 @@ const handleExport = async () => {
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-
-        showSnackbar("Subcategories exported successfully!", "success");
     } catch (error) {
         const err = error as AxiosError<{message?: string}>;
         showSnackbar(err.response?.data.message || err.message, "error");
@@ -299,42 +297,41 @@ const handleExport = async () => {
       </Box>
 
       <Box sx={{marginLeft:"40px" }}>
-       <Box sx={{ width:"100%", marginTop:"10px"}}>
+       <Box sx={{ width:"100%", marginTop:"10px", marginBottom:"20px"}}>
         <Box sx={{ width:"100%"}}>
            <Typography sx={{ fontSize:"18px", fontWeight:"600", color:"#032541"}}>Sub Categories Overview</Typography>
         </Box>
-        <Box sx={{ marginTop:"10px", width:"100%", display:"flex", justifyContent:"space-between" }}>
-
+        <Box sx={{ marginTop:"10px", width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <Box sx={{ display:"flex", flexDirection:"column" }}>
-              <Typography sx={{ textAlign:"start", fontSize:"16px", fontWeight:"600", color:"#4B5563" }}>Total</Typography>
+              <Typography sx={{ textAlign:"start", fontSize:"16px", fontWeight:"600", color:"#1F2937" }}>Total</Typography>
               <Typography sx={{ fontSize:"40px", fontWeight:"600", color:"#1F2937"}}>{ isKpiLoading? <CircularProgress thickness={5} size={20} sx={{ color:"#333"}}/>  : subCategoriesKpiData?.totalSubCategories || 0}</Typography>
           </Box>
-
+          <Divider orientation="vertical" sx={{ borderWidth:"1px", height:"80px"}} />
            <Box sx={{ display:"flex", flexDirection:"column" }}>
               <Typography sx={{ textAlign:"start", fontSize:"16px", fontWeight:"600", color:"#059669" }}>Active</Typography>
               <Typography sx={{ fontSize:"40px", fontWeight:"600", color:"#059669"}}>{ isKpiLoading? <CircularProgress thickness={5} size={20} sx={{ color:"#333"}}/>: subCategoriesKpiData?.byStatus?.ACTIVE || 0}</Typography>
           </Box>
-
+            <Divider orientation="vertical" sx={{ borderWidth:"1px", color:"#333", height:"80px"}} />
           <Box sx={{ display:"flex", flexDirection:"column" }}>
               <Typography sx={{ textAlign:"start", fontSize:"16px", fontWeight:"600", color:"#DC2626" }}>Inactive</Typography>
               <Typography sx={{ fontSize:"40px", fontWeight:"600", color:"#DC2626"}}>{ isKpiLoading? <CircularProgress thickness={5} size={20} sx={{ color:"#333"}}/> : subCategoriesKpiData?.byStatus?.INACTIVE || 0}</Typography>
           </Box>
         </Box>
+
+        <Divider sx={{ width:"100%", borderWidth:"1px", color:"#333"}}/>
       </Box>
 
        <Box sx={{ display: "flex", width: "100%", justifyContent: "space-between", marginTop: "10px" }}>
         <Box sx={{ }}>
            <Box sx={{  display:"flex", gap:"10px"}}>
            </Box>
-          <Button variant="contained" onClick={handleExport} disabled={exportSubCategoriesMutation.isPending} endIcon={exportSubCategoriesMutation.isPending ? <CircularProgress thickness={5} size={16} sx={{ color:"#333" }}  /> : <img src={menuIcon} alt="menu icon"/>}
+        <Button variant="contained" onClick={handleExport} disabled={exportSubCategoriesMutation.isPending} endIcon={exportSubCategoriesMutation.isPending ? <CircularProgress thickness={5} size={16} sx={{ color:"#333" }}  /> : <img src={menuIcon} alt="menu icon"/>}
           sx={{  backgroundColor: '#f5f6f7', borderRadius:"8px", ":hover":{boxShadow:"none"}, height:"48px", border:"1px solid #333", boxShadow:"none", textWrap:"nowrap",color:'#032541', textTransform: 'none', fontSize: '14px', fontWeight:"500"}}>
           {exportSubCategoriesMutation.isPending ? 'Exporting...' : 'Export CSV'}
         </Button>
         </Box>
         <CustomSearchTextField value={searchTerm} onChange={handleSearchChange}  placeholder="Search category..."/>
       </Box>
-
-
       {/* category modal */}
       <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
         <Box sx={style}>

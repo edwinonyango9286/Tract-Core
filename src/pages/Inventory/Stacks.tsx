@@ -10,7 +10,7 @@ import CustomSubmitButton from "../../Components/common/CustomSubmitButton";
 import CustomDeleteComponent from "../../Components/common/CustomDeleteComponent";
 import CustomDataGrid from "../../Components/common/CustomDataGrid";
 import type { GridColDef } from "@mui/x-data-grid";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 import editIcon from "../../assets/icons/editIcon.svg";
 import deleteIcon from "../../assets/icons/deleteIcon.svg"
 import dotsVertical from "../../assets/icons/dotsVertical.svg"
@@ -19,7 +19,7 @@ import { useSnackbar } from "../../hooks/useSnackbar";
 import { useCreateStack, useDeleteStack, useGetStacks, useUpdateStack } from "../../hooks/useStacks";
 import { useDebounce } from "../../hooks/useDebounce";
 import type { GridPaginationModel } from "@mui/x-data-grid";
-import type { Stack, CreateStackPayload, GetAllStacksResponse } from "../../types/stack";
+import type { Stack, CreateStackPayload } from "../../types/stack";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { dateFormatter } from "../../utils/dateFormatter";
@@ -63,21 +63,13 @@ const Stacks = () => {
   const [searchTerm, setSearchTerm] = useState<string>("")
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
   const isDeleting = deleteStackMutation.isPending;
-  const { data: stacksList, isLoading } = useGetStacks({ page: paginationModel.page, size: paginationModel.pageSize, search: debouncedSearchTerm })
+  const { data: stackResponse, isLoading } = useGetStacks({ page: paginationModel.page, size: paginationModel.pageSize, search: debouncedSearchTerm })
   const createStackMutation = useCreateStack();
   const updateStackMutation = useUpdateStack();
   const [stackData, setStackData] = useState<Stack | null>(null)
+   const stacksList = stackResponse?.data || [];
+   const rowCount = stacksList?.length || 0;
 
-  const { rows, rowCount } = useMemo(() => {
-    if (!stacksList) {
-      return { rows: [], rowCount: 0 };
-    }
-    const response = stacksList as unknown as GetAllStacksResponse;
-    return {
-      rows: response.data || [],
-      rowCount: response.data.length || 0
-    };
-  }, [stacksList]);
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -242,8 +234,8 @@ const Stacks = () => {
                   id="warehouse"
                   type="warehouse"
                   name="warehouse"
-                  label="Warehouse"
-                  placeholder="Warehouse"
+                  label="Name"
+                  placeholder="Name"
                   onChange={StackFormik.handleChange}
                   value={StackFormik.values.warehouse}
                   onBlur={StackFormik.handleBlur}
@@ -306,7 +298,7 @@ const Stacks = () => {
       <Box sx={{ width: "100%", height: "70vh", marginTop: "20px" }}>
         <CustomDataGrid
           loading={isLoading}
-          rows={rows}
+          rows={stacksList}
           rowCount={rowCount}
           getRowId={(row) => row.code}
           paginationModel={paginationModel}

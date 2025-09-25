@@ -1,4 +1,4 @@
-import type { Asset, CreateAssetPayload, GetAllAssetsResponse, GetAssetsParams } from "../types/asset";
+import type { Asset, AssignAssetToUserPayload, CreateAssetPayload, GetAllAssetsResponse, GetAssetKPIResponse, GetAssetsParams } from "../types/asset";
 import { apiClient } from "../utils/apiClient";
 
 
@@ -47,3 +47,40 @@ export const updateAssetService = async ({ code, ...assetData }: Asset) => {
     throw error;
   }
 };
+
+export const getAssetKPIService = async():Promise<GetAssetKPIResponse>=>{
+  try {
+    const response = await apiClient.get(`/aims/kpis/assets`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export const exportAssetService = async (): Promise<Blob> => {
+    try {
+        const response = await apiClient.get(`aims/assets/export?sortBy=createdAt&direction=desc`, {
+            headers: {
+                'Accept': 'text/csv', 
+                'Content-Type': 'text/csv',
+            },
+            responseType: 'blob',
+        });
+        return response.data;
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+}
+
+
+export const assignAssetToUserService =  async (assignData:AssignAssetToUserPayload)=>{
+  try {
+    const response = await apiClient.patch(`aims/assets/${assignData.code}/assign?assignedTo=${assignData.assignedTo}&location=${assignData.location}`);
+    return response;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
