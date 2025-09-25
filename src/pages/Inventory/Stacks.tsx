@@ -188,7 +188,7 @@ const Stacks = () => {
             <IconButton onClick={() => handleEdit(params.row as Stack)}>
               <img src={editIcon} alt="editIcon" style={{ width: "21px", height: "21px" }} />
             </IconButton>
-            <IconButton onClick={() => { handleOpenDeleteModal(params?.row?.code); setStackName(params?.row?.name) }}>
+            <IconButton onClick={() => { handleOpenDeleteModal(params?.row?.code); setStackName(params?.row?.code) }}>
               <img src={deleteIcon} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
             </IconButton>
             <IconButton>

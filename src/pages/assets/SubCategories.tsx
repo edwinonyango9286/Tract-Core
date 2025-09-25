@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, IconButton, Modal, Typography } from "@mui/material"
+import { Box, Breadcrumbs, Button, CircularProgress, IconButton, Menu, MenuItem, Modal, Typography } from "@mui/material"
 import CustomSearchTextField from "../../Components/common/CustomSearchTextField";
 import { FiberManualRecord } from "@mui/icons-material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
@@ -21,11 +21,12 @@ import { useDebounce } from "../../hooks/useDebounce";
 import type { GridPaginationModel } from "@mui/x-data-grid";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import type { CreateSubCategoryPayload, GetSubCategoriesResponse, SubCategory } from "../../types/subCategory";
+import type { CreateSubCategoryPayload, DeactivateSubCategoryPayload, GetSubCategoriesResponse, SubCategory } from "../../types/subCategory";
 import CustomSelect from "../../Components/common/CustomSelect";
 import type { Category } from "../../types/category";
-import { useCreateSubCategory, useDeleteSubCategory, useGetSubCategories, useUpdateSubCategory } from "../../hooks/useSubCategories";
+import { useChangeSubCategoryStatus, useCreateSubCategory, useDeleteSubCategory, useExportSubCategories, useGetSubCategories, useGetSubCategoryKPI, useUpdateSubCategory } from "../../hooks/useSubCategories";
 import { dateFormatter } from "../../utils/dateFormatter";
+import menuIcon from "../../assets/icons/menuIcon.svg"
 
 const breadcrumbs = [
   <Typography key={1} style={{ cursor: "pointer", color: "#707070", fontSize: "14px" }}>
@@ -76,8 +77,8 @@ const SubCategories = ()=>{
       }
       const response = subCategoriesList as unknown as GetSubCategoriesResponse;
       return { 
-        rows: response.data.data.content || [], 
-        rowCount: response.data.data.totalElements || 0 
+        rows: response.data.content || [], 
+        rowCount: response.data.totalElements || 0 
 
       };
     }, [subCategoriesList]);
@@ -175,7 +176,45 @@ const SubCategories = ()=>{
       }, []);
 
 
-  const columns: GridColDef[] = useMemo(() => [
+
+  const [anchorElelementAction,setAnchorElelementAction] = useState<null | HTMLElement>(null);
+  const [selectedSubCategory,setSelectedSubCategory] = useState<SubCategory | null>(null);
+  const openActionMenu = Boolean(anchorElelementAction);
+
+    const handleClickActionMenu = (event: React.MouseEvent<HTMLButtonElement>, subCategories : SubCategory) => {
+      setAnchorElelementAction(event.currentTarget);
+      setSelectedSubCategory(subCategories);
+    };
+    const handleCloseActionMenu = () => {
+      setAnchorElelementAction(null);
+      setSelectedSubCategory(null);
+    };
+
+    const updateSubCategoryStatusMutation =  useChangeSubCategoryStatus();
+    const isDeactivating = updateSubCategoryStatusMutation.isPending;
+
+ 
+     const handleUpdateSubCategoryStatus =  async() => {
+        try {
+          if(selectedSubCategory){
+            let deactivateSubCategoryPayload:DeactivateSubCategoryPayload = { }
+            if(selectedSubCategory.status === "ACTIVE"){
+              deactivateSubCategoryPayload = { name:selectedSubCategory.name, description:selectedSubCategory.description, categoryCode: selectedSubCategory.categoryCode, subCategoryCode:selectedSubCategory.code, status:"INACTIVE" }
+            }
+            else if (selectedSubCategory.status ==="INACTIVE"){
+              deactivateSubCategoryPayload ={ name:selectedSubCategory.name, description:selectedSubCategory.description, categoryCode:selectedSubCategory.categoryCode, subCategoryCode:selectedSubCategory.code, status:"ACTIVE"}
+            }
+            await updateSubCategoryStatusMutation.mutateAsync(deactivateSubCategoryPayload)
+          }
+          handleCloseActionMenu();
+          showSnackbar(`Sub category status updated successfully`, "success")
+        } catch (error) {
+          const err = error as AxiosError<{message?:string}>
+          showSnackbar(err.response?.data.message || err.message)
+        }
+      }
+
+  const columns: GridColDef[] = [
     { field: 'code', headerName: 'Code', flex:1 },
     { field: 'name', headerName: 'Name', flex: 1 },
     { field: 'description', headerName: 'Description', flex: 1 },
@@ -194,18 +233,50 @@ const SubCategories = ()=>{
             <IconButton onClick={()=>{handleOpenDeleteModal(params?.row?.code); setSubCategoryName(params?.row?.name)}}>
               <img src={deleteIcon} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
             </IconButton>
-            <IconButton>
+            <IconButton sx={{ }}  id="action-menu-button"  aria-controls={openActionMenu ? 'action-menu' : undefined} aria-haspopup="true" aria-expanded={openActionMenu ? 'true' : undefined} onClick={(event) => handleClickActionMenu(event, params.row as SubCategory)}>
               <img src={dotsVertical} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
             </IconButton>
+
+             {/* dots vertical action menu here */}
+              <Menu id="action-menu" anchorEl={anchorElelementAction}  open={openActionMenu} onClose={handleCloseActionMenu}  slotProps={{ list: { 'aria-labelledby': 'action-menu-button'}}}>
+                <MenuItem onClick={handleCloseActionMenu}>View Details</MenuItem>
+                {selectedSubCategory?.status === "ACTIVE" && (<MenuItem onClick={handleUpdateSubCategoryStatus}>{isDeactivating ? <CircularProgress  thickness={5} size={20} sx={{ marginLeft:"30px", color:"#333"}} /> : "Deactivate"}</MenuItem>)} 
+                {selectedSubCategory?.status === "INACTIVE" && (<MenuItem onClick={handleUpdateSubCategoryStatus}> {isDeactivating ? <CircularProgress thickness={5} size={20} sx={{ marginLeft:"30px", alignSelf:"center", color:"#333"}} /> : "Activate"}</MenuItem>)} 
+              </Menu>
           </Box>
         );
       }
     },
-  ], [handleEdit]);
+  ];
+
+  // sub catgories kpis
+    const { data: subCategoriesKpiResponse, isLoading:isKpiLoading } = useGetSubCategoryKPI();
+    const subCategoriesKpiData = subCategoriesKpiResponse?.data; 
+
+// export as csv functionality here...
+const exportSubCategoriesMutation = useExportSubCategories(); 
+const handleExport = async () => {
+    try {
+        const blob = await exportSubCategoriesMutation.mutateAsync();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `subcategories_export_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        showSnackbar("Subcategories exported successfully!", "success");
+    } catch (error) {
+        const err = error as AxiosError<{message?: string}>;
+        showSnackbar(err.response?.data.message || err.message, "error");
+    }
+};
 
 
   return (
-    <Box sx={{ width:"100%",height:"100vh"}}>
+    <Box sx={{  width:"100%",height:"100vh"}}>
         <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
         <Box sx={{ width: "100%", alignItems: "center", display: "flex" }}>
           <IconButton onClick={() => navigate(-1)}>
@@ -213,26 +284,57 @@ const SubCategories = ()=>{
           </IconButton>
           <Typography sx={{ fontSize: "25px", fontWeight: "600", color: "#032541" }}>Sub Categories</Typography>
         </Box>
+
+          <Box sx={{ display: 'flex', gap: 2 }}>
+        
         <CustomAddButton variant="contained" label="Add Sub category" onClick={handleOpen} />
+        </Box>
       </Box>
 
+
        <Box sx={{ width: "100%", marginTop: "-10px", marginLeft: "40px" }}>
-        <Breadcrumbs 
-          style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }}
-          aria-label="breadcrumb"
-          separator={<FiberManualRecord style={{ fontSize: "0.625rem", fontFamily: "Poppins", color: "#e1e5e8" }} />}
-        >
+        <Breadcrumbs style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }} aria-label="breadcrumb" separator={<FiberManualRecord style={{ fontSize: "0.625rem", fontFamily: "Poppins", color: "#e1e5e8" }} />}>
           {breadcrumbs}
         </Breadcrumbs>
       </Box>
 
-       <Box sx={{ display: "flex", width: "100%", justifyContent: "flex-start", marginTop: "20px" }}>
-        <CustomSearchTextField
-          value={searchTerm}
-          onChange={handleSearchChange}
-          placeholder="Search category..."
-        />
+      <Box sx={{marginLeft:"40px" }}>
+       <Box sx={{ width:"100%", marginTop:"10px"}}>
+        <Box sx={{ width:"100%"}}>
+           <Typography sx={{ fontSize:"18px", fontWeight:"600", color:"#032541"}}>Sub Categories Overview</Typography>
+        </Box>
+        <Box sx={{ marginTop:"10px", width:"100%", display:"flex", justifyContent:"space-between" }}>
+
+          <Box sx={{ display:"flex", flexDirection:"column" }}>
+              <Typography sx={{ textAlign:"start", fontSize:"16px", fontWeight:"600", color:"#4B5563" }}>Total</Typography>
+              <Typography sx={{ fontSize:"40px", fontWeight:"600", color:"#1F2937"}}>{ isKpiLoading? <CircularProgress thickness={5} size={20} sx={{ color:"#333"}}/>  : subCategoriesKpiData?.totalSubCategories || 0}</Typography>
+          </Box>
+
+           <Box sx={{ display:"flex", flexDirection:"column" }}>
+              <Typography sx={{ textAlign:"start", fontSize:"16px", fontWeight:"600", color:"#059669" }}>Active</Typography>
+              <Typography sx={{ fontSize:"40px", fontWeight:"600", color:"#059669"}}>{ isKpiLoading? <CircularProgress thickness={5} size={20} sx={{ color:"#333"}}/>: subCategoriesKpiData?.byStatus?.ACTIVE || 0}</Typography>
+          </Box>
+
+          <Box sx={{ display:"flex", flexDirection:"column" }}>
+              <Typography sx={{ textAlign:"start", fontSize:"16px", fontWeight:"600", color:"#DC2626" }}>Inactive</Typography>
+              <Typography sx={{ fontSize:"40px", fontWeight:"600", color:"#DC2626"}}>{ isKpiLoading? <CircularProgress thickness={5} size={20} sx={{ color:"#333"}}/> : subCategoriesKpiData?.byStatus?.INACTIVE || 0}</Typography>
+          </Box>
+        </Box>
       </Box>
+
+       <Box sx={{ display: "flex", width: "100%", justifyContent: "space-between", marginTop: "10px" }}>
+        <Box sx={{ }}>
+           <Box sx={{  display:"flex", gap:"10px"}}>
+           </Box>
+          <Button variant="contained" onClick={handleExport} disabled={exportSubCategoriesMutation.isPending} endIcon={exportSubCategoriesMutation.isPending ? <CircularProgress thickness={5} size={16} sx={{ color:"#333" }}  /> : <img src={menuIcon} alt="menu icon"/>}
+          sx={{  backgroundColor: '#f5f6f7', borderRadius:"8px", ":hover":{boxShadow:"none"}, height:"48px", border:"1px solid #333", boxShadow:"none", textWrap:"nowrap",color:'#032541', textTransform: 'none', fontSize: '14px', fontWeight:"500"}}>
+          {exportSubCategoriesMutation.isPending ? 'Exporting...' : 'Export CSV'}
+        </Button>
+        </Box>
+        <CustomSearchTextField value={searchTerm} onChange={handleSearchChange}  placeholder="Search category..."/>
+      </Box>
+
+
       {/* category modal */}
       <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
         <Box sx={style}>
@@ -319,6 +421,7 @@ const SubCategories = ()=>{
           onPaginationModelChange={handlePaginationModelChange}
           columns={columns}
         />
+      </Box>
       </Box>
     </Box>
   )

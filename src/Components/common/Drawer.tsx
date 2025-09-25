@@ -53,8 +53,8 @@ const Drawer = ({open,children}: DrawerProps) => {
     },
     { id: 'inventory', text: <Typography sx={{ fontSize:"16px", fontWeight:"700", textAlign:"start"}}>Inventory</Typography>, icon: <InventoryIcon/>,
       children: [
-         { id: 'pallet', text: <Typography sx={{ cursor:"pointer", fontSize:"16px", fontWeight:"700", textAlign:"start"}}>Pallet</Typography>,icon: <PaletteIcon />, path: 'Pallet' },
          { id: 'stack', text: <Typography sx={{ cursor:"pointer", fontSize:"16px", fontWeight:"700", textAlign:"start"}}>Stack</Typography>,icon: <LayersIcon />, path: 'stack' },
+         { id: 'pallet', text: <Typography sx={{ cursor:"pointer", fontSize:"16px", fontWeight:"700", textAlign:"start"}}>Pallet</Typography>,icon: <PaletteIcon />, path: 'Pallet' },
       ]
     },
     { id: 'movement', text: <Typography sx={{ cursor:"pointer", fontSize:"16px", fontWeight:"700", textAlign:"start"}}>Movement</Typography>,icon: <CompareArrowsIcon/>, path: 'movement' },

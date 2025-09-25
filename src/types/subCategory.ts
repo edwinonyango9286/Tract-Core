@@ -1,5 +1,5 @@
 export interface CreateSubCategoryPayload {
-  subCategoryCode?:string
+  subCategoryCode?: string;
   name: string;
   description: string;
   categoryCode: string;
@@ -7,9 +7,16 @@ export interface CreateSubCategoryPayload {
 }
 
 export interface GetSubCategoriesParams {
-    search?:string;
-    page?:number;
-    size?:number
+  search?: string;
+  page?: number;
+  size?: number;
+}
+export interface DeactivateSubCategoryPayload {
+  subCategoryCode?: string;
+  categoryCode?: string;
+  status?: string;
+  name?: string;
+  description?: string;
 }
 
 export interface SubCategory {
@@ -31,4 +38,25 @@ export interface GetSubCategoriesResponse {
     content?: SubCategory[];
     totalElements?: number;
   };
+}
+
+export interface SubCategoryKPI {
+  success: boolean;
+  responseCode: number;
+  responseMessage: string;
+  message: string;
+  data: {
+    totalSubCategories: number;
+    byStatus: {
+      [categoryName: string]: number;
+    };
+
+    byCategory: {
+      [categoryName: string]: number;
+    };
+    createdLast30Days: number;
+    updatedLast30Days: number;
+  };
+  timestamp: string;
+  requestId: string | null;
 }

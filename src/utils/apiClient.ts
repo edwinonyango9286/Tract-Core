@@ -5,8 +5,8 @@ const base_url: string = import.meta.env.VITE_BASE_URL ?? "";
 console.log(base_url, "=> baseurlhere.......");
 
 interface CustomHeaders extends RawAxiosRequestHeaders {
-  Accept: "application/json";
-  "Content-Type": "application/json";
+  Accept: string;
+  "Content-Type"?: string;
 }
 
 interface CustomAxiosConfig extends AxiosRequestConfig {
@@ -24,3 +24,13 @@ export const apiClient: AxiosInstance = axios.create({
   },
   withCredentials: true,
 } as CustomAxiosConfig);
+
+
+apiClient.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
