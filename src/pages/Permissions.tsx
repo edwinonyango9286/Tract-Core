@@ -1,7 +1,7 @@
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import type { AxiosError } from "axios";
-import { Box, Breadcrumbs, CircularProgress, Divider, IconButton, Menu, MenuItem, Modal, Typography } from "@mui/material";
+import { Box, Breadcrumbs, Button, CircularProgress, Divider, FormControl, IconButton, InputLabel, Menu, MenuItem, Modal, Select, Typography, type SelectChangeEvent } from "@mui/material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import { useNavigate } from "react-router-dom";
 import { useState, useCallback, useMemo } from "react";
@@ -27,6 +27,11 @@ import { dateFormatter } from "../utils/dateFormatter";
 import dropDownIcon from "../assets/icons/dropDownIcon.svg";
 import refreshIcon from "../assets/icons/refreshIcon.svg"
 import type { DeactivatePermissionPayload } from "../services/permissionsService";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { formatISO } from 'date-fns';
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+
 
 const PermissionsSchema = Yup.object<PermissionsPayload>({
   permissionName: Yup.string().required("Please provide permission name."),
@@ -48,7 +53,31 @@ const Permissions = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
   const [searchTerm, setSearchTerm] = useState<string>("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500); 
-  const { data: permissionsList, isLoading, refetch } = usePermissions({page: paginationModel.page , size: paginationModel.pageSize, search: debouncedSearchTerm});
+
+  const [startDate,setStartDate] = useState<Date | null>(null);
+  const [endDate,setEndDate] = useState<Date | null>(null);
+
+  const handleStartDateChange = (date:Date)=>{
+    setStartDate(date);
+    setPaginationModel((prev)=>({...prev, page:0}));
+  }
+  const handleEndDateChange = (date:Date) =>{
+    setEndDate(date);
+    setPaginationModel((prev)=>({...prev, page:0}));
+  }
+
+  const handleClearDates = ()=>{
+    setStartDate(null);
+    setEndDate(null);
+    setPaginationModel((prev)=>({...prev, page:0 }))
+  }
+
+  const [status,setStatus ] = useState<string>("");
+  const handleChangeStatus = (e:SelectChangeEvent<string>)=>{
+     setStatus(e.target.value);
+  }
+
+  const { data: permissionsList, isLoading, refetch } = usePermissions({ status, page: paginationModel.page , size: paginationModel.pageSize, search: debouncedSearchTerm ,startDate: startDate ? formatISO(startDate) : '',  endDate: endDate ? formatISO(endDate) : ''  });
   const createPermissionMutation = useCreatePermission();
   const deletePermissionMutation = useDeletePermission();
   const updatePermissionMutation = useUpdatePermission();
@@ -265,6 +294,7 @@ const handleRefreshPermissions = useCallback(async () => {
     handleClosePageSizeMenu()
   }
 
+
   return (
     <Box sx={{ width: "100%", height: "auto" }}>
       <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
@@ -305,11 +335,40 @@ const handleRefreshPermissions = useCallback(async () => {
          </Box>
         <Menu  id="page-size-menu" anchorEl={anchorElementPageSizeMenu} open={openPageSizeMenu} onClose={handleClosePageSizeMenu} slotProps={{ list: {'aria-labelledby': 'page-size-button'}}}>
           {[10,20,50,100].map((pageSize, index)=>(
-           <MenuItem key={index} onClick={ ()=>{handlePageSizeSelection(pageSize)}}>{pageSize}</MenuItem>
+           <MenuItem key={index} onClick={()=>{handlePageSizeSelection(pageSize)}}>{pageSize}</MenuItem>
           ))}
        </Menu>
-       <Box sx={{ display:"flex", gap:"20px" }}></Box>
+       <Box sx={{ display:"flex", gap:"20px", alignItems:"center" }}>
+       <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <DatePicker disableFuture label="Start Date"  value={startDate} onChange={handleStartDateChange}
+            slotProps={{ textField: { size: 'small', sx: { width: 150 }}}}
+          />
+          <DatePicker disableFuture  label="End Date" value={endDate} onChange={handleEndDateChange}
+            sx={{ width:"200px"}} 
+            slotProps={{   textField: {
+             placeholder: "Select end date", size: 'small',
+             sx: { width: 150 }
+            }
+          }}
+          />
+          {(startDate || endDate) && (
+            <Button   variant="outlined" size="small" onClick={handleClearDates} sx={{ borderRadius:"8px", borderColor:"#D1D5DB", textTransform:"none", color:"#333", height: '40px' }}>Clear dates</Button>
+          )}
+       </LocalizationProvider>
+         <Box sx={{ width:"200px" }}>
+      <Select  
+        displayEmpty
+        renderValue={value => value === '' ? 'Select Status' : value}
+        size="small"
+        sx={{ width:"100%",'& .MuiOutlinedInput-notchedOutline': { borderWidth:"1px", borderColor: '#D1D5DB'}, '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#D1D5DB' },
+             '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth:"1px", borderColor: '#D1D5DB' }}}   id="status"  value={status} onChange={handleChangeStatus}>
+          <MenuItem value={"ACTIVE"}>Active</MenuItem>
+          <MenuItem value={"INACTIVE"}>Inactive</MenuItem>
+        </Select>
+        </Box>
+
         <CustomSearchTextField value={searchTerm} onChange={handleSearchChange}  placeholder="Search permissions..." />
+        </Box>
       </Box>
 
       {/* Add/Edit Permission Modal */}
