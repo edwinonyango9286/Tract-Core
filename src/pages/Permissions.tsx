@@ -57,11 +57,11 @@ const Permissions = () => {
   const [startDate,setStartDate] = useState<Date | null>(null);
   const [endDate,setEndDate] = useState<Date | null>(null);
 
-  const handleStartDateChange = (date:Date)=>{
+  const handleStartDateChange = (date:Date | null)=>{
     setStartDate(date);
     setPaginationModel((prev)=>({...prev, page:0}));
   }
-  const handleEndDateChange = (date:Date) =>{
+  const handleEndDateChange = (date:Date | null) =>{
     setEndDate(date);
     setPaginationModel((prev)=>({...prev, page:0}));
   }
@@ -256,7 +256,7 @@ const handleDeletePermission = useCallback(async () => {
             <Menu id="action-menu" anchorEl={anchorElelementAction}  open={openActionMenu} onClose={handleCloseActionMenu}  slotProps={{ list: { 'aria-labelledby': 'action-menu-button'}}}>
                <MenuItem onClick={handleCloseActionMenu}>View Details</MenuItem>
                {selectedPermission?.status === "ACTIVE" && (<MenuItem onClick={handleDeactivatePermission}>{isDeactivating ? <CircularProgress  thickness={5} size={20} sx={{ marginLeft:"30px", color:"#333"}} /> : "Deactivate"}</MenuItem>)} 
-               {selectedPermission?.status === "INACTIVE" && (<MenuItem onClick={handleDeactivatePermission}> {isDeactivating ? <CircularProgress thickness={5} size={20} sx={{ marginLeft:"30px", alignSelf:"center", color:"#333"}} /> : "Active"}</MenuItem>)} 
+               {selectedPermission?.status === "INACTIVE" && (<MenuItem onClick={handleDeactivatePermission}> {isDeactivating ? <CircularProgress thickness={5} size={20} sx={{ marginLeft:"30px", alignSelf:"center", color:"#333"}} /> : "Activate"}</MenuItem>)} 
             </Menu>
           </Box>
         );
