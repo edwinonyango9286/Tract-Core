@@ -345,7 +345,7 @@ const handleOpenAssetViewModal = (assetToView:Asset)=>{
                 slotProps={{ list: { 'aria-labelledby': 'basic-button', }, }}>
                 <MenuItem onClick={()=>handleOpenAssetViewModal(params.row as Asset)}>View details</MenuItem>
                 <MenuItem onClick={()=>handleOpenAssignModal(params.row as Asset)}>Assign to user</MenuItem>
-                <MenuItem onClick={handleCloseActionMenu}>Deactivate</MenuItem>
+                <MenuItem onClick={handleCloseActionMenu}>Update status</MenuItem>
               </Menu>
 
 
@@ -606,8 +606,8 @@ const handleOpenAssetViewModal = (assetToView:Asset)=>{
       <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
         <Box sx={style}>
           <form style={{ width: "100%" }} onSubmit={AssetFormik.handleSubmit}>
-            <Typography sx={{ fontSize: "20px", fontWeight: "700" }}>
-              {updatingAsset ? "Update Asset Details" : "Add Asset"}
+            <Typography sx={{ color:"#032541", fontSize: "20px", fontWeight: "700" }}>
+              {updatingAsset ? "Update asset details" : "Add asset"}
             </Typography>
             <Box sx={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "20px" }}>
               <Box sx={{ display: "flex", gap: "15px" }}>
