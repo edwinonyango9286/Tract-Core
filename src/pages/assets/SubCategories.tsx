@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, Button, CircularProgress, Divider, IconButton, Menu, MenuItem, Modal, Typography } from "@mui/material"
+import { Box, Breadcrumbs, Button, CircularProgress, Divider, IconButton, Menu, MenuItem, Modal, Select, Typography, type SelectChangeEvent } from "@mui/material"
 import CustomSearchTextField from "../../Components/common/CustomSearchTextField";
 import { FiberManualRecord } from "@mui/icons-material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
@@ -27,6 +27,10 @@ import type { Category } from "../../types/category";
 import { useChangeSubCategoryStatus, useCreateSubCategory, useDeleteSubCategory, useExportSubCategories, useGetSubCategories, useGetSubCategoryKPI, useUpdateSubCategory } from "../../hooks/useSubCategories";
 import { dateFormatter } from "../../utils/dateFormatter";
 import menuIcon from "../../assets/icons/menuIcon.svg"
+import { formatISO } from "date-fns";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 const breadcrumbs = [
   <Typography key={1} style={{ cursor: "pointer", color: "#707070", fontSize: "14px" }}>
@@ -64,8 +68,33 @@ const SubCategories = ()=>{
   const [searchTerm,setSearchTerm]= useState<string>("")
   const debouncedSearchTerm = useDebounce(searchTerm,500)
   const isDeleting = deleteSubCategoryMutation.isPending;
-  const {data:categoriesList } = useGetCategories()
-  const {data:subCategoriesList, isLoading} = useGetSubCategories({ page:paginationModel.page, size:paginationModel.pageSize, search:debouncedSearchTerm })
+  const {data:getCategoriesReponse } = useGetCategories();
+  const categoriesList = getCategoriesReponse?.data.content || [] 
+
+    const [startDate,setStartDate] = useState<Date | null>(null);
+    const [endDate,setEndDate] = useState<Date | null>(null);
+  
+    const handleStartDateChange = (date:Date | null)=>{
+      setStartDate(date);
+      setPaginationModel((prev)=>({...prev, page:0}));
+    }
+    const handleEndDateChange = (date:Date | null) =>{
+      setEndDate(date);
+      setPaginationModel((prev)=>({...prev, page:0}));
+    }
+  
+    const handleClearDates = ()=>{
+      setStartDate(null);
+      setEndDate(null);
+      setPaginationModel((prev)=>({...prev, page:0 }))
+    }
+  
+    const [status,setStatus ] = useState<string>("");
+    const handleChangeStatus = (e:SelectChangeEvent<string>)=>{
+       setStatus(e.target.value);
+    }
+
+  const {data:subCategoriesList, isLoading} = useGetSubCategories({ page:paginationModel.page, size:paginationModel.pageSize, search:debouncedSearchTerm ,status,startDate: startDate ? formatISO(startDate) : '',  endDate: endDate ? formatISO(endDate) : ''  })
   const createSubCategoryMutation= useCreateSubCategory();
   const updateSubCategoryMutation = useUpdateSubCategory();
   const [subCategoryData,setSubCategoryData] = useState<SubCategory | null>(null);
@@ -284,9 +313,8 @@ const handleExport = async () => {
         </Box>
 
           <Box sx={{ display: 'flex', gap: 2 }}>
-        
-        <CustomAddButton variant="contained" label="Add Sub category" onClick={handleOpen} />
-        </Box>
+            <CustomAddButton variant="contained" label="Add Sub category" onClick={handleOpen} />
+          </Box>
       </Box>
 
 
@@ -330,7 +358,37 @@ const handleExport = async () => {
           {exportSubCategoriesMutation.isPending ? 'Exporting...' : 'Export CSV'}
         </Button>
         </Box>
+        <Box sx={{ display:"flex", gap:"20px", alignItems:"center" }}>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <DatePicker disableFuture label="Start Date"  value={startDate} onChange={handleStartDateChange}
+            slotProps={{ textField: { size: 'small', sx: { width: 150 }}}}
+          />
+          <DatePicker disableFuture  label="End Date" value={endDate} onChange={handleEndDateChange}
+            sx={{ width:"200px"}} 
+            slotProps={{   textField: {
+             placeholder: "Select end date", size: 'small',
+             sx: { width: 150 }
+            }
+          }}
+          />
+          {(startDate || endDate) && (
+            <Button   variant="outlined" size="small" onClick={handleClearDates} sx={{ borderRadius:"8px", borderColor:"#D1D5DB", textTransform:"none", color:"#333", height: '40px' }}>Clear dates</Button>
+          )}
+       </LocalizationProvider>
+      <Box sx={{ width:"200px" }}>
+      <Select 
+        displayEmpty
+        renderValue={value => value === '' ? 'Select Status' : value}
+        size="small"
+        sx={{ width:"100%",'& .MuiOutlinedInput-notchedOutline': { borderWidth:"1px", borderColor: '#D1D5DB'}, '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#D1D5DB' },
+             '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth:"1px", borderColor: '#D1D5DB' }}}   id="status"  value={status} onChange={handleChangeStatus}>
+          <MenuItem value={"ACTIVE"}>Active</MenuItem>
+          <MenuItem value={"INACTIVE"}>Inactive</MenuItem>
+        </Select>
+        </Box>
+
         <CustomSearchTextField value={searchTerm} onChange={handleSearchChange}  placeholder="Search category..."/>
+        </Box>
       </Box>
       {/* category modal */}
       <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
@@ -369,7 +427,7 @@ const handleExport = async () => {
                 value={SubCategoryFormik.values.categoryCode}
                 onChange={SubCategoryFormik.handleChange}
                 onBlur={SubCategoryFormik.handleBlur}
-                options={categoriesList?.data.map((category:Category) => ({
+                options={categoriesList?.map((category:Category) => ({
                   value: category.code, 
                   label: category.name   
                 })) || []} 
