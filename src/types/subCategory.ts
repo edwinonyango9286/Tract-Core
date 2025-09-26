@@ -10,6 +10,9 @@ export interface GetSubCategoriesParams {
   search?: string;
   page?: number;
   size?: number;
+  status?:string;
+  startDate?:string;
+  endDate?:string;
 }
 export interface DeactivateSubCategoryPayload {
   subCategoryCode?: string;

@@ -50,6 +50,10 @@ export interface GetAssetsParams {
   page?: number;
   size?: number;
   search?: string;
+  status?:string;
+  startDate?:string;
+  endDate?:string;
+
 }
 export interface GetAllAssetsResponse {
   success: boolean;

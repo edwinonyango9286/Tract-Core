@@ -14,10 +14,19 @@ export const createAssetService = async (assetData: CreateAssetPayload) => {
 
 export const getAllAssetsService = async (params?: GetAssetsParams): Promise<GetAllAssetsResponse> => {
   try {
-    const { page = 0, size = 10, search = "" } = params || {};
+    const { page = 0, size = 10, search = "",status ="", startDate="", endDate=""} = params || {};
     let url = `aims/assets/search?page=${page}&size=${size}&sortBy=createdAt&direction=desc`;
     if (search) {
-      url=`aims/assets/search?keyword=${encodeURIComponent(search.trim())}&page=${page}&size=${size}&sortBy=createdAt&direction=desc`
+      url +=`&keyword=${encodeURIComponent(search.trim())}`
+    }
+    if(status){
+      url += `&status=${encodeURIComponent(status)}`
+    }
+    if(startDate){
+      url+=`&startDate=${encodeURIComponent(startDate)}`
+    }
+    if(endDate){
+      url +=`&endDate=${encodeURIComponent(endDate)}`
     }
     const response = await apiClient.get(url);
     return response.data;
@@ -82,5 +91,16 @@ export const assignAssetToUserService =  async (assignData:AssignAssetToUserPayl
   } catch (error) {
     console.log(error);
     throw error;
+  }
+}
+
+
+export const updateAssetStatusService = async (statusUpdateData:Asset) => {
+  try {
+    const response = await apiClient.patch(`/aims/assets/update-status/${statusUpdateData.code}?status=${statusUpdateData.status}&changedBy=system`)
+    return response;
+  } catch (error) {
+    console.log(error);
+    throw error
   }
 }

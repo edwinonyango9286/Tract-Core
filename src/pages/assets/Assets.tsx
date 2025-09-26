@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, Button, CircularProgress, Divider, IconButton, InputLabel, Menu, MenuItem, Modal, TextField, Typography } from "@mui/material"
+import { Box, Breadcrumbs, Button, CircularProgress, Divider, IconButton, InputLabel, Menu, MenuItem, Modal, Select, TextField, Typography, type SelectChangeEvent } from "@mui/material"
 import CustomSearchTextField from "../../Components/common/CustomSearchTextField";
 import { FiberManualRecord } from "@mui/icons-material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
@@ -31,6 +31,10 @@ import CustomDatePicker from "../../Components/common/CustomDatePicker";
 import type { User } from "../../types/user";
 import { useGetUsers } from "../../hooks/useUsers";
 import menuIcon from "../../assets/icons/menuIcon.svg"
+import { formatISO } from "date-fns";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
 
 const breadcrumbs = [
@@ -86,10 +90,35 @@ const Assets = () => {
   const [searchTerm, setSearchTerm] = useState<string>("")
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
   const isDeleting = deleteAssetMutation.isPending;
-  const { data: assetsResponse, isLoading } = useGetAssets({ page: paginationModel.page, size: paginationModel.pageSize, search: debouncedSearchTerm });
+
+  const [startDate,setStartDate] = useState<Date | null>(null);
+    const [endDate,setEndDate] = useState<Date | null>(null);
+  
+    const handleStartDateChange = (date:Date | null)=>{
+      setStartDate(date);
+      setPaginationModel((prev)=>({...prev, page:0}));
+    }
+    const handleEndDateChange = (date:Date | null) =>{
+      setEndDate(date);
+      setPaginationModel((prev)=>({...prev, page:0}));
+    }
+  
+    const handleClearDates = ()=>{
+      setStartDate(null);
+      setEndDate(null);
+      setPaginationModel((prev)=>({...prev, page:0 }))
+    }
+  
+    const [status,setStatus ] = useState<string>("");
+    const handleChangeStatus = (e:SelectChangeEvent<string>)=>{
+       setStatus(e.target.value);
+    }
+
+  const { data: assetsResponse, isLoading } = useGetAssets({ page: paginationModel.page, size: paginationModel.pageSize, search: debouncedSearchTerm , status, startDate: startDate ? formatISO(startDate) : '',  endDate: endDate ? formatISO(endDate) : '' });
   const assetsList = assetsResponse?.data?.content || [];
   const rowCount = assetsResponse?.data?.totalElements || 0;
-  const { data:categoriesList} = useGetCategories();
+  const { data:getCategoriesResponse} = useGetCategories();
+  const categoriesList = getCategoriesResponse?.data.content || []
   const { data:subCategoriesResponse} = useGetSubCategories();
   const subCategoriesList = subCategoriesResponse?.data.content || [];
   
@@ -599,7 +628,39 @@ const handleOpenAssetViewModal = (assetToView:Asset)=>{
           sx={{  backgroundColor: '#f5f6f7', borderRadius:"8px", ":hover":{boxShadow:"none"}, height:"48px", border:"1px solid #333", boxShadow:"none", textWrap:"nowrap",color:'#032541', textTransform: 'none', fontSize: '14px', fontWeight:"500"}}>
           {exportAssetsMutation.isPending ? 'Exporting...' : 'Export CSV'}
         </Button>
+
+        <Box sx={{ display:"flex", gap:"20px", alignItems:"center" }}>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <DatePicker disableFuture label="Start Date"  value={startDate} onChange={handleStartDateChange}
+                slotProps={{ textField: { size: 'small', sx: { width: 150 }}}}
+              />
+              <DatePicker disableFuture  label="End Date" value={endDate} onChange={handleEndDateChange}
+                sx={{ width:"200px"}} 
+                slotProps={{   textField: {
+                placeholder: "Select end date", size: 'small',
+                sx: { width: 150 }
+                }
+              }}
+              />
+              {(startDate || endDate) && (
+                <Button   variant="outlined" size="small" onClick={handleClearDates} sx={{ borderRadius:"8px", borderColor:"#D1D5DB", textTransform:"none", color:"#333", height: '40px' }}>Clear dates</Button>
+              )}
+          </LocalizationProvider>
+          <Box sx={{ width:"200px" }}>
+          <Select  
+            displayEmpty
+            renderValue={value => value === '' ? 'Select Status' : value}
+            size="small"
+            sx={{ width:"100%",'& .MuiOutlinedInput-notchedOutline': { borderWidth:"1px", borderColor: '#D1D5DB'}, '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#D1D5DB' },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth:"1px", borderColor: '#D1D5DB' }}}   id="status"  value={status} onChange={handleChangeStatus}>
+              <MenuItem value={"IN_USE"}>In Use</MenuItem>
+              <MenuItem value={"IN_REPAIR"}>In Repair</MenuItem>
+              <MenuItem value={"IN_STORAGE"}>In Storage</MenuItem>
+              <MenuItem value={"DISPOSED"}>Disposed</MenuItem>
+            </Select>
+        </Box>
         <CustomSearchTextField value={searchTerm} onChange={handleSearchChange} placeholder="Search asset..."/>
+        </Box>
       </Box>
 
       {/* asset modal */}
@@ -689,7 +750,7 @@ const handleOpenAssetViewModal = (assetToView:Asset)=>{
                  onChange={AssetFormik.handleChange}
                  onBlur={AssetFormik.handleBlur}
                  searchable
-                 options={categoriesList?.data?.map((category)=>({
+                 options={categoriesList?.map((category)=>({
                   value:category.code,
                   label:category.name
                  }))}

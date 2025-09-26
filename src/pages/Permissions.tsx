@@ -355,7 +355,7 @@ const handleRefreshPermissions = useCallback(async () => {
             <Button   variant="outlined" size="small" onClick={handleClearDates} sx={{ borderRadius:"8px", borderColor:"#D1D5DB", textTransform:"none", color:"#333", height: '40px' }}>Clear dates</Button>
           )}
        </LocalizationProvider>
-         <Box sx={{ width:"200px" }}>
+      <Box sx={{ width:"200px" }}>
       <Select  
         displayEmpty
         renderValue={value => value === '' ? 'Select Status' : value}

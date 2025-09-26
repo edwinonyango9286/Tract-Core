@@ -3,10 +3,19 @@ import { apiClient } from "../utils/apiClient";
 
 export const getSubCategoriesService = async (params?:GetSubCategoriesParams):Promise<GetSubCategoriesResponse>=>{
     try {
-        const { page = 0,size = 10,search=""} = params || {}
+        const { page = 0,size = 10, search="", status = "", startDate = "" ,endDate = ""} = params || {}
         let url = `aims/subcategories/search?page=${page}&size=${size}&sort=createdAt%2CDESC`
         if(search){
-            url = `aims/subcategories/search?keyword=${search}&page=${page}&size=${size}&sort=createdAt%2CDESC`
+            url += `&keyword=${encodeURIComponent(search)}`
+        }
+        if(status){
+            url += `&status=${encodeURIComponent(status)}`
+        }
+        if(startDate){
+            url += `&startDate=${encodeURIComponent(startDate)}`
+        }
+        if(endDate){
+            url += `&endDate=${ encodeURIComponent(endDate)}`
         }
         const response = await apiClient.get(url);
         return response.data;
