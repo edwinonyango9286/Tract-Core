@@ -163,7 +163,6 @@ const Stacks = () => {
     { field: 'zone', headerName: 'Zone', flex: 1 },
     { field: 'capacity', headerName: 'Capacity', flex: 1 },
     { field: 'description', headerName: 'Description', flex: 1 },
-    { field: 'status', headerName: 'Status', flex: 1 },
     {
       field: 'createdAt', headerName: 'Created At', flex: 1,
       renderCell: (params) => dateFormatter(params.value)

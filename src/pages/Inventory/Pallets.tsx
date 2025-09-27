@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, IconButton, Modal, Typography } from "@mui/material"
+import { Box, Breadcrumbs, IconButton, MenuItem, Modal, Select, Typography, type SelectChangeEvent } from "@mui/material"
 import { FiberManualRecord } from "@mui/icons-material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import { useNavigate } from "react-router-dom";
@@ -67,10 +67,17 @@ const Pallets = () => {
   const [searchTerm, setSearchTerm] = useState<string>("")
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
   const isDeleting = deletePalletMutation.isPending;
-  const { data: palletsList, isLoading } = useGetPallets({ page: paginationModel.page, size: paginationModel.pageSize, search: debouncedSearchTerm })
+
+
+  const [status,setStatus ] = useState<string>("");
+  const handleChangeStatus = (e:SelectChangeEvent<string>)=>{
+      setStatus(e.target.value);
+  }
+  const { data: palletsList, isLoading } = useGetPallets({ page: paginationModel.page, size: paginationModel.pageSize, search: debouncedSearchTerm , status})
   const createPalletMutation = useCreatePallet();
   const updatePalletMutation = useUpdatePallet();
-  const [palletData, setPalletData] = useState<Pallet | null>(null)
+  const [palletData, setPalletData] = useState<Pallet | null>(null);
+
 
   const { rows, rowCount } = useMemo(() => {
     if (!palletsList) {
@@ -172,12 +179,14 @@ const Pallets = () => {
   }, []);
 
   const columns: GridColDef[] = [
-    { field: 'type', headerName: 'type', flex: 1 },
+    { field: 'type', headerName: 'Type', flex: 1 },
     { field: 'currentStackCode', headerName: 'Current Stack Code', flex: 1 },
     { field: 'currentLocation', headerName: 'Current Location', flex: 1 },
     { field: 'owner', headerName: 'Owner', flex: 1 },
     { field: 'lastReference', headerName: 'Last Reference', flex: 1 },
-    { field: 'lastMoveAt', headerName: 'Last Moved At', flex: 1 },
+    { field: 'lastMoveAt', headerName: 'Last Moved At', flex: 1 , 
+      renderCell:(params)=>dateFormatter(params.value)
+    },
     { field: 'notes', headerName: 'Notes', flex: 1 },
     { field: 'status', headerName: 'Status', flex: 1 },
     {
@@ -233,12 +242,26 @@ const Pallets = () => {
         </Breadcrumbs>
       </Box>
 
-      <Box sx={{ display: "flex", width: "100%", justifyContent: "flex-start", marginTop: "20px" }}>
-        <CustomSearchTextField
-          value={searchTerm}
-          onChange={handleSearchChange}
-          placeholder="Search pallet..."
-        />
+      <Box sx={{ display: "flex", width: "100%", justifyContent: "space-between", marginTop: "20px" }}>
+        <Box sx={{ }}></Box>
+        <Box sx={{ display:"flex", gap:"20px", alignItems:"center" }}>
+           <Box sx={{ width:"200px" }}>
+          <Select  
+            displayEmpty
+            renderValue={value => value === '' ? 'Select Status' : value}
+            size="small"
+            sx={{ height:"45px", width:"100%",'& .MuiOutlinedInput-notchedOutline': { borderWidth:"1px", borderColor: '#D1D5DB'}, '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#D1D5DB' },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth:"1px", borderColor: '#D1D5DB' }}}   id="status"  value={status} onChange={handleChangeStatus}>
+              <MenuItem value={"IN_STACK"}>In Stack</MenuItem>
+              <MenuItem value={"OUTBOUND"}>Out Bound</MenuItem>
+              <MenuItem value={"RETURNED"}>Returned</MenuItem>
+              <MenuItem value={"IN_REPAIR"}>In Repair</MenuItem>
+              <MenuItem value={"QUARANTINE"}>Quarantined</MenuItem>
+              <MenuItem value={"SCRAP"}>Scrap</MenuItem>
+            </Select>
+        </Box>
+        <CustomSearchTextField value={searchTerm} onChange={handleSearchChange} placeholder="Search pallet..." />
+        </Box>
       </Box>
 
       {/* pallet modal */}
@@ -255,9 +278,10 @@ const Pallets = () => {
                   label="Type"
                   searchable
                   options={[
-                    {value:"Wooden",label:"Wooden"},
-                    {value:"Plastic",label:"Plastic"},
-                    {value:"Metalic", label:"Metalic"}
+                    {value:"PLASTIC",label:"Plastic"},
+                    {value:"EURO",label:"Euro"},
+                    {value:"WOODEN", label:"Wooden"},
+                    {value:"HEAVY_DUTY", label:"Heavy Duty"},
                   ]}
                   onChange={PalletFormik.handleChange}
                   value={PalletFormik.values.type}
@@ -326,7 +350,7 @@ const Pallets = () => {
         onClose={handleCloseDeleteModal}
         title={"Delete Pallet"}
         onConfirm={handleDeletePallet}
-        itemT0Delete={`${palletName} pallet`}
+        itemT0Delete={`Selected pallet`}
       />
 
       <Box sx={{ width: "100%", height: "70vh", marginTop: "20px" }}>
@@ -334,7 +358,7 @@ const Pallets = () => {
           loading={isLoading}
           rows={rows}
           rowCount={rowCount}
-          getRowId={(row) => row.id}
+          getRowId={(row) => row.code}
           paginationModel={paginationModel}
           onPaginationModelChange={handlePaginationModelChange}
           columns={columns}

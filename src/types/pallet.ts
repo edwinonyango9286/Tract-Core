@@ -21,6 +21,7 @@ export interface GetPalletsParams {
   page?: number;
   size?: number;
   search?: string;
+  status?:string;
 }
 export interface GetAllPalletsResponse {
   success: boolean;
