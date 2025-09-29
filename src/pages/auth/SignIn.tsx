@@ -13,11 +13,12 @@ import type { SignInPayload } from "../../types/auth"
 import type { AxiosError } from "axios"
 import { useSnackbar } from "../../hooks/useSnackbar"
 import { signInUserService } from "../../services/authService"
+import Cookies from "js-cookie"
 
 
 const SignInSchema = Yup.object<SignInPayload>({
-    username:Yup.string().required("Username is required!"),
-    password:Yup.string().required("Password is required!")
+    username:Yup.string().email().required("Please provide your email."),
+    password:Yup.string().required("Please provide your password."),
   })
 const SignIn = () => {
   const navigate = useNavigate();
@@ -29,13 +30,13 @@ const SignIn = () => {
       password: "",
     },
     validationSchema:SignInSchema,
-    onSubmit: async (values, { setSubmitting, setStatus, resetForm }) => {
+    onSubmit: async (values, { setSubmitting,resetForm }) => {
       try {
        const response = await signInUserService(values);
        if(response.status === 200){
-        showSnackbar(response.data.message || `We’ve sent a 6-digit One-Time Code to your email.`)
-        navigate("/verify-otp")
-        setStatus({ success: true });
+        Cookies.set("access_token",response.data.data.access_token);
+        Cookies.set("refresh_token", response.data.data.refresh_token);
+        navigate("/dashboard")
         resetForm();
         }
       } catch (error) {
@@ -46,14 +47,11 @@ const SignIn = () => {
       }
     },
   });
-
   const [showPassword,setShowPassword] = useState<boolean>(false);
-
-
   return (
     <Box sx={{ width:"100%", height:"100vh", display:"flex", alignItems:"center", justifyContent:"center"}}>
         <Paper elevation={0} sx={{ boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)' ,  paddingX:{xs:"20px", lg:"30px"}, paddingY:{xs:"30px", lg:"40px"},  borderRadius:"8px", margin:"14px", width:{xs:"100%", sm:"70%",md:"50%", lg:"30%", xl:"24%" }}}> 
-          <form onSubmit={()=>navigate("/dashboard")} style={{ width:"100%"}}>
+          <form onSubmit={formik.handleSubmit} style={{ width:"100%"}}>
             <Box sx={{ alignItems:"center", justifyContent:"center", width:"100%", display:"flex", flexDirection:"column", gap:'20px'}}>
                 <Box sx={{ width:"100%", alignItems:"center", justifyContent:"center", display:"flex", flexDirection:"column", gap:"10px"}}>
                  <Typography sx={{ textAlign:"center", fontSize:"26px", fontWeight:"700", color:"#272d3b"}}>Let’s sign you in!</Typography>
@@ -62,7 +60,7 @@ const SignIn = () => {
                 <Box sx={{ width:"100%", display:"flex", flexDirection:"column", gap:"20px"}}>
                   <Box sx={{ display:"flex", flexDirection:"column", gap:"10px"}}>
                     <CustomTextField 
-                      placeholder={"Username"}
+                      placeholder={"Email"}
                       onBlur={formik.handleBlur}
                       onChange={formik.handleChange}
                       id={"username"}

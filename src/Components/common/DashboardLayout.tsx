@@ -7,7 +7,6 @@ import AppBar from '../common/AppBar';
 
 const DashboardLayout = () => {
   const [drawerOpen, setDrawerOpen] = useState(true);
-
   const toggleDrawer = () => {
     setDrawerOpen(!drawerOpen);
   };

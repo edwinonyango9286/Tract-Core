@@ -7,7 +7,7 @@ interface PublicRoutesProps {
 }
 
 export const PublicRoutes = ({ children }: PublicRoutesProps) => {
-  const accessToken = Cookies.get("accessToken");
+  const accessToken = Cookies.get("access_token");
   const location = useLocation();
   if (accessToken) {
     return <Navigate to="/dashboard" state={{ from: location }} replace />;
