@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { GetMovementsParams } from "../types/movement";
-import { createMovementService, deleteMovementService, getAllMovementsService, updateMovementService } from "../services/movementService";
+import { createMovementService, deleteMovementService, exportMovementsService, getAllMovementsService, updateMovementService } from "../services/movementService";
 
 export const useGetMovements = (params?: GetMovementsParams) => {
   return useQuery({
@@ -34,6 +34,16 @@ export const useDeleteMovement = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteMovementService,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["movements"] });
+    },
+  });
+};
+
+export const useExportMovements = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: exportMovementsService,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["movements"] });
     },

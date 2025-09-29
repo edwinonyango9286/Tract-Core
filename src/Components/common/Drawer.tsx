@@ -14,6 +14,7 @@ import PaletteIcon from '@mui/icons-material/Palette';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 
 
 type DrawerItem = {
@@ -41,9 +42,13 @@ const Drawer = ({open,children}: DrawerProps) => {
 
   const navItems: DrawerItem[] = [
     { id: 'dashboard', text: <Typography sx={{ fontSize:"16px", fontWeight:"700", textAlign:"start"}}>Dashboard</Typography>, icon: <IoHomeOutline fontSize={20} />, path: 'dashboard' },
-    { id: 'permissions', text: <Typography sx={{ fontSize:"16px", fontWeight:"700" ,textAlign:"start"}}>Permissions</Typography>, icon: <SecurityIcon />, path:"permissions"},
-    { id: 'roles', text: <Typography sx={{ fontSize:"16px", fontWeight:"700", textAlign:"start"}}>Roles</Typography>, icon: <AdminPanelSettingsIcon  />, path: 'roles' },
-    { id: 'users', text: <Typography sx={{ fontSize:"16px", fontWeight:"700", textAlign:"start"}}>Users</Typography>, icon: <GroupAddIcon/>, path:"users",},
+    { id: 'user-setups', text: <Typography sx={{ fontSize:"16px", fontWeight:"700" ,textAlign:"start"}}>User Setups</Typography>, icon: <ManageAccountsIcon />,
+     children: [
+        { id: 'permissions', text: <Typography sx={{ fontSize:"16px", fontWeight:"700" ,textAlign:"start"}}>Permissions</Typography>, icon: <SecurityIcon />, path:"permissions"},
+        { id: 'roles', text: <Typography sx={{ fontSize:"16px", fontWeight:"700", textAlign:"start"}}>Roles</Typography>, icon: <AdminPanelSettingsIcon  />, path: 'roles' },
+        { id: 'users', text: <Typography sx={{ fontSize:"16px", fontWeight:"700", textAlign:"start"}}>Users</Typography>, icon: <GroupAddIcon/>, path:"users"},
+      ]
+    },
     { id: 'assets', text: <Typography sx={{ fontSize:"16px", fontWeight:"700", textAlign:"start"}}>Assets</Typography>, icon: <FolderIcon/>,
       children: [
         { id: 'assets', text: <Typography sx={{ fontSize:"16px", fontWeight:"700", textAlign:"start"}}>Assets</Typography>, icon: <BusinessCenterIcon/>, path: 'assets'},

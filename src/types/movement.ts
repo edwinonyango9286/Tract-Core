@@ -30,6 +30,9 @@ export interface GetMovementsParams {
   page?: number;
   size?: number;
   search?: string;
+  type?: string;
+  start?: string;
+  end?: string;
 }
 
 export interface GetAllMovementsResponse {
