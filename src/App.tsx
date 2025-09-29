@@ -32,7 +32,8 @@ function App() {
                <Route path="/" element={<SignIn />} />
                <Route path="/create-account" element={<CreateAccount />} />
              </Route>
-            <Route path="/dashboard" element={<DashboardLayout /> }>
+
+            <Route path="/dashboard" element={ <PrivateRoutes><DashboardLayout /></PrivateRoutes>  }>
               <Route index element={<Dashboard />}></Route>
               <Route path="roles" element={<Roles />} />
               <Route path="category" element={<Categories/>} />

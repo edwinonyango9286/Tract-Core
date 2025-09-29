@@ -4,34 +4,33 @@ import Cookies from "js-cookie"
 import { useNavigate } from 'react-router-dom';
 import type { AxiosError } from 'axios';
 import { useSnackbar } from '../../hooks/useSnackbar';
-import { logout } from '../../services/authService';
 import logoutIcon from "../../assets/icons/logoutIcon.svg"
 import notificationIcon from "../../assets/icons/notificationIcon.svg"
 import profileIcon from "../../assets/icons/profileIcon.svg"
 
  
 const drawerWidth = 232;
-const AppBar = ({ open, toggleDrawer }) => {
-const {showSnackbar} = useSnackbar()
+interface AppBarProps {
+  open:boolean;
+  toggleDrawer:()=>void;
+}
+const AppBar = ({ open, toggleDrawer }:AppBarProps) => {
+const { showSnackbar } = useSnackbar()
 const navigate = useNavigate()
  
-    const handleLogout = async () => {
-      try {
-        const response = await logout();
-        if(response.status === 200){
-         localStorage.clear();
-         const allCookies = Cookies.get();
-         for( const cookieName in allCookies){
-            Cookies.remove(cookieName)
-          }
-        showSnackbar(response.data.message,"success")
-        navigate("/")
-        }
-      } catch (err) {
-        const error = err as AxiosError<{ message:string}>
-        showSnackbar(error.response?.data.message || error.message,"error")
+const handleLogout = async () => {
+  try {
+    localStorage.clear();
+    const allCookies = Cookies.get();
+    for( const cookieName in allCookies){
+        Cookies.remove(cookieName)
       }
-    }
+    navigate("/")
+  } catch (err) {
+    const error = err as AxiosError<{ message:string}>
+    showSnackbar(error.response?.data.message || error.message,"error")
+  }
+}
 
   return (
     <MuiAppBar  position="fixed"  
