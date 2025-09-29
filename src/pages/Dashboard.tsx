@@ -64,16 +64,15 @@ const stackCount = getStackResponse?.data.length || 0;
 const [selectedTimePeriod, setSelectedTimePeriod] = useState("Weekly");
 
 const {data:movementsResponse, isLoading:loadingMovements} = useGetMovements();
+const movementsList = movementsResponse?.data.content.slice(0,5) || [];
 const movementsCount = movementsResponse?.data.totalElements || 0;
 
 const {data:usersResponse} = useGetUsers();
-const usersList = usersResponse?.data.content;
+const usersList = usersResponse?.data.content.slice(0,5) || [];
 
 
 const columns: GridColDef[] = [
     { field: 'name', headerName: 'Name', flex: 1 },
-    // { field: 'categoryName', headerName: 'Category', flex: 1 },
-    // { field: 'subCategory', headerName: 'Sub Category', flex: 1 },
     { field: 'model', headerName: 'Model', flex: 1 },
     { field: 'serialNumber', headerName: 'Serial Number', flex: 1 },
     { field: 'lastInspectionDate', headerName: 'Last Inspection', flex: 1,
@@ -83,21 +82,11 @@ const columns: GridColDef[] = [
       renderCell:(params)=>dateFormatter(params.value)
      },
     { field: 'assignedTo', headerName: 'Assigned To', flex: 1 },
-    // { field: 'location', headerName: 'Location', flex: 1 },
-    // {
-    //    field: 'purchaseCost', headerName: 'Purchase Cost', flex: 1,
-    //   renderCell: (params) => `$${params.value?.toLocaleString() || 0}`
-    // },
     {
       field: 'createdAt', headerName: 'Created At', flex: 1,
       renderCell: (params) => dateFormatter(params.value)
     },
-    // {
-    //   field: 'updatedAt', headerName: 'Updated At', flex: 1,
-    //   renderCell: (params) => dateFormatter(params.value)
-    // },
     { field: 'status', headerName: 'Status', flex: 1 },]
-
   return (
     <Box sx={{width:"100%",}}> 
       <Box sx={{width:"100%",display:"flex",alignItems:"start",gap:"12px", flexDirection:"column"}}>
@@ -232,7 +221,7 @@ const columns: GridColDef[] = [
          <Box sx={{ display:"flex", gap:"20px", width:"100%",  }}>
           <Paper elevation={0} sx={{ display:"flex" , flexDirection:"column", gap:"16px", padding:"24px", width:"50%",height:"400px", backgroundColor:"#fff", boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)" }}>
             <Box sx={{ width:"100%", display:"flex", justifyContent:"space-between"}}>
-              <Typography sx={{ textAlign:"start", fontSize:"20px", fontWeight:"600", color:"#111827"}}>Latest Users</Typography>
+              <Typography sx={{ textAlign:"start", fontSize:"18px", fontWeight:"600", color:"#111827"}}>Latest Users</Typography>
               <Typography component={"a"} onClick={()=>navigate("/dashboard/users")} sx={{ cursor:"pointer", fontSize:"14px", fontWeight:"500", color:"#3B82F6"}}>View all</Typography>
             </Box>
             <Box sx={{ display:"flex", flexDirection:"column", gap:"10px"}}>
@@ -253,22 +242,37 @@ const columns: GridColDef[] = [
             </Box>
             </Box>
           ))}
-           
           </Box>
-
           </Paper> 
 
            <Paper elevation={0} sx={{ display:"flex" , gap:"16px", flexDirection:"column", padding:"24px", width:"50%",height:"400px", backgroundColor:"#fff", boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)" }}>
-            <Typography sx={{ textAlign:"start", fontSize:"20px", fontWeight:"600", color:"#111827"}}>Top properties</Typography>
-            <Box sx={{ width:"100%", display:"flex", justifyContent:"space-between"}}>
+            <Box sx={{ width:"100", display:"flex", justifyContent:"space-between"}}>
+             <Typography sx={{ textAlign:"start", fontSize:"18px", fontWeight:"600", color:"#111827"}}>Recent Movements</Typography>
+               <Typography component={"a"} onClick={()=>navigate("/dashboard/movement")} sx={{ cursor:"pointer", textAlign:"start", fontSize:"14px", fontWeight:"500", color:"#3B82F6"}}>View all</Typography>
+            </Box>
+            {movementsList.map((movement)=>(
+              <Box key={movement.moveId} sx={{ width:"100%", display:"flex", justifyContent:"space-between"}}>
               <Box sx={{ width:"50%" , display:"flex" , flexDirection:"column"}}>
-                <Typography sx={{fontSize:"16px", fontWeight:"600", color:"#111827"}}>Elgin St. Celina Places</Typography>
-                <Typography sx={{ fontWeight:"400", fontSize:"12px", color:"#3B82F6" }}>Michael Onkwani</Typography>
+                <Box sx={{ display:"flex", gap:"10px"}}>
+                <Box sx={{ display:"flex", gap:"4px", alignItems:"center"}}>
+                  <Typography sx={{fontSize:"16px", fontWeight:"600", color:"#111827"}}>From:</Typography>
+                  <Typography sx={{fontSize:"14px", fontWeight:"400", color:"#111827"}}>{movement.fromStackCode}</Typography>
+                </Box>
+                 <Box sx={{ display:"flex", gap:"4px", alignItems:"center"}}>
+                  <Typography sx={{fontSize:"16px", fontWeight:"600", color:"#111827"}}>To:</Typography>
+                  <Typography sx={{fontSize:"14px", fontWeight:"400", color:"#111827"}}>{movement.toStackCode}</Typography>
+                </Box>
+               </Box>
+                <Box sx={{ display:"flex", gap:"4px"}}>
+                  <Typography sx={{ fontWeight:"400", fontSize:"12px", color:"#333" }}>Operator:</Typography>
+                  <Typography sx={{ fontWeight:"400", fontSize:"12px", color:"#3B82F6" }}>{movement.operatorName}</Typography>
+                </Box>
               </Box>
               <Box sx={{ width:"50%"}}>
-                <Typography sx={{ textAlign:"end",fontSize:"16px", fontWeight:"600",color:"#111827"}}>710 <span style={{fontSize:"16px", fontWeight:"400", color:"#4B5563"}}>Rents</span></Typography>
+                <Typography sx={{ textAlign:"end",fontSize:"16px", fontWeight:"600",color:"#111827"}}>Pallet:<span style={{marginLeft:"4px", fontSize:"16px", fontWeight:"400", color:"#4B5563"}}>{movement.palletCode}</span></Typography>
               </Box>
             </Box>
+            ))}
           </Paper>
 
          </Box>
