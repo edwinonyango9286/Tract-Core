@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { GetAssetsParams } from "../types/asset";
-import { assignAssetToUserService, createAssetService, deleteAssetService, exportAssetService, getAllAssetsService, getAssetKPIService, updateAssetService } from "../services/assetService";
+import { assignAssetToUserService, createAssetService, deleteAssetService, exportAssetService, getAllAssetsService, getAssetKPIService, updateAssetService, updateAssetStatusService } from "../services/assetService";
 
 export const useGetAssets = (params?: GetAssetsParams) => {
   return useQuery({
@@ -64,6 +64,16 @@ export const useAssignAssetToUser = ()=>{
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn:assignAssetToUserService,
+    onSuccess:()=>{
+      queryClient.invalidateQueries({ queryKey:["assets"]});
+    }
+  })
+}
+
+export const useUpdateAssetStatus = ()=>{
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn:updateAssetStatusService,
     onSuccess:()=>{
       queryClient.invalidateQueries({ queryKey:["assets"]});
     }

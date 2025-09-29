@@ -49,7 +49,7 @@ export const deleteAssetService = async (code: string) => {
 
 export const updateAssetService = async ({ code, ...assetData }: Asset) => {
   try {
-    const response = await apiClient.put(`aims/assets/${code}`, assetData);
+    const response = await apiClient.put(`aims/assets/update/${code}`, assetData);
     return response;
   } catch (error) {
     console.log(error);
@@ -104,3 +104,5 @@ export const updateAssetStatusService = async (statusUpdateData:Asset) => {
     throw error
   }
 }
+
+

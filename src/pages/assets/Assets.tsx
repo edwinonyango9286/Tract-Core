@@ -16,7 +16,7 @@ import deleteIcon from "../../assets/icons/deleteIcon.svg"
 import dotsVertical from "../../assets/icons/dotsVertical.svg"
 import type { AxiosError } from "axios";
 import { useSnackbar } from "../../hooks/useSnackbar";
-import { useAssignAssetToUser, useCreateAsset, useDeleteAsset, useExportAssets, useGetAssetKPI, useGetAssets, useUpdateAsset } from "../../hooks/useAssets";
+import { useAssignAssetToUser, useCreateAsset, useDeleteAsset, useExportAssets, useGetAssetKPI, useGetAssets, useUpdateAsset, useUpdateAssetStatus } from "../../hooks/useAssets";
 import { useDebounce } from "../../hooks/useDebounce";
 import type { GridPaginationModel } from "@mui/x-data-grid";
 import type { Asset, CreateAssetPayload } from "../../types/asset";
@@ -229,14 +229,16 @@ const Assets = () => {
     setOpen(true);
   }, []);
 
-
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const openActionMenu = Boolean(anchorEl);
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
+  // CHANGED: Replace single anchorEl with a map to track menus for each row
+  const [anchorElMap, setAnchorElMap] = useState<Record<string, HTMLElement | null>>({});
+  
+  // CHANGED: Update menu handlers to be row-specific
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>, assetCode: string) => {
+    setAnchorElMap(prev => ({ ...prev, [assetCode]: event.currentTarget }));
   };
-  const handleCloseActionMenu = () => {
-    setAnchorEl(null);
+  
+  const handleCloseActionMenu = (assetCode: string) => {
+    setAnchorElMap(prev => ({ ...prev, [assetCode]: null }));
   };
 
 const [assetToAssignData,setAssetToAssignData] = useState<Asset | null>();
@@ -266,7 +268,7 @@ const assignStyle = {
   const handleOpenAssignModal = (selectedAssetData:Asset)=> {
     setAssetToAssignData(selectedAssetData);
     handleOpenAssignUserModal();
-    handleCloseActionMenu();
+    handleCloseActionMenu(selectedAssetData.code as string);
   }
 
 const AssignSchema = Yup.object({
@@ -284,7 +286,7 @@ const AssignFormik = useFormik({
   onSubmit:  async ( values, { setSubmitting })=>{
     try {
       if(assetToAssignData){
-        const assignPayload = {...values, code:assetToAssignData.code , }
+      const assignPayload = {...values, code:assetToAssignData.code , }
       await assignMutation.mutateAsync(assignPayload);
       showSnackbar("Asset assigned to user successfully.", "success");
       handleCloseAssignUserModal();
@@ -325,13 +327,65 @@ const handleCloseViewModal = () =>  {
 const handleOpenAssetViewModal = (assetToView:Asset)=>{
   setSelectedAssetToView(assetToView);
   handleOpenViewModal();
-  handleCloseActionMenu();
+  handleCloseActionMenu(assetToView.code as string);
 }
+
+const updateStatusModalStyle = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 400,
+  bgcolor: 'background.paper',
+  boxShadow: 24,
+  p: 4,
+  borderRadius:"8px"
+};
+
+  const [selectedAssetToUpdateStatus,setSelectedAssetToUpdateStatus] = useState<Asset | null>(null)
+  const [openUpdateStatusModal, setOpenUpdateStatusModal] = useState(false);
+  const handleOpenUpdateStatusModal = (asset:Asset) => { 
+    setOpenUpdateStatusModal(true);
+    handleCloseActionMenu(asset.code as string);
+    setSelectedAssetToUpdateStatus(asset);
+  }
+  const handleCloseUpdateStatusModal = () => {
+    setOpenUpdateStatusModal(false);
+    setSelectedAssetToUpdateStatus(null);
+    UpdateAssetStatusFormik.resetForm();
+  }
+
+  const UpdateAssetStatusSchema = Yup.object({
+    status:Yup.string().oneOf(["IN_USE", "IN_REPAIR", "IN_STORAGE", "DISPOSED"]).required("Please select asset status.")
+  })
+
+  const updateAssetStatusMutation = useUpdateAssetStatus();
+
+  const UpdateAssetStatusFormik = useFormik({
+    initialValues:{
+      status: selectedAssetToUpdateStatus?.status || ""
+    },
+    validationSchema:UpdateAssetStatusSchema,
+    onSubmit: async(values, { setSubmitting })=>{
+      try {
+        const updateAssetStatusPayload = {
+          status:values.status,
+          code:selectedAssetToUpdateStatus?.code
+        }
+        await updateAssetStatusMutation.mutateAsync(updateAssetStatusPayload);
+        showSnackbar("Asset status updated successfully.","success");
+        handleCloseUpdateStatusModal();
+      } catch (error) {
+        const err = error as AxiosError<{message?:string}>
+        showSnackbar(err.response?.data.message || err.message)
+      }finally{
+        setSubmitting(false);
+      }
+    }
+  })
 
   const columns: GridColDef[] = [
     { field: 'name', headerName: 'Name', flex: 1 },
-    // { field: 'categoryName', headerName: 'Category', flex: 1 },
-    // { field: 'subCategory', headerName: 'Sub Category', flex: 1 },
     { field: 'model', headerName: 'Model', flex: 1 },
     { field: 'serialNumber', headerName: 'Serial Number', flex: 1 },
     { field: 'lastInspectionDate', headerName: 'Last Inspection', flex: 1,
@@ -341,23 +395,16 @@ const handleOpenAssetViewModal = (assetToView:Asset)=>{
       renderCell:(params)=>dateFormatter(params.value)
      },
     { field: 'assignedTo', headerName: 'Assigned To', flex: 1 },
-    // { field: 'location', headerName: 'Location', flex: 1 },
-    // {
-    //    field: 'purchaseCost', headerName: 'Purchase Cost', flex: 1,
-    //   renderCell: (params) => `$${params.value?.toLocaleString() || 0}`
-    // },
     {
       field: 'createdAt', headerName: 'Created At', flex: 1,
       renderCell: (params) => dateFormatter(params.value)
     },
-    // {
-    //   field: 'updatedAt', headerName: 'Updated At', flex: 1,
-    //   renderCell: (params) => dateFormatter(params.value)
-    // },
     { field: 'status', headerName: 'Status', flex: 1 },
     {
       field: 'action', headerName: 'Action', flex: 1,
       renderCell: (params) => {
+        const assetCode = params.row.code;
+        const openActionMenu = Boolean(anchorElMap[assetCode]);
         return (
           <Box sx={{ display: "flex", gap: "10px" }}>
             <IconButton onClick={() => handleEdit(params.row as Asset)}>
@@ -366,186 +413,39 @@ const handleOpenAssetViewModal = (assetToView:Asset)=>{
             <IconButton onClick={() => {handleOpenDeleteModal(params?.row?.code); setAssetName(params?.row?.name) }}>
               <img src={deleteIcon} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
             </IconButton>
-            <IconButton  id="action-menu-button" aria-controls={openActionMenu ? 'action-menu-button' : undefined} aria-haspopup="true"  aria-expanded={openActionMenu ? 'true' : undefined} onClick={handleClick} >
-               <img src={dotsVertical} alt="dotsvertical" style={{ width: "24px", height: "24px" }} />
+            
+            {/* CHANGED: Use row-specific menu handlers */}
+            <IconButton  
+              id={`action-menu-button-${assetCode}`}
+              aria-controls={openActionMenu ? `action-menu-${assetCode}` : undefined}
+              aria-haspopup="true"  
+              aria-expanded={openActionMenu ? 'true' : undefined}
+              onClick={(e) => handleClick(e, assetCode)}
+            >
+              <img src={dotsVertical} alt="dotsvertical" style={{ width: "24px", height: "24px" }} />
             </IconButton>
 
-              <Menu id="action-menu-button" anchorEl={anchorEl}  open={openActionMenu}  onClose={handleCloseActionMenu}
-                slotProps={{ list: { 'aria-labelledby': 'basic-button', }, }}>
-                <MenuItem onClick={()=>handleOpenAssetViewModal(params.row as Asset)}>View details</MenuItem>
-                <MenuItem onClick={()=>handleOpenAssignModal(params.row as Asset)}>Assign to user</MenuItem>
-                <MenuItem onClick={handleCloseActionMenu}>Update status</MenuItem>
-              </Menu>
-
-
-              {/* view modal */}
-              <Modal open={openViewModal} onClose={handleCloseViewModal}  aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
-                <Box  sx={viewModalStyle} >
-                  <Typography  sx={{ color:"#032541", fontSize:"20px", fontWeight:"700"}}>
-                    Asset details
-                  </Typography>
-                  <Box sx={{ display:"flex", flexDirection:"column", gap:"12px"}}>
-
-                  <Box sx={{ gap:"15px", display:"flex", justifyContent:"space-between"}}>
-                    <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
-                       <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Asset Name</InputLabel>
-                       <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.name} variant="outlined" />  
-                    </Box>
-
-                    <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
-                       <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Category</InputLabel>
-                       <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.categoryName} variant="outlined" />  
-                    </Box>
-                  </Box>
-
-                  <Box sx={{ gap:"15px", display:"flex", justifyContent:"space-between"}}>
-                    <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
-                       <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Model</InputLabel>
-                       <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.model} variant="outlined" />  
-                    </Box>
-
-                    <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
-                       <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Sub Category</InputLabel>
-                       <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.subCategory} variant="outlined" />  
-                    </Box>
-                  </Box>
-
-                  <Box sx={{ gap:"15px", display:"flex", justifyContent:"space-between"}}>
-                    <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
-                       <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Serial Number</InputLabel>
-                       <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.serialNumber} variant="outlined" />  
-                    </Box>
-
-                    <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
-                       <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Manufacturer</InputLabel>
-                       <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.manufacturer} variant="outlined" />  
-                    </Box>
-                  </Box>
-                   <Box sx={{ gap:"15px", display:"flex", justifyContent:"space-between"}}>
-                    <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
-                       <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Supplier</InputLabel>
-                       <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.supplier} variant="outlined" />  
-                    </Box>
-
-                    <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
-                       <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Assigned To</InputLabel>
-                       <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.assignedTo} variant="outlined" />  
-                    </Box>
-                  </Box>
-
-                   <Box sx={{ gap:"15px", display:"flex", justifyContent:"space-between"}}>
-                    <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
-                       <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Location</InputLabel>
-                       <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.location} variant="outlined" />  
-                    </Box>
-
-                    <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
-                       <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Condition</InputLabel>
-                       <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.conditionNote} variant="outlined" />  
-                    </Box>
-                  </Box>
-
-                  <Box sx={{ gap:"15px", display:"flex", justifyContent:"space-between"}}>
-                     <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
-                       <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Purchase Cost</InputLabel>
-                       <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.purchaseCost} variant="outlined" />  
-                    </Box>
-                    <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
-                       <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Purchase Date</InputLabel>
-                       <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.purchaseDate} variant="outlined" />  
-                    </Box>
-                  </Box>
-
-                   <Box sx={{ gap:"15px", display:"flex", justifyContent:"space-between"}}>
-                    <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
-                       <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Compliance Expiry</InputLabel>
-                       <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.complianceExpiry} variant="outlined" />  
-                    </Box>
-                     <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
-                       <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Warranty Expiry</InputLabel>
-                       <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.warrantyExpiry} variant="outlined" />  
-                    </Box>
-                  </Box>
-                   <Box sx={{ gap:"15px", display:"flex", justifyContent:"space-between"}}>
-                  
-                     <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
-                       <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Last Inspection Date</InputLabel>
-                       <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.lastInspectionDate} variant="outlined" />  
-                    </Box>
-
-                    <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
-                       <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Next Inspection Due Date</InputLabel>
-                       <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.nextInspectionDue} variant="outlined" />  
-                    </Box>
-                  </Box>
-
-                   <Box sx={{ gap:"15px", display:"flex", justifyContent:"space-between"}}>
-                    <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
-                       <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Created On</InputLabel>
-                       <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={ dateFormatter(selectedAssetToView?.createdAt)} variant="outlined" />  
-                    </Box>
-
-                    <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
-                       <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Updated On</InputLabel>
-                       <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={ dateFormatter(selectedAssetToView?.updatedAt)} variant="outlined" />  
-                    </Box>
-                  </Box>
-                    <Box sx={{ marginTop:"10px", width:"100%", display:"flex", flexDirection:"column", gap:"4px"}}>
-                       <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Status</InputLabel>
-                       <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.status} variant="outlined" />  
-                    </Box>  
-                    <Box  sx={{ marginBottom:"20px", marginTop:"14px", width:"100%", alignSelf:"flex-end", display:"flex", justifyContent:"flex-end" }}>
-                      <CustomCancelButton style={{ width:"200px"}} onClick={handleCloseViewModal} label="Close"/>
-                    </Box>
-                  </Box>
-                </Box>
-              </Modal>
-
-              {/* assign modal here  */}
-                <Modal open={openAssignModal} onClose={handleCloseAssignUserModal} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
-                  <Box sx={assignStyle}>
-                    <form style={{ width:"100%" }} onSubmit={AssignFormik.handleSubmit}>
-                    <Typography sx={{ fontSize:"20px", fontWeight:"700", color:"#032541" }}>
-                      Assign asset to user?
-                    </Typography>
-                    <Box sx={{ marginTop:"10px", width:"100%" , display:"flex", flexDirection:"column", gap:"20px"}}>
-                    <CustomTextField
-                      id="assignedTo"
-                      type="text"
-                      name="assignedTo"
-                      label="User Name"
-                      placeholder="User Name"
-                      onChange={AssignFormik.handleChange}
-                      value={AssignFormik.values.assignedTo}
-                      onBlur={AssignFormik.handleBlur}
-                      errorMessage={AssignFormik.touched.assignedTo && AssignFormik.errors.assignedTo}
-                    />
-                     <CustomTextField
-                      id="location"
-                      type="text"
-                      name="location"
-                      label="Location"
-                      placeholder="Location"
-                      onChange={AssignFormik.handleChange}
-                      value={AssignFormik.values.location}
-                      onBlur={AssignFormik.handleBlur}
-                      errorMessage={AssignFormik.touched.location && AssignFormik.errors.location}
-                    />
-                    <Box sx={{ width:"100%", gap:"20px", marginTop:"10px", marginBottom:"20px", display:"flex", justifyContent:"space-around"}}>
-                      <CustomCancelButton onClick={handleCloseAssignUserModal} label={"Cancel"}/>
-                      <CustomSubmitButton loading={AssignFormik.isSubmitting}  label="Assign" />
-                    </Box>
-                     </Box>
-                    </form>
-                  </Box>
-                </Modal>
-              
+            {/* CHANGED: Row-specific menu */}
+            <Menu 
+              id={`action-menu-${assetCode}`}
+              anchorEl={anchorElMap[assetCode]}
+              open={openActionMenu}
+              onClose={() => handleCloseActionMenu(assetCode)}
+              slotProps={{ 
+                list: { 
+                  'aria-labelledby': `action-menu-button-${assetCode}`, 
+                }, 
+              }}
+            >
+              <MenuItem onClick={() => handleOpenAssetViewModal(params.row as Asset)}>View details</MenuItem>
+              <MenuItem onClick={() => handleOpenAssignModal(params.row as Asset)}>Assign to user</MenuItem>
+              <MenuItem onClick={() => handleOpenUpdateStatusModal(params.row as Asset)}>Update status</MenuItem>
+            </Menu>
           </Box>
         );
       }
     },
   ]
-
 
   const {data:assetKPIResponse, isLoading:isKpiLoading} = useGetAssetKPI();
 
@@ -932,6 +832,204 @@ const handleOpenAssetViewModal = (assetToView:Asset)=>{
                 <CustomSubmitButton  loading={AssetFormik.isSubmitting} label={updatingAsset ? "Update Asset" : "Create Asset"}/>
               </Box>
             </Box>
+          </form>
+        </Box>
+      </Modal>
+
+      {/* CHANGED: Moved all modals outside of the column render to prevent duplication */}
+
+      {/* Update Status Modal */}
+      <Modal open={openUpdateStatusModal} onClose={handleCloseUpdateStatusModal} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
+        <Box sx={updateStatusModalStyle}>
+          <form style={{ width:"100%"}} onSubmit={UpdateAssetStatusFormik.handleSubmit}>
+          <Typography sx={{ fontSize:"20px", fontWeight:"700", color:"#032541"}} >
+            Update asset status
+          </Typography>
+          <Box sx={{ width:"100%", marginTop:"10px"}}>
+            <CustomSelect 
+              label="Status"
+              name="status"
+              id="status"
+              value={UpdateAssetStatusFormik.values.status}
+              onChange={UpdateAssetStatusFormik.handleChange}
+              onBlur={UpdateAssetStatusFormik.handleBlur}
+              searchable
+              options={[
+                {value:"IN_USE", label:"IN USE"},
+                {value:"IN_REPAIR", label:"IN REPAIR"},
+                {value:"IN_STORAGE", label:"IN STORAGE"},
+                {value:"DISPOSED",label:"DISPOSED"}
+              ]}
+              error={UpdateAssetStatusFormik.touched.status && Boolean(UpdateAssetStatusFormik.errors.status)}
+              helperText={UpdateAssetStatusFormik.touched.status && UpdateAssetStatusFormik.errors.status}
+            />
+          </Box>
+          <Box sx={{ display:"flex", justifyContent:"space-between", gap:"20px", marginTop:"20px"}}>
+            <CustomCancelButton onClick={handleCloseUpdateStatusModal} label={"Cancel"}/>
+            <CustomSubmitButton loading={UpdateAssetStatusFormik.isSubmitting}  label="Update" />
+          </Box>
+          </form>
+        </Box>
+      </Modal>
+
+      {/* View Modal */}
+      <Modal open={openViewModal} onClose={handleCloseViewModal}  aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
+        <Box  sx={viewModalStyle} >
+          <Typography  sx={{ color:"#032541", fontSize:"20px", fontWeight:"700"}}>
+            Asset details
+          </Typography>
+          <Box sx={{ display:"flex", flexDirection:"column", gap:"12px"}}>
+
+          <Box sx={{ gap:"15px", display:"flex", justifyContent:"space-between"}}>
+            <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
+               <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Asset Name</InputLabel>
+               <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.name} variant="outlined" />  
+            </Box>
+
+            <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
+               <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Category</InputLabel>
+               <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.categoryName} variant="outlined" />  
+            </Box>
+          </Box>
+
+          <Box sx={{ gap:"15px", display:"flex", justifyContent:"space-between"}}>
+            <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
+               <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Model</InputLabel>
+               <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.model} variant="outlined" />  
+            </Box>
+
+            <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
+               <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Sub Category</InputLabel>
+               <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.subCategory} variant="outlined" />  
+            </Box>
+          </Box>
+
+          <Box sx={{ gap:"15px", display:"flex", justifyContent:"space-between"}}>
+            <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
+               <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Serial Number</InputLabel>
+               <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.serialNumber} variant="outlined" />  
+            </Box>
+
+            <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
+               <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Manufacturer</InputLabel>
+               <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.manufacturer} variant="outlined" />  
+            </Box>
+          </Box>
+           <Box sx={{ gap:"15px", display:"flex", justifyContent:"space-between"}}>
+            <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
+               <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Supplier</InputLabel>
+               <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.supplier} variant="outlined" />  
+            </Box>
+
+            <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
+               <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Assigned To</InputLabel>
+               <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.assignedTo} variant="outlined" />  
+            </Box>
+          </Box>
+
+           <Box sx={{ gap:"15px", display:"flex", justifyContent:"space-between"}}>
+            <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
+               <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Location</InputLabel>
+               <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.location} variant="outlined" />  
+            </Box>
+
+            <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
+               <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Condition</InputLabel>
+               <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.conditionNote} variant="outlined" />  
+            </Box>
+          </Box>
+
+          <Box sx={{ gap:"15px", display:"flex", justifyContent:"space-between"}}>
+             <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
+               <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Purchase Cost</InputLabel>
+               <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.purchaseCost} variant="outlined" />  
+            </Box>
+            <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
+               <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Purchase Date</InputLabel>
+               <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.purchaseDate} variant="outlined" />  
+            </Box>
+          </Box>
+
+           <Box sx={{ gap:"15px", display:"flex", justifyContent:"space-between"}}>
+            <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
+               <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Compliance Expiry</InputLabel>
+               <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.complianceExpiry} variant="outlined" />  
+            </Box>
+             <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
+               <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Warranty Expiry</InputLabel>
+               <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.warrantyExpiry} variant="outlined" />  
+            </Box>
+          </Box>
+           <Box sx={{ gap:"15px", display:"flex", justifyContent:"space-between"}}>
+          
+             <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
+               <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Last Inspection Date</InputLabel>
+               <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.lastInspectionDate} variant="outlined" />  
+            </Box>
+
+            <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
+               <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Next Inspection Due Date</InputLabel>
+               <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.nextInspectionDue} variant="outlined" />  
+            </Box>
+          </Box>
+
+           <Box sx={{ gap:"15px", display:"flex", justifyContent:"space-between"}}>
+            <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
+               <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Created On</InputLabel>
+               <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={ dateFormatter(selectedAssetToView?.createdAt)} variant="outlined" />  
+            </Box>
+
+            <Box sx={{ marginTop:"10px", width:"50%", display:"flex", flexDirection:"column", gap:"4px"}}>
+               <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Updated On</InputLabel>
+               <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={ dateFormatter(selectedAssetToView?.updatedAt)} variant="outlined" />  
+            </Box>
+          </Box>
+            <Box sx={{ marginTop:"10px", width:"100%", display:"flex", flexDirection:"column", gap:"4px"}}>
+               <InputLabel sx={{ fontWeight:"500", fontSize:"14px", color:"#032541"}}>Status</InputLabel>
+               <TextField disabled sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' }, '& .Mui-disabled': {color: '#032541', WebkitTextFillColor: '#032541'}}} value={selectedAssetToView?.status} variant="outlined" />  
+            </Box>  
+            <Box  sx={{ marginBottom:"20px", marginTop:"14px", width:"100%", alignSelf:"flex-end", display:"flex", justifyContent:"flex-end" }}>
+              <CustomCancelButton style={{ width:"200px"}} onClick={handleCloseViewModal} label="Close"/>
+            </Box>
+          </Box>
+        </Box>
+      </Modal>
+
+      {/* Assign Modal */}
+      <Modal open={openAssignModal} onClose={handleCloseAssignUserModal} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
+        <Box sx={assignStyle}>
+          <form style={{ width:"100%" }} onSubmit={AssignFormik.handleSubmit}>
+          <Typography sx={{ fontSize:"20px", fontWeight:"700", color:"#032541" }}>
+            Assign asset to user?
+          </Typography>
+          <Box sx={{ marginTop:"10px", width:"100%" , display:"flex", flexDirection:"column", gap:"20px"}}>
+          <CustomTextField
+            id="assignedTo"
+            type="text"
+            name="assignedTo"
+            label="User Name"
+            placeholder="User Name"
+            onChange={AssignFormik.handleChange}
+            value={AssignFormik.values.assignedTo}
+            onBlur={AssignFormik.handleBlur}
+            errorMessage={AssignFormik.touched.assignedTo && AssignFormik.errors.assignedTo}
+          />
+           <CustomTextField
+            id="location"
+            type="text"
+            name="location"
+            label="Location"
+            placeholder="Location"
+            onChange={AssignFormik.handleChange}
+            value={AssignFormik.values.location}
+            onBlur={AssignFormik.handleBlur}
+            errorMessage={AssignFormik.touched.location && AssignFormik.errors.location}
+          />
+          <Box sx={{ width:"100%", gap:"20px", marginTop:"10px", marginBottom:"20px", display:"flex", justifyContent:"space-around"}}>
+            <CustomCancelButton onClick={handleCloseAssignUserModal} label={"Cancel"}/>
+            <CustomSubmitButton loading={AssignFormik.isSubmitting}  label="Assign" />
+          </Box>
+           </Box>
           </form>
         </Box>
       </Modal>

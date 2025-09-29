@@ -19,11 +19,12 @@ import { useSnackbar } from "../hooks/useSnackbar";
 import { useCreateMovement, useDeleteMovement, useGetMovements, useUpdateMovement } from "../hooks/useMovements";
 import { useDebounce } from "../hooks/useDebounce";
 import type { GridPaginationModel } from "@mui/x-data-grid";
-import type { Movement, CreateMovementPayload, GetAllMovementsResponse } from "../types/movement";
+import type { Movement, CreateMovementPayload } from "../types/movement";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { dateFormatter } from "../utils/dateFormatter";
 import CustomSelect from "../Components/common/CustomSelect";
+import { useGetPallets } from "../hooks/usePallets";
 
 const breadcrumbs = [
   <Typography key={1} style={{ cursor: "pointer", color: "#707070", fontSize: "14px" }}>
@@ -73,7 +74,12 @@ const Movements = () => {
   const { data: response, isLoading } = useGetMovements({ page: paginationModel.page, size: paginationModel.pageSize, search: debouncedSearchTerm })
   const createMovementMutation = useCreateMovement();
   const updateMovementMutation = useUpdateMovement();
-  const [movementData, setMovementData] = useState<Movement | null>(null)
+  const [movementData, setMovementData] = useState<Movement | null>(null);
+  
+  const {data:getPallestResponse} = useGetPallets();
+  const pallets = getPallestResponse?.data.content;
+
+
 
   const movementsList = response?.data?.content || [];
   const rowCount = response?.data.totalElements || 0
@@ -181,7 +187,7 @@ const Movements = () => {
     { field: 'reference', headerName: 'Reference', flex: 1 },
     { field: 'operatorName', headerName: 'Operator Name', flex: 1 },
     { field: 'notes', headerName: 'Notes', flex: 1 },
-    { field: 'returnCondition', headerName: 'returnCondition', flex: 1 },
+    { field: 'returnCondition', headerName: 'Return Condition', flex: 1 },
     { field: 'moveAt', headerName: 'Move At', flex: 1 },
     {
       field: 'createdAt', headerName: 'Created At', flex: 1,
@@ -252,10 +258,10 @@ const Movements = () => {
                   name="palletCode"
                   label="Pallet"
                   searchable
-                  options={[
-                    {value:"Individual",label:"Individual"},
-                    {value:"Organization",label:"Organization"}
-                  ]}
+                  options={pallets?.map((pallet)=>({
+                    value:pallet.code,
+                    label:pallet.code
+                  }))}
                   onChange={MovementFormik.handleChange}
                   value={MovementFormik.values.palletCode}
                   onBlur={MovementFormik.handleBlur}
@@ -270,8 +276,15 @@ const Movements = () => {
                   label="Movement Type"
                   searchable
                   options={[
-                    {value:"Individual",label:"Individual"},
-                    {value:"Organization",label:"Organization"}
+                    {value:"STACK_IN",label:"STACK IN"},
+                    {value:"STACK_OUT",label:"STACK OUT"},
+                    {value:"DISPATCH",label:"DISPATCH"},
+                    {value:"RETURN",label:"RETURN"},
+                    {value:"REPAIR_IN",label:"REPAIR IN"},
+                    {value:"REPAIR_OUT",label:"REPAIR OUT"},
+                    {value:"QUARANTINE",label:"QUARANTINE"},
+                    {value:"SCRAP",label:"SCRAP"},
+                    {value:"TRANSFER",label:"TRANSFER"},
                   ]}
                   onChange={MovementFormik.handleChange}
                   value={MovementFormik.values.movementType}
