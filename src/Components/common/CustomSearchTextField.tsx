@@ -19,6 +19,7 @@ const CustomSearchTextField = ({ onChange, placeholder = "Search...", value, sx,
       value={value}
       variant={variant}
       size={size}
+      fullWidth
       sx={{
         "& .MuiOutlinedInput-root": {
           "&.Mui-focused fieldset": {
@@ -32,7 +33,6 @@ const CustomSearchTextField = ({ onChange, placeholder = "Search...", value, sx,
         sx: {
           borderRadius: "8px",
           height: "44px",
-          width: "400px",
         },
         startAdornment: (
           <InputAdornment position="start">
