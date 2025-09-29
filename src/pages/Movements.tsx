@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, IconButton, Modal, Typography } from "@mui/material"
+import { Box, Breadcrumbs, Button, CircularProgress, IconButton, MenuItem, Modal, Select, Typography, type SelectChangeEvent } from "@mui/material"
 import CustomSearchTextField from "../Components/common/CustomSearchTextField";
 import { FiberManualRecord } from "@mui/icons-material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
@@ -10,13 +10,13 @@ import CustomSubmitButton from "../Components/common/CustomSubmitButton";
 import CustomDeleteComponent from "../Components/common/CustomDeleteComponent";
 import CustomDataGrid from "../Components/common/CustomDataGrid";
 import type { GridColDef } from "@mui/x-data-grid";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 import editIcon from "../assets/icons/editIcon.svg";
 import deleteIcon from "../assets/icons/deleteIcon.svg"
 import dotsVertical from "../assets/icons/dotsVertical.svg"
 import type { AxiosError } from "axios";
 import { useSnackbar } from "../hooks/useSnackbar";
-import { useCreateMovement, useDeleteMovement, useGetMovements, useUpdateMovement } from "../hooks/useMovements";
+import { useCreateMovement, useDeleteMovement, useExportMovements, useGetMovements, useUpdateMovement } from "../hooks/useMovements";
 import { useDebounce } from "../hooks/useDebounce";
 import type { GridPaginationModel } from "@mui/x-data-grid";
 import type { Movement, CreateMovementPayload } from "../types/movement";
@@ -25,6 +25,13 @@ import * as Yup from "yup";
 import { dateFormatter } from "../utils/dateFormatter";
 import CustomSelect from "../Components/common/CustomSelect";
 import { useGetPallets } from "../hooks/usePallets";
+import { useGetStacks } from "../hooks/useStacks";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import menuIcon from "../assets/icons/menuIcon.svg"
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { formatISO } from "date-fns";
+
 
 const breadcrumbs = [
   <Typography key={1} style={{ cursor: "pointer", color: "#707070", fontSize: "14px" }}>
@@ -52,15 +59,15 @@ const style = {
 
 const MovementSchema = Yup.object<CreateMovementPayload>({
   palletCode: Yup.string().required("Please select pallet."),
-  movementType: Yup.string().required("Please provide item ID."),
+  movementType: Yup.string().required("Please select movement type."),
   fromStackCode: Yup.string().required("Please Select from stack."),
   fromLocation: Yup.string().required("Please provide from location."),
   toLocation: Yup.string().required("Please provide to location."),
   toStackCode: Yup.string().required("Please select to stack."),
   reference: Yup.string().optional(),
   notes: Yup.string().optional(),
-  operatorName: Yup.string().required("Please provide who performed the movement."),
-  returnCondition: Yup.string().optional(),
+  operatorName: Yup.string().required("Please provide name for who performed the movement."),
+  returnCondition: Yup.string().required("Please select return condition."),
 })
 
 const Movements = () => {
@@ -71,15 +78,36 @@ const Movements = () => {
   const [searchTerm, setSearchTerm] = useState<string>("")
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
   const isDeleting = deleteMovementMutation.isPending;
-  const { data: response, isLoading } = useGetMovements({ page: paginationModel.page, size: paginationModel.pageSize, search: debouncedSearchTerm })
+
+   const [startDate,setStartDate] = useState<Date | null>(null);
+      const [endDate,setEndDate] = useState<Date | null>(null);
+    
+      const handleStartDateChange = (date:Date | null)=>{
+        setStartDate(date);
+        setPaginationModel((prev)=>({...prev, page:0}));
+      }
+      const handleEndDateChange = (date:Date | null) =>{
+        setEndDate(date);
+        setPaginationModel((prev)=>({...prev, page:0}));
+      }
+    
+      const handleClearDates = ()=>{
+        setStartDate(null);
+        setEndDate(null);
+        setPaginationModel((prev)=>({...prev, page:0 }))
+      }
+    
+      const [type,setType ] = useState<string>("");
+      const handleChangeType = (e:SelectChangeEvent<string>)=>{
+         setType(e.target.value);
+      }
+  const { data: response, isLoading } = useGetMovements({ page: paginationModel.page, size: paginationModel.pageSize, search: debouncedSearchTerm, start:  startDate ? formatISO(startDate) : '' , end:endDate ? formatISO(endDate) : '',  type })
   const createMovementMutation = useCreateMovement();
   const updateMovementMutation = useUpdateMovement();
   const [movementData, setMovementData] = useState<Movement | null>(null);
   
   const {data:getPallestResponse} = useGetPallets();
   const pallets = getPallestResponse?.data.content;
-
-
 
   const movementsList = response?.data?.content || [];
   const rowCount = response?.data.totalElements || 0
@@ -141,7 +169,7 @@ const Movements = () => {
     onSubmit: async (values, { setSubmitting, resetForm }) => {
       try {
         if (updatingMovement && movementData) {
-          await updateMovementMutation.mutateAsync({ code: movementData.code, ...values });
+          await updateMovementMutation.mutateAsync({ moveId: movementData.moveId, ...values });
           showSnackbar("Movement updated successfully.", "success");
         } else {
           await createMovementMutation.mutateAsync(values);
@@ -177,22 +205,16 @@ const Movements = () => {
     setOpen(true);
   }, []);
 
-  const columns: GridColDef[] = useMemo(() => [
+  const columns: GridColDef[] = [
     { field: 'palletCode', headerName: 'Pallet Code', flex: 1 },
-    { field: 'Movement Type', headerName: 'Movement Type', flex: 1 },
+    { field: 'movementType', headerName: 'Movement Type', flex: 1 },
     { field: 'fromStackCode', headerName: 'From Stack', flex: 1 },
     { field: 'toStackCode', headerName: 'To Stack', flex: 1 },
     { field: 'fromLocation', headerName: 'From', flex: 1 },
     { field: 'toLocation', headerName: 'To', flex: 1 },
-    { field: 'reference', headerName: 'Reference', flex: 1 },
     { field: 'operatorName', headerName: 'Operator Name', flex: 1 },
-    { field: 'notes', headerName: 'Notes', flex: 1 },
     { field: 'returnCondition', headerName: 'Return Condition', flex: 1 },
-    { field: 'moveAt', headerName: 'Move At', flex: 1 },
-    {
-      field: 'createdAt', headerName: 'Created At', flex: 1,
-      renderCell: (params) => dateFormatter(params.value)
-    },
+    { field: 'moveAt', headerName: 'Moved At', flex: 1, renderCell:(params)=>dateFormatter(params.value) },
     {
       field: 'action', headerName: 'Action', flex: 1,
       renderCell: (params) => {
@@ -201,7 +223,7 @@ const Movements = () => {
             <IconButton onClick={() => handleEdit(params.row as Movement)}>
               <img src={editIcon} alt="editIcon" style={{ width: "21px", height: "21px" }} />
             </IconButton>
-            <IconButton onClick={() => { handleOpenDeleteModal(params?.row?.code); setMovementCode(params?.row?.code) }}>
+            <IconButton onClick={() => { handleOpenDeleteModal(params?.row?.code); setMovementCode(params?.row?.moveId) }}>
               <img src={deleteIcon} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
             </IconButton>
             <IconButton>
@@ -211,7 +233,29 @@ const Movements = () => {
         );
       }
     },
-  ], [handleEdit]);
+  ];
+  const {data:getStackResponse} = useGetStacks();
+  const stackList = getStackResponse?.data;
+
+    // export as csv functionality here...
+    const exportMovementsMutation = useExportMovements(); 
+    const handleExport = async () => {
+        try {
+            const blob = await exportMovementsMutation.mutateAsync();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `movements_export_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            const err = error as AxiosError<{message?: string}>;
+            showSnackbar(err.response?.data.message || err.message, "error");
+        }
+    };
+
 
   return (
     <Box sx={{ width: "100%", height: "100vh" }}>
@@ -235,12 +279,52 @@ const Movements = () => {
         </Breadcrumbs>
       </Box>
 
-      <Box sx={{ display: "flex", width: "100%", justifyContent: "flex-start", marginTop: "20px" }}>
-        <CustomSearchTextField
-          value={searchTerm}
-          onChange={handleSearchChange}
-          placeholder="Search movement..."
-        />
+      <Box sx={{ marginLeft:"40px"}}>
+
+      <Box sx={{ display: "flex", width: "100%", justifyContent: "space-between", marginTop: "20px" }}>
+         <Button variant="contained" onClick={handleExport} disabled={exportMovementsMutation.isPending} endIcon={exportMovementsMutation.isPending ? <CircularProgress thickness={5} size={16} sx={{ color:"#333" }}  /> : <img src={menuIcon} alt="menu icon"/>}
+          sx={{  backgroundColor: '#f5f6f7', borderRadius:"8px", ":hover":{boxShadow:"none"}, height:"48px", border:"1px solid #333", boxShadow:"none", textWrap:"nowrap",color:'#032541', textTransform: 'none', fontSize: '14px', fontWeight:"500"}}>
+          {exportMovementsMutation.isPending ? 'Exporting...' : 'Export CSV'}
+        </Button>
+
+        <Box sx={{ display:"flex", gap:"20px", alignItems:"center" }}>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <DatePicker disableFuture label="Start Date"  value={startDate} onChange={handleStartDateChange}
+                slotProps={{ textField: { size: 'small', sx: { width: 150 }}}}
+              />
+              <DatePicker disableFuture  label="End Date" value={endDate} onChange={handleEndDateChange}
+                sx={{ width:"200px"}} 
+                slotProps={{   textField: {
+                placeholder: "Select end date", size: 'small',
+                sx: { width: 150 }
+                }
+              }}
+              />
+              {(startDate || endDate) && (
+                <Button   variant="outlined" size="small" onClick={handleClearDates} sx={{ borderRadius:"8px", borderColor:"#D1D5DB", textTransform:"none", color:"#333", height: '40px' }}>Clear dates</Button>
+              )}
+          </LocalizationProvider>
+          <Box sx={{ width:"200px" }}>
+          <Select  
+            displayEmpty
+            renderValue={value => value === '' ? 'Select movement type' : value}
+            size="small"
+            sx={{ width:"100%",'& .MuiOutlinedInput-notchedOutline': { borderWidth:"1px", borderColor: '#D1D5DB'}, '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#D1D5DB' },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth:"1px", borderColor: '#D1D5DB' }}}   id="type"  value={type} onChange={handleChangeType}>
+              <MenuItem value={"STACK_IN"}>Stack In</MenuItem>
+              <MenuItem value={"STACK_OUT"}>Stack Out</MenuItem>
+              <MenuItem value={"DISPATCH"}>Dispatch</MenuItem>
+              <MenuItem value={"RETURN"}>Return</MenuItem>
+              <MenuItem value={"REPAIR_IN"}>Repair In</MenuItem>
+              <MenuItem value={"REPAIR_OUT"}>Repair_Out</MenuItem>
+              <MenuItem value={"QUARANTINE"}>Quarantine</MenuItem>
+              <MenuItem value={"SCRAP"}>Scrap</MenuItem>
+              <MenuItem value={"TRANSFER"}>Transfar</MenuItem>
+              <MenuItem value={"REPAIR_OUT"}>Repair_Out</MenuItem>
+            </Select>
+        </Box>
+        <CustomSearchTextField value={searchTerm} onChange={handleSearchChange} placeholder="Search asset..."/>
+        </Box>
       </Box>
 
       {/* movement modal */}
@@ -301,10 +385,10 @@ const Movements = () => {
                   name="fromStackCode"
                   label="Stack From"
                   searchable
-                  options={[
-                    {value:"Individual",label:"Individual"},
-                    {value:"Organization",label:"Organization"}
-                  ]}
+                  options={stackList?.map((stack)=>({
+                    value:stack.code,
+                    label:stack.warehouse
+                  }))}
                   onChange={MovementFormik.handleChange}
                   value={MovementFormik.values.fromStackCode}
                   onBlur={MovementFormik.handleBlur}
@@ -318,10 +402,10 @@ const Movements = () => {
                   name="toStackCode"
                   label="Stack To"
                   searchable
-                  options={[
-                    {value:"Individual",label:"Individual"},
-                    {value:"Organization",label:"Organization"}
-                  ]}
+                   options={stackList?.map((stack)=>({
+                      value:stack.code,
+                      label:stack.warehouse
+                  }))}
                   onChange={MovementFormik.handleChange}
                   value={MovementFormik.values.toStackCode}
                   onBlur={MovementFormik.handleBlur}
@@ -378,7 +462,23 @@ const Movements = () => {
                   errorMessage={MovementFormik.touched.operatorName && MovementFormik.errors.operatorName}
                 />
               </Box>
-              <CustomTextField
+              <CustomSelect
+                  id="returnCondition"
+                  name="returnCondition"
+                  label="Return Condition"
+                  searchable
+                  options={[
+                    { value: "GOOD", label: "Good" },
+                    { value: "DAMAGED", label: "Damaged" },
+                    { value: "REPAIRABLE", label: "Repaired" },
+                  ]}
+                  onChange={MovementFormik.handleChange}
+                  value={MovementFormik.values.returnCondition}
+                  onBlur={MovementFormik.handleBlur}
+                  error={MovementFormik.touched.returnCondition && Boolean(MovementFormik.errors.returnCondition)}
+                  helperText={MovementFormik.touched.returnCondition && MovementFormik.errors.returnCondition}
+                />
+               <CustomTextField
                 id="notes"
                 type="text"
                 name="notes"
@@ -389,21 +489,6 @@ const Movements = () => {
                 onBlur={MovementFormik.handleBlur}
                 errorMessage={MovementFormik.touched.notes && MovementFormik.errors.notes}
               />
-              <CustomSelect
-                  id="returnCondition"
-                  name="returnCondition"
-                  label="Return Condition"
-                  searchable
-                  options={[
-                    {value:"Individual",label:"Individual"},
-                    {value:"Organization",label:"Organization"}
-                  ]}
-                  onChange={MovementFormik.handleChange}
-                  value={MovementFormik.values.returnCondition}
-                  onBlur={MovementFormik.handleBlur}
-                  error={MovementFormik.touched.returnCondition && Boolean(MovementFormik.errors.returnCondition)}
-                  helperText={MovementFormik.touched.returnCondition && MovementFormik.errors.returnCondition}
-                />
               <Box sx={{ marginBottom: "20px",marginTop: "10px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between",alignItems: "center" }}>
                 <CustomCancelButton onClick={handleClose} label="Cancel" />
                 <CustomSubmitButton loading={MovementFormik.isSubmitting} label={updatingMovement ? "Update Movement" : "Create Movement"}/>
@@ -428,11 +513,12 @@ const Movements = () => {
           loading={isLoading}
           rows={movementsList}
           rowCount={rowCount}
-          getRowId={(row) => row.id}
+          getRowId={(row) => row.moveId}
           paginationModel={paginationModel}
           onPaginationModelChange={handlePaginationModelChange}
           columns={columns}
         />
+      </Box>
       </Box>
     </Box>
   )
