@@ -34,8 +34,9 @@ const SignIn = () => {
       try {
        const response = await signInUserService(values);
        if(response.status === 200){
-        Cookies.set("access_token",response.data.data.access_token);
-        Cookies.set("refresh_token", response.data.data.refresh_token);
+        // cookies will be cleared after 24 hours so the user will have to login again
+        Cookies.set("access_token",response.data.data.access_token,{expires:1, secure:true, sameSite:"strict"});
+        Cookies.set("refresh_token", response.data.data.refresh_token, {expires:1, secure:true, sameSite:"strict"});
         navigate("/dashboard")
         resetForm();
         }

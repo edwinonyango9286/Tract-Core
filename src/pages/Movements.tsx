@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, Button, CircularProgress, IconButton, MenuItem, Modal, Select, Typography, type SelectChangeEvent } from "@mui/material"
+import { Box, Breadcrumbs, Button, CircularProgress, IconButton, MenuItem, Modal, Select, Typography, type SelectChangeEvent, useTheme, useMediaQuery } from "@mui/material"
 import CustomSearchTextField from "../Components/common/CustomSearchTextField";
 import { FiberManualRecord } from "@mui/icons-material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
@@ -32,7 +32,6 @@ import menuIcon from "../assets/icons/menuIcon.svg"
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { formatISO } from "date-fns";
 
-
 const breadcrumbs = [
   <Typography key={1} style={{ cursor: "pointer", color: "#707070", fontSize: "14px" }}>
     Dashboard
@@ -42,20 +41,22 @@ const breadcrumbs = [
   </Typography>,
 ];
 
-const style = {
+// Responsive modal style
+const getModalStyle = (isMobile: boolean) => ({
   position: 'absolute',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 500,
+  width: isMobile ? '95%' : 500,
+  maxWidth: 500,
   bgcolor: 'background.paper',
   boxShadow: 24,
   paddingY: "10px",
-  paddingX: "30px",
+  paddingX: isMobile ? "15px" : "30px",
   borderRadius: "8px",
   maxHeight: "90vh",
   overflowY: "auto"
-};
+});
 
 const MovementSchema = Yup.object<CreateMovementPayload>({
   palletCode: Yup.string().required("Please select pallet."),
@@ -79,28 +80,33 @@ const Movements = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
   const isDeleting = deleteMovementMutation.isPending;
 
-   const [startDate,setStartDate] = useState<Date | null>(null);
-      const [endDate,setEndDate] = useState<Date | null>(null);
-    
-      const handleStartDateChange = (date:Date | null)=>{
-        setStartDate(date);
-        setPaginationModel((prev)=>({...prev, page:0}));
-      }
-      const handleEndDateChange = (date:Date | null) =>{
-        setEndDate(date);
-        setPaginationModel((prev)=>({...prev, page:0}));
-      }
-    
-      const handleClearDates = ()=>{
-        setStartDate(null);
-        setEndDate(null);
-        setPaginationModel((prev)=>({...prev, page:0 }))
-      }
-    
-      const [type,setType ] = useState<string>("");
-      const handleChangeType = (e:SelectChangeEvent<string>)=>{
-         setType(e.target.value);
-      }
+  // Responsive breakpoints
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const [startDate,setStartDate] = useState<Date | null>(null);
+  const [endDate,setEndDate] = useState<Date | null>(null);
+
+  const handleStartDateChange = (date:Date | null)=>{
+    setStartDate(date);
+    setPaginationModel((prev)=>({...prev, page:0}));
+  }
+  const handleEndDateChange = (date:Date | null) =>{
+    setEndDate(date);
+    setPaginationModel((prev)=>({...prev, page:0}));
+  }
+
+  const handleClearDates = ()=>{
+    setStartDate(null);
+    setEndDate(null);
+    setPaginationModel((prev)=>({...prev, page:0 }))
+  }
+
+  const [type,setType ] = useState<string>("");
+  const handleChangeType = (e:SelectChangeEvent<string>)=>{
+     setType(e.target.value);
+  }
   const { data: response, isLoading } = useGetMovements({ page: paginationModel.page, size: paginationModel.pageSize, search: debouncedSearchTerm, start:  startDate ? formatISO(startDate) : '' , end:endDate ? formatISO(endDate) : '',  type })
   const createMovementMutation = useCreateMovement();
   const updateMovementMutation = useUpdateMovement();
@@ -205,29 +211,110 @@ const Movements = () => {
     setOpen(true);
   }, []);
 
+  // Responsive columns
   const columns: GridColDef[] = [
-    { field: 'palletCode', headerName: 'Pallet Code', flex: 1 },
-    { field: 'movementType', headerName: 'Movement Type', flex: 1 },
-    { field: 'fromStackCode', headerName: 'From Stack', flex: 1 },
-    { field: 'toStackCode', headerName: 'To Stack', flex: 1 },
-    { field: 'fromLocation', headerName: 'From', flex: 1 },
-    { field: 'toLocation', headerName: 'To', flex: 1 },
-    { field: 'operatorName', headerName: 'Operator Name', flex: 1 },
-    { field: 'returnCondition', headerName: 'Return Condition', flex: 1 },
-    { field: 'moveAt', headerName: 'Moved At', flex: 1, renderCell:(params)=>dateFormatter(params.value) },
+    { 
+      field: 'palletCode', 
+      headerName: 'Pallet Code', 
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120
+    },
+    { 
+      field: 'movementType', 
+      headerName: 'Movement Type', 
+      flex: 1,
+      minWidth: isSmallMobile ? 120 : 140
+    },
+    { 
+      field: 'fromStackCode', 
+      headerName: 'From Stack', 
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120,
+      display: isMobile ? 'none' : 'flex'
+    },
+    { 
+      field: 'toStackCode', 
+      headerName: 'To Stack', 
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120,
+      display: isMobile ? 'none' : 'flex'
+    },
+    { 
+      field: 'fromLocation', 
+      headerName: 'From', 
+      flex: 1,
+      minWidth: isSmallMobile ? 80 : 100
+    },
+    { 
+      field: 'toLocation', 
+      headerName: 'To', 
+      flex: 1,
+      minWidth: isSmallMobile ? 80 : 100
+    },
+    { 
+      field: 'operatorName', 
+      headerName: 'Operator Name', 
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120,
+      display: isSmallMobile ? 'none' : 'flex'
+    },
+    { 
+      field: 'returnCondition', 
+      headerName: 'Return Condition', 
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120,
+      display: isMobile ? 'none' : 'flex'
+    },
+    { 
+      field: 'moveAt', 
+      headerName: 'Moved At', 
+      flex: 1, 
+      minWidth: isSmallMobile ? 100 : 120,
+      renderCell:(params)=>dateFormatter(params.value) 
+    },
     {
-      field: 'action', headerName: 'Action', flex: 1,
+      field: 'action', 
+      headerName: 'Action', 
+      flex: 1,
+      minWidth: isSmallMobile ? 120 : 150,
       renderCell: (params) => {
         return (
-          <Box sx={{ display: "flex", gap: "10px" }}>
-            <IconButton onClick={() => handleEdit(params.row as Movement)}>
-              <img src={editIcon} alt="editIcon" style={{ width: "21px", height: "21px" }} />
+          <Box sx={{ display: "flex", gap: "5px" }}>
+            <IconButton 
+              size={isSmallMobile ? "small" : "medium"}
+              onClick={() => handleEdit(params.row as Movement)}
+            >
+              <img 
+                src={editIcon} 
+                alt="editIcon" 
+                style={{ 
+                  width: isSmallMobile ? "18px" : "21px", 
+                  height: isSmallMobile ? "18px" : "21px" 
+                }} 
+              />
             </IconButton>
-            <IconButton onClick={() => { handleOpenDeleteModal(params?.row?.code); setMovementCode(params?.row?.moveId) }}>
-              <img src={deleteIcon} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
+            <IconButton 
+              size={isSmallMobile ? "small" : "medium"}
+              onClick={() => { handleOpenDeleteModal(params?.row?.code); setMovementCode(params?.row?.moveId) }}
+            >
+              <img 
+                src={deleteIcon} 
+                alt="deleteIconSmall" 
+                style={{ 
+                  width: isSmallMobile ? "20px" : "24px", 
+                  height: isSmallMobile ? "20px" : "24px" 
+                }} 
+              />
             </IconButton>
-            <IconButton>
-              <img src={dotsVertical} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
+            <IconButton size={isSmallMobile ? "small" : "medium"}>
+              <img 
+                src={dotsVertical} 
+                alt="deleteIconSmall" 
+                style={{ 
+                  width: isSmallMobile ? "20px" : "24px", 
+                  height: isSmallMobile ? "20px" : "24px" 
+                }} 
+              />
             </IconButton>
           </Box>
         );
@@ -258,18 +345,53 @@ const Movements = () => {
 
 
   return (
-    <Box sx={{ width: "100%", height: "100vh" }}>
-      <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
-        <Box sx={{ width: "100%", alignItems: "center", display: "flex" }}>
-          <IconButton onClick={() => navigate(-1)}>
-            <ArrowBackIosNewIcon />
+    <Box sx={{ 
+      width: "100%", 
+      minHeight: "100vh",
+      padding: { xs: "10px", sm: "20px" }
+    }}>
+      {/* Header Section */}
+      <Box sx={{ 
+        width: "100%", 
+        display: "flex", 
+        flexDirection: { xs: "column", sm: "row" },
+        justifyContent: "space-between",
+        alignItems: { xs: "flex-start", sm: "center" },
+        gap: { xs: 2, sm: 0 }
+      }}>
+        <Box sx={{ 
+          display: "flex", 
+          alignItems: "center",
+          width: { xs: "100%", sm: "auto" }
+        }}>
+          <IconButton 
+            onClick={() => navigate(-1)}
+            size={isSmallMobile ? "small" : "medium"}
+          >
+            <ArrowBackIosNewIcon fontSize={isSmallMobile ? "small" : "medium"} />
           </IconButton>
-          <Typography sx={{ fontSize: "25px", fontWeight: "600", color: "#032541" }}>Movements</Typography>
+          <Typography sx={{ 
+            fontSize: { xs: "20px", sm: "25px" }, 
+            fontWeight: "600", 
+            color: "#032541" 
+          }}>
+            Movements
+          </Typography>
         </Box>
-        <CustomAddButton variant="contained" label="Add Movement" onClick={handleOpen} />
+        <CustomAddButton 
+          variant="contained" 
+          label="Add Movement" 
+          onClick={handleOpen}
+          sx={{ width: { xs: "100%", sm: "auto" } }}
+        />
       </Box>
 
-      <Box sx={{ width: "100%", marginTop: "-10px", marginLeft: "40px" }}>
+      {/* Breadcrumbs */}
+      <Box sx={{ 
+        width: "100%", 
+        marginTop: { xs: "10px", sm: "-10px" },
+        marginLeft: { xs: "0px", sm: "40px" }
+      }}>
         <Breadcrumbs
           style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }}
           aria-label="breadcrumb"
@@ -279,64 +401,170 @@ const Movements = () => {
         </Breadcrumbs>
       </Box>
 
-      <Box sx={{ marginLeft:"40px"}}>
+      {/* Main Content */}
+      <Box sx={{ 
+        marginLeft: { xs: "0px", sm: "40px" },
+        marginTop: { xs: "20px", sm: "0px" }
+      }}>
 
-      <Box sx={{ display: "flex", width: "100%", justifyContent: "space-between", marginTop: "20px" }}>
-         <Button variant="contained" onClick={handleExport} disabled={exportMovementsMutation.isPending} endIcon={exportMovementsMutation.isPending ? <CircularProgress thickness={5} size={16} sx={{ color:"#333" }}  /> : <img src={menuIcon} alt="menu icon"/>}
-          sx={{  backgroundColor: '#f5f6f7', borderRadius:"8px", ":hover":{boxShadow:"none"}, height:"48px", border:"1px solid #333", boxShadow:"none", textWrap:"nowrap",color:'#032541', textTransform: 'none', fontSize: '14px', fontWeight:"500"}}>
-          {exportMovementsMutation.isPending ? 'Exporting...' : 'Export CSV'}
-        </Button>
+      {/* Filters Section */}
+      <Box sx={{ 
+        display: "flex", 
+        width: "100%", 
+        flexDirection: { xs: "column", sm: "row" },
+        justifyContent: "space-between", 
+        marginTop: "20px",
+        gap: { xs: 2, sm: 0 }
+      }}>
+        {/* Export Button */}
+        <Box sx={{ 
+          order: { xs: 2, sm: 1 },
+          width: { xs: "100%", sm: "auto" }
+        }}>
+          <Button 
+            variant="contained" 
+            onClick={handleExport} 
+            disabled={exportMovementsMutation.isPending} 
+            endIcon={exportMovementsMutation.isPending ? <CircularProgress thickness={5} size={16} sx={{ color:"#333" }}  /> : <img src={menuIcon} alt="menu icon"/>}
+            sx={{ 
+              backgroundColor: '#f5f6f7', 
+              borderRadius:"8px", 
+              ":hover":{boxShadow:"none"}, 
+              height:"48px", 
+              border:"1px solid #333", 
+              boxShadow:"none", 
+              textWrap:"nowrap",
+              color:'#032541', 
+              textTransform: 'none', 
+              fontSize: '14px', 
+              fontWeight:"500",
+              width: { xs: "100%", sm: "auto" }
+            }}>
+            {exportMovementsMutation.isPending ? 'Exporting...' : 'Export CSV'}
+          </Button>
+        </Box>
 
-        <Box sx={{ display:"flex", gap:"20px", alignItems:"center" }}>
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <DatePicker disableFuture label="Start Date"  value={startDate} onChange={handleStartDateChange}
-                slotProps={{ textField: { size: 'small', sx: { width: 150 }}}}
+        {/* Filters */}
+        <Box sx={{ 
+          display:"flex", 
+          flexDirection: { xs: "column", sm: "row" },
+          gap:"20px", 
+          alignItems: { xs: "stretch", sm: "center" },
+          order: { xs: 1, sm: 2 },
+          width: { xs: "100%", sm: "auto" }
+        }}>
+          {/* Date Pickers */}
+          <Box sx={{ 
+            display: "flex", 
+            flexDirection: { xs: "column", sm: "row" },
+            gap: "10px",
+            width: { xs: "100%", sm: "auto" }
+          }}>
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <DatePicker 
+                disableFuture 
+                label="Start Date"  
+                value={startDate} 
+                onChange={handleStartDateChange}
+                slotProps={{ 
+                  textField: { 
+                    size: 'small', 
+                    sx: { width: { xs: "100%", sm: 150 } }
+                  }
+                }}
               />
-              <DatePicker disableFuture  label="End Date" value={endDate} onChange={handleEndDateChange}
-                sx={{ width:"200px"}} 
-                slotProps={{   textField: {
-                placeholder: "Select end date", size: 'small',
-                sx: { width: 150 }
-                }
-              }}
+              <DatePicker 
+                disableFuture  
+                label="End Date" 
+                value={endDate} 
+                onChange={handleEndDateChange}
+                slotProps={{   
+                  textField: {
+                  placeholder: "Select end date", 
+                  size: 'small',
+                  sx: { width: { xs: "100%", sm: 150 } }
+                  }
+                }}
               />
               {(startDate || endDate) && (
-                <Button   variant="outlined" size="small" onClick={handleClearDates} sx={{ borderRadius:"8px", borderColor:"#D1D5DB", textTransform:"none", color:"#333", height: '40px' }}>Clear dates</Button>
+                <Button   
+                  variant="outlined" 
+                  size="small" 
+                  onClick={handleClearDates} 
+                  sx={{ 
+                    borderRadius:"8px", 
+                    borderColor:"#D1D5DB", 
+                    textTransform:"none", 
+                    color:"#333", 
+                    height: '40px',
+                    width: { xs: "100%", sm: "auto" }
+                  }}>
+                  Clear dates
+                </Button>
               )}
-          </LocalizationProvider>
-          <Box sx={{ width:"200px" }}>
-          <Select  
-            displayEmpty
-            renderValue={value => value === '' ? 'Select movement type' : value}
-            size="small"
-            sx={{ width:"100%",'& .MuiOutlinedInput-notchedOutline': { borderWidth:"1px", borderColor: '#D1D5DB'}, '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#D1D5DB' },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth:"1px", borderColor: '#D1D5DB' }}}   id="type"  value={type} onChange={handleChangeType}>
-              <MenuItem value={"STACK_IN"}>Stack In</MenuItem>
-              <MenuItem value={"STACK_OUT"}>Stack Out</MenuItem>
-              <MenuItem value={"DISPATCH"}>Dispatch</MenuItem>
-              <MenuItem value={"RETURN"}>Return</MenuItem>
-              <MenuItem value={"REPAIR_IN"}>Repair In</MenuItem>
-              <MenuItem value={"REPAIR_OUT"}>Repair_Out</MenuItem>
-              <MenuItem value={"QUARANTINE"}>Quarantine</MenuItem>
-              <MenuItem value={"SCRAP"}>Scrap</MenuItem>
-              <MenuItem value={"TRANSFER"}>Transfar</MenuItem>
-              <MenuItem value={"REPAIR_OUT"}>Repair_Out</MenuItem>
-            </Select>
-        </Box>
-        <CustomSearchTextField value={searchTerm} onChange={handleSearchChange} placeholder="Search asset..."/>
+            </LocalizationProvider>
+          </Box>
+
+          {/* Type Select and Search */}
+          <Box sx={{ 
+            display: "flex", 
+            flexDirection: { xs: "column", sm: "row" },
+            gap: "10px",
+            width: { xs: "100%", sm: "auto" }
+          }}>
+            <Box sx={{ width: { xs: "100%", sm: "200px" } }}>
+              <Select  
+                displayEmpty
+                renderValue={value => value === '' ? 'Select movement type' : value}
+                size="small"
+                sx={{ 
+                  width:"100%",
+                  '& .MuiOutlinedInput-notchedOutline': { borderWidth:"1px", borderColor: '#D1D5DB'},
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#D1D5DB' },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth:"1px", borderColor: '#D1D5DB' }
+                }}   
+                id="type"  
+                value={type} 
+                onChange={handleChangeType}
+              >
+                <MenuItem value={"STACK_IN"}>Stack In</MenuItem>
+                <MenuItem value={"STACK_OUT"}>Stack Out</MenuItem>
+                <MenuItem value={"DISPATCH"}>Dispatch</MenuItem>
+                <MenuItem value={"RETURN"}>Return</MenuItem>
+                <MenuItem value={"REPAIR_IN"}>Repair In</MenuItem>
+                <MenuItem value={"REPAIR_OUT"}>Repair_Out</MenuItem>
+                <MenuItem value={"QUARANTINE"}>Quarantine</MenuItem>
+                <MenuItem value={"SCRAP"}>Scrap</MenuItem>
+                <MenuItem value={"TRANSFER"}>Transfar</MenuItem>
+                <MenuItem value={"REPAIR_OUT"}>Repair_Out</MenuItem>
+              </Select>
+            </Box>
+            <CustomSearchTextField 
+              value={searchTerm} 
+              onChange={handleSearchChange} 
+              placeholder="Search asset..."
+              sx={{ width: { xs: "100%", sm: "auto" } }}
+            />
+          </Box>
         </Box>
       </Box>
 
       {/* movement modal */}
       <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
-        <Box sx={style}>
+        <Box sx={getModalStyle(isMobile)}>
           <form style={{ width: "100%" }} onSubmit={MovementFormik.handleSubmit}>
-            <Typography sx={{ fontSize: "20px", fontWeight: "700" }}>
+            <Typography sx={{ fontSize: { xs: "18px", sm: "20px" }, fontWeight: "700" }}>
               {updatingMovement ? "Update Movement Details" : "Add Movement"}
             </Typography>
             <Box sx={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "20px" }}>
-              <Box sx={{ width:"100%", display: "flex", gap: "15px" }}>
-                <Box sx={{ width:"50%"}}>
+              {/* Stack form fields vertically on mobile */}
+              <Box sx={{ 
+                width:"100%", 
+                display: "flex", 
+                flexDirection: { xs: "column", sm: "row" },
+                gap: "15px" 
+              }}>
+                <Box sx={{ width: { xs: "100%", sm: "50%" }}}>
                   <CustomSelect
                   id="palletCode"
                   name="palletCode"
@@ -353,7 +581,7 @@ const Movements = () => {
                   helperText={MovementFormik.touched.palletCode && MovementFormik.errors.palletCode}
                 />
                 </Box>
-                <Box sx={{width:"50%" }}>
+                <Box sx={{ width: { xs: "100%", sm: "50%" } }}>
                   <CustomSelect
                   id="movementType"
                   name="movementType"
@@ -378,8 +606,12 @@ const Movements = () => {
                 />
                 </Box>
               </Box>
-              <Box sx={{ display: "flex", gap: "15px" }}>
-                <Box sx={{ width:"50%"}}>
+              <Box sx={{ 
+                display: "flex", 
+                flexDirection: { xs: "column", sm: "row" },
+                gap: "15px" 
+              }}>
+                <Box sx={{ width: { xs: "100%", sm: "50%" }}}>
                 <CustomSelect
                   id="fromStackCode"
                   name="fromStackCode"
@@ -396,7 +628,7 @@ const Movements = () => {
                   helperText={MovementFormik.touched.fromStackCode && MovementFormik.errors.fromStackCode}
                 />
                 </Box>
-                <Box sx={{ width:"50%"}}>
+                <Box sx={{ width: { xs: "100%", sm: "50%" }}}>
                <CustomSelect
                   id="toStackCode"
                   name="toStackCode"
@@ -414,7 +646,11 @@ const Movements = () => {
                 />
                 </Box>
               </Box>
-              <Box sx={{ display: "flex", gap: "15px" }}>
+              <Box sx={{ 
+                display: "flex", 
+                flexDirection: { xs: "column", sm: "row" },
+                gap: "15px" 
+              }}>
                 <CustomTextField
                   id="fromLocation"
                   name="fromLocation"
@@ -425,6 +661,7 @@ const Movements = () => {
                   value={MovementFormik.values.fromLocation}
                   onBlur={MovementFormik.handleBlur}
                   errorMessage={MovementFormik.touched.fromLocation && MovementFormik.errors.fromLocation}
+                  sx={{ width: { xs: "100%", sm: "50%" } }}
                 />
                 <CustomTextField
                   id="toLocation"
@@ -436,9 +673,14 @@ const Movements = () => {
                   value={MovementFormik.values.toLocation}
                   onBlur={MovementFormik.handleBlur}
                   errorMessage={MovementFormik.touched.toLocation && MovementFormik.errors.toLocation}
+                  sx={{ width: { xs: "100%", sm: "50%" } }}
                 />
               </Box>
-              <Box sx={{ display: "flex", gap: "15px" }}>
+              <Box sx={{ 
+                display: "flex", 
+                flexDirection: { xs: "column", sm: "row" },
+                gap: "15px" 
+              }}>
                 <CustomTextField
                   id="reference"
                   type="text"
@@ -449,6 +691,7 @@ const Movements = () => {
                   value={MovementFormik.values.reference}
                   onBlur={MovementFormik.handleBlur}
                   errorMessage={MovementFormik.touched.reference && MovementFormik.errors.reference}
+                  sx={{ width: { xs: "100%", sm: "50%" } }}
                 />
                 <CustomTextField
                   id="operatorName"
@@ -460,6 +703,7 @@ const Movements = () => {
                   value={MovementFormik.values.operatorName}
                   onBlur={MovementFormik.handleBlur}
                   errorMessage={MovementFormik.touched.operatorName && MovementFormik.errors.operatorName}
+                  sx={{ width: { xs: "100%", sm: "50%" } }}
                 />
               </Box>
               <CustomSelect
@@ -489,9 +733,26 @@ const Movements = () => {
                 onBlur={MovementFormik.handleBlur}
                 errorMessage={MovementFormik.touched.notes && MovementFormik.errors.notes}
               />
-              <Box sx={{ marginBottom: "20px",marginTop: "10px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between",alignItems: "center" }}>
-                <CustomCancelButton onClick={handleClose} label="Cancel" />
-                <CustomSubmitButton loading={MovementFormik.isSubmitting} label={updatingMovement ? "Update Movement" : "Create Movement"}/>
+              <Box sx={{ 
+                marginBottom: "20px",
+                marginTop: "10px", 
+                gap: "20px", 
+                width: "100%", 
+                display: "flex", 
+                flexDirection: { xs: "column", sm: "row" },
+                justifyContent: "space-between",
+                alignItems: "center" 
+              }}>
+                <CustomCancelButton 
+                  onClick={handleClose} 
+                  label="Cancel" 
+                  sx={{ width: { xs: "100%", sm: "auto" } }}
+                />
+                <CustomSubmitButton 
+                  loading={MovementFormik.isSubmitting} 
+                  label={updatingMovement ? "Update Movement" : "Create Movement"}
+                  sx={{ width: { xs: "100%", sm: "auto" } }}
+                />
               </Box>
             </Box>
           </form>
@@ -508,7 +769,11 @@ const Movements = () => {
         itemT0Delete={`${movementCode} movement`}
       />
 
-      <Box sx={{ width: "100%", height: "70vh", marginTop: "20px" }}>
+      <Box sx={{ 
+        width: "100%", 
+        height: { xs: "400px", sm: "70vh" }, 
+        marginTop: "20px" 
+      }}>
         <CustomDataGrid
           loading={isLoading}
           rows={movementsList}
@@ -517,6 +782,14 @@ const Movements = () => {
           paginationModel={paginationModel}
           onPaginationModelChange={handlePaginationModelChange}
           columns={columns}
+          sx={{
+            '& .MuiDataGrid-cell': {
+              fontSize: { xs: '0.75rem', sm: '0.875rem' }
+            },
+            '& .MuiDataGrid-columnHeader': {
+              fontSize: { xs: '0.75rem', sm: '0.875rem' }
+            }
+          }}
         />
       </Box>
       </Box>

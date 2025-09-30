@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, IconButton, Menu, MenuItem, Modal, Typography } from "@mui/material"
+import { Box, Breadcrumbs, IconButton, Menu, MenuItem, Modal, Typography, useTheme, useMediaQuery } from "@mui/material"
 import CustomSearchTextField from "../Components/common/CustomSearchTextField";
 import { FiberManualRecord } from "@mui/icons-material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
@@ -37,20 +37,22 @@ const breadcrumbs = [
   </Typography>,
 ];
 
-const style = {
+// Responsive modal style
+const getModalStyle = (isMobile: boolean) => ({
   position: 'absolute',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 500,
+  width: isMobile ? '95%' : 500,
+  maxWidth: 500,
   bgcolor: 'background.paper',
   boxShadow: 24,
   paddingY: "10px",
-  paddingX: "30px",
+  paddingX: isMobile ? "15px" : "30px",
   borderRadius: "8px",
   maxHeight: "90vh",
   overflowY: "auto"
-};
+});
 
 const UserSchema = Yup.object<CreateUserPayload>({
   firstName: Yup.string().required("Please provide user first name."),
@@ -76,13 +78,16 @@ const Users = () => {
   const updateUserMutation = useUpdateUser();
   const [userData, setUserData] = useState<User | null>(null)
 
+  // Responsive breakpoints
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const { rows, rowCount } = useMemo(() => {
     if (!usersList) {
       return { rows: [], rowCount: 0 };
     }
     const response = usersList as unknown as GetAllUsersResponse;
-    console.log(response.data,"responsedatahere...................")
-    console.log(response.data.totalElements,"totalelementshereeeeeeeeeeeeeeeee")
     return {
       rows: response.data.content || [],
       rowCount: response.data.totalElements || 0
@@ -195,32 +200,103 @@ const Users = () => {
 
 
   const columns: GridColDef[] = useMemo(() => [
-    { field: 'firstname', headerName: 'First Name', flex: 1 },
-    { field: 'lastname', headerName: 'Last Name', flex: 1 },
-    { field: 'email', headerName: 'Email', flex: 1 },
-    { field: 'userPhoneNumber', headerName: 'Phone Number', flex: 1 },
-    { field: 'userIdNumber', headerName: 'Id Number', flex: 1 },
-    { field: 'phoneVerified', headerName: 'Phone Verified', flex: 1, renderCell:(params)=>  { return params.value ? <Typography>Yes</Typography>: <Typography>No</Typography> }},
-    { field: "roleDescription", headerName:"Role Description", flex:1},
+    { 
+      field: 'firstname', 
+      headerName: 'First Name', 
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120
+    },
+    { 
+      field: 'lastname', 
+      headerName: 'Last Name', 
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120
+    },
+    { 
+      field: 'email', 
+      headerName: 'Email', 
+      flex: 1,
+      minWidth: isSmallMobile ? 150 : 180,
+      display: isSmallMobile ? 'none' : 'flex'
+    },
+    { 
+      field: 'userPhoneNumber', 
+      headerName: 'Phone Number', 
+      flex: 1,
+      minWidth: isSmallMobile ? 120 : 140,
+      display: isMobile ? 'none' : 'flex'
+    },
+    { 
+      field: 'userIdNumber', 
+      headerName: 'Id Number', 
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120,
+      display: isSmallMobile ? 'none' : 'flex'
+    },
+    { 
+      field: 'phoneVerified', 
+      headerName: 'Phone Verified', 
+      flex: 1, 
+      minWidth: isSmallMobile ? 100 : 120,
+      renderCell:(params)=>  { return params.value ? <Typography>Yes</Typography>: <Typography>No</Typography> }
+    },
+    { 
+      field: "roleDescription", 
+      headerName:"Role Description", 
+      flex:1,
+      minWidth: isSmallMobile ? 120 : 150,
+      display: isMobile ? 'none' : 'flex'
+    },
     {
-      field: 'action', headerName: 'Action', flex: 1,
+      field: 'action', 
+      headerName: 'Action', 
+      flex: 1,
+      minWidth: isSmallMobile ? 120 : 150,
       renderCell: (params) => {
         return (
-          <Box sx={{ display: "flex", gap: "10px" }}>
-            <IconButton onClick={() => handleEdit(params.row as User)}>
-              <img src={editIcon} alt="editIcon" style={{ width: "21px", height: "21px" }} />
-            </IconButton>
-            <IconButton onClick={() => {handleOpenDeleteModal(params?.row?.id); setUserName(`${params.row.firstname} ${params.row.lastname}`) }}>
-              <img src={deleteIcon} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
+          <Box sx={{ display: "flex", gap: "5px" }}>
+            <IconButton 
+              size={isSmallMobile ? "small" : "medium"}
+              onClick={() => handleEdit(params.row as User)}
+            >
+              <img 
+                src={editIcon} 
+                alt="editIcon" 
+                style={{ 
+                  width: isSmallMobile ? "18px" : "21px", 
+                  height: isSmallMobile ? "18px" : "21px" 
+                }} 
+              />
             </IconButton>
             <IconButton 
+              size={isSmallMobile ? "small" : "medium"}
+              onClick={() => {handleOpenDeleteModal(params?.row?.id); setUserName(`${params.row.firstname} ${params.row.lastname}`) }}
+            >
+              <img 
+                src={deleteIcon} 
+                alt="deleteIconSmall" 
+                style={{ 
+                  width: isSmallMobile ? "20px" : "24px", 
+                  height: isSmallMobile ? "20px" : "24px" 
+                }} 
+              />
+            </IconButton>
+            <IconButton 
+              size={isSmallMobile ? "small" : "medium"}
               id="basic-button"
               aria-controls={openActionMenu ? 'basic-menu' : undefined}
               aria-haspopup="true"
               aria-expanded={openActionMenu ? 'true' : undefined}
               onClick={handleClickActionMenu}
             >
-              <img src={dotsVertical} alt="dotsVertical" style={{ width: "24px", height: "24px" }} />
+              <img 
+                src={dotsVertical} 
+                alt="dotsVertical" 
+                style={{ 
+                  width: isSmallMobile ? "20px" : "24px", 
+                  height: isSmallMobile ? "20px" : "24px" 
+                }} 
+              />
             </IconButton>
 
             {/* Action Menu */}
@@ -243,21 +319,56 @@ const Users = () => {
         );
       }
     },
-  ], [handleEdit]);
+  ], [handleEdit, isMobile, isSmallMobile]);
 
   return (
-    <Box sx={{ width: "100%", height: "100vh" }}>
-      <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
-        <Box sx={{ width: "100%", alignItems: "center", display: "flex" }}>
-          <IconButton onClick={() => navigate(-1)}>
-            <ArrowBackIosNewIcon />
+    <Box sx={{ 
+      width: "100%", 
+      minHeight: "100vh",
+      padding: { xs: "10px", sm: "20px" }
+    }}>
+      {/* Header Section */}
+      <Box sx={{ 
+        width: "100%", 
+        display: "flex", 
+        flexDirection: { xs: "column", sm: "row" },
+        justifyContent: "space-between",
+        alignItems: { xs: "flex-start", sm: "center" },
+        gap: { xs: 2, sm: 0 }
+      }}>
+        <Box sx={{ 
+          width: "100%", 
+          alignItems: "center", 
+          display: "flex" 
+        }}>
+          <IconButton 
+            onClick={() => navigate(-1)}
+            size={isSmallMobile ? "small" : "medium"}
+          >
+            <ArrowBackIosNewIcon fontSize={isSmallMobile ? "small" : "medium"} />
           </IconButton>
-          <Typography sx={{ fontSize: "25px", fontWeight: "600", color: "#032541" }}>Users</Typography>
+          <Typography sx={{ 
+            fontSize: { xs: "20px", sm: "25px" }, 
+            fontWeight: "600", 
+            color: "#032541" 
+          }}>
+            Users
+          </Typography>
         </Box>
-        <CustomAddButton variant="contained" label="Add User" onClick={handleOpen} />
+        <CustomAddButton 
+          variant="contained" 
+          label="Add User" 
+          onClick={handleOpen}
+          sx={{ width: { xs: "100%", sm: "auto" } }}
+        />
       </Box>
 
-      <Box sx={{ width: "100%", marginTop: "-10px", marginLeft: "40px" }}>
+      {/* Breadcrumbs */}
+      <Box sx={{ 
+        width: "100%", 
+        marginTop: { xs: "10px", sm: "-10px" },
+        marginLeft: { xs: "0px", sm: "40px" }
+      }}>
         <Breadcrumbs
           style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }}
           aria-label="breadcrumb"
@@ -267,124 +378,198 @@ const Users = () => {
         </Breadcrumbs>
       </Box>
 
-      <Box sx={{ display: "flex", width: "100%", justifyContent: "flex-start", marginTop: "20px" }}>
-        <CustomSearchTextField value={searchTerm} onChange={handleSearchChange} placeholder="Search user..."/>
-      </Box>
-
-      {/* user modal */}
-      <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
-        <Box sx={style}>
-          <form style={{ width: "100%" }} onSubmit={UserFormik.handleSubmit}>
-            <Typography sx={{ fontSize: "20px", fontWeight: "700" }}>
-              {updatingUser ? "Update User Details" : "Add User"}
-            </Typography>
-
-             <Box sx={{ width:"100%", marginTop:"20px", display:"flex", gap:"20px"}}>
-                <CustomTextField
-                id="firstName"
-                name="firstName"
-                label="First name"
-                type="text"
-                placeholder="First name"
-                onChange={UserFormik.handleChange}
-                value={UserFormik.values.firstName}
-                onBlur={UserFormik.handleBlur}
-                errorMessage={UserFormik.touched.firstName && UserFormik.errors.firstName}
-              />
-               <CustomTextField
-                id="lastName"
-                name="lastName"
-                label="Last name"
-                type="text"
-                placeholder="Last name"
-                onChange={UserFormik.handleChange}
-                value={UserFormik.values.lastName}
-                onBlur={UserFormik.handleBlur}
-                errorMessage={UserFormik.touched.lastName && UserFormik.errors.lastName}
-              />
-              </Box>
-             <Box sx={{ width:"100%", marginTop:"20px" }}>
-              <CustomTextField
-                id="email"
-                type="email"
-                name="email"
-                label="Email"
-                placeholder="Email"
-                onChange={UserFormik.handleChange}
-                value={UserFormik.values.email}
-                onBlur={UserFormik.handleBlur}
-                errorMessage={UserFormik.touched.email && UserFormik.errors.email}
-              />
-              </Box>
-              <Box sx={{ width:"100%", marginTop:"20px", display:"flex", gap:"20px"}}>
-               <CustomTextField
-                id="idNo"
-                type="number"
-                name="idNo"
-                label="Id Number"
-                placeholder="Id Number"
-                onChange={UserFormik.handleChange}
-                value={UserFormik.values.idNo}
-                onBlur={UserFormik.handleBlur}
-                errorMessage={UserFormik.touched.idNo && UserFormik.errors.idNo}
-              />
-              <Box sx={{ width:"50%"}}>
-              <CustomPhoneInput 
-               name="phone"
-               label="Phone Number"
-               id="phone"
-               onBlur={UserFormik.handleBlur}
-               onChange={(value)=>UserFormik.setFieldValue("phone", value)}
-               value={UserFormik.values.phone}
-               errorMessage={UserFormik.touched.phone && UserFormik.errors.phone}
-              />
-              </Box>
-              </Box>
-              <Box sx={{ width:"100%", marginTop:"20px", marginBottom:"20px"}}>
-              <CustomSelect 
-                id="role"
-                label="Role"
-                name="role"
-                value={UserFormik.values.role}
-                onChange={UserFormik.handleChange}
-                onBlur={UserFormik.handleBlur}
-                searchable
-                options={rolesList?.map((role:Role)=>({
-                  value:role.roleCode,
-                  label:role.roleName
-                }))}
-                error={UserFormik.touched.role && Boolean(UserFormik.errors.role)}
-                helperText ={UserFormik.touched.role && UserFormik.errors.role}
-              />
-              <Box sx={{ marginBottom: "20px",marginTop: "30px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <CustomCancelButton onClick={handleClose} label="Cancel" />
-                <CustomSubmitButton loading={UserFormik.isSubmitting} label={updatingUser ? "Update User" : "Create User"}/>
-              </Box>
-              </Box>
-          </form>
+      {/* Main Content */}
+      <Box sx={{ 
+        marginLeft: { xs: "0px", sm: "40px" },
+        marginTop: { xs: "20px", sm: "0px" }
+      }}>
+        {/* Search Field */}
+        <Box sx={{ 
+          display: "flex", 
+          width: "100%", 
+          justifyContent: "flex-start", 
+          marginTop: "20px" 
+        }}>
+          <CustomSearchTextField 
+            value={searchTerm} 
+            onChange={handleSearchChange} 
+            placeholder="Search user..."
+            sx={{ width: { xs: "100%", sm: "auto" } }}
+          />
         </Box>
-      </Modal>
 
-      {/* delete modal here */}
-      <CustomDeleteComponent
-        loading={isDeleting}
-        open={openDeleteModal}
-        onClose={handleCloseDeleteModal}
-        title={"Delete User"}
-        onConfirm={handleDeleteUser}
-        itemT0Delete={`${userName}`}
-      />
+        {/* User Modal */}
+        <Modal 
+          open={open} 
+          onClose={handleClose} 
+          aria-labelledby="modal-modal-title" 
+          aria-describedby="modal-modal-description"
+        >
+          <Box sx={getModalStyle(isMobile)}>
+            <form style={{ width: "100%" }} onSubmit={UserFormik.handleSubmit}>
+              <Typography sx={{ 
+                fontSize: { xs: "18px", sm: "20px" }, 
+                fontWeight: "700" 
+              }}>
+                {updatingUser ? "Update User Details" : "Add User"}
+              </Typography>
 
-      <Box sx={{ width: "100%", height: "70vh", marginTop: "20px" }}>
-        <CustomDataGrid
-          loading={isLoading}
-          rows={rows}
-          rowCount={rowCount}
-          getRowId={(row) => row.id}
-          paginationModel={paginationModel}
-          onPaginationModelChange={handlePaginationModelChange}
-          columns={columns}
+              {/* Form Fields */}
+              <Box sx={{ 
+                width: "100%", 
+                marginTop: "20px", 
+                display: "flex", 
+                flexDirection: { xs: "column", sm: "row" },
+                gap: "20px"
+              }}>
+                <CustomTextField
+                  id="firstName"
+                  name="firstName"
+                  label="First name"
+                  type="text"
+                  placeholder="First name"
+                  onChange={UserFormik.handleChange}
+                  value={UserFormik.values.firstName}
+                  onBlur={UserFormik.handleBlur}
+                  errorMessage={UserFormik.touched.firstName && UserFormik.errors.firstName}
+                  sx={{ width: { xs: "100%", sm: "50%" } }}
+                />
+                <CustomTextField
+                  id="lastName"
+                  name="lastName"
+                  label="Last name"
+                  type="text"
+                  placeholder="Last name"
+                  onChange={UserFormik.handleChange}
+                  value={UserFormik.values.lastName}
+                  onBlur={UserFormik.handleBlur}
+                  errorMessage={UserFormik.touched.lastName && UserFormik.errors.lastName}
+                  sx={{ width: { xs: "100%", sm: "50%" } }}
+                />
+              </Box>
+
+              <Box sx={{ width: "100%", marginTop: "20px" }}>
+                <CustomTextField
+                  id="email"
+                  type="email"
+                  name="email"
+                  label="Email"
+                  placeholder="Email"
+                  onChange={UserFormik.handleChange}
+                  value={UserFormik.values.email}
+                  onBlur={UserFormik.handleBlur}
+                  errorMessage={UserFormik.touched.email && UserFormik.errors.email}
+                />
+              </Box>
+
+              <Box sx={{ 
+                width: "100%", 
+                marginTop: "20px", 
+                display: "flex", 
+                flexDirection: { xs: "column", sm: "row" },
+                gap: "20px"
+              }}>
+                <CustomTextField
+                  id="idNo"
+                  type="number"
+                  name="idNo"
+                  label="Id Number"
+                  placeholder="Id Number"
+                  onChange={UserFormik.handleChange}
+                  value={UserFormik.values.idNo}
+                  onBlur={UserFormik.handleBlur}
+                  errorMessage={UserFormik.touched.idNo && UserFormik.errors.idNo}
+                  sx={{ width: { xs: "100%", sm: "50%" } }}
+                />
+                <Box sx={{ width: { xs: "100%", sm: "50%" }}}>
+                  <CustomPhoneInput 
+                    name="phone"
+                    label="Phone Number"
+                    id="phone"
+                    onBlur={UserFormik.handleBlur}
+                    onChange={(value)=>UserFormik.setFieldValue("phone", value)}
+                    value={UserFormik.values.phone}
+                    errorMessage={UserFormik.touched.phone && UserFormik.errors.phone}
+                  />
+                </Box>
+              </Box>
+
+              <Box sx={{ width: "100%", marginTop: "20px", marginBottom: "20px"}}>
+                <CustomSelect 
+                  id="role"
+                  label="Role"
+                  name="role"
+                  value={UserFormik.values.role}
+                  onChange={UserFormik.handleChange}
+                  onBlur={UserFormik.handleBlur}
+                  searchable
+                  options={rolesList?.map((role:Role)=>({
+                    value:role.roleCode,
+                    label:role.roleName
+                  }))}
+                  error={UserFormik.touched.role && Boolean(UserFormik.errors.role)}
+                  helperText ={UserFormik.touched.role && UserFormik.errors.role}
+                />
+                <Box sx={{ 
+                  marginBottom: "20px",
+                  marginTop: "30px", 
+                  gap: "20px", 
+                  width: "100%", 
+                  display: "flex", 
+                  flexDirection: { xs: "column", sm: "row" },
+                  justifyContent: "space-between", 
+                  alignItems: "center" 
+                }}>
+                  <CustomCancelButton 
+                    onClick={handleClose} 
+                    label="Cancel" 
+                    sx={{ width: { xs: "100%", sm: "auto" } }}
+                  />
+                  <CustomSubmitButton 
+                    loading={UserFormik.isSubmitting} 
+                    label={updatingUser ? "Update User" : "Create User"}
+                    sx={{ width: { xs: "100%", sm: "auto" } }}
+                  />
+                </Box>
+              </Box>
+            </form>
+          </Box>
+        </Modal>
+
+        {/* Delete Modal */}
+        <CustomDeleteComponent
+          loading={isDeleting}
+          open={openDeleteModal}
+          onClose={handleCloseDeleteModal}
+          title={"Delete User"}
+          onConfirm={handleDeleteUser}
+          itemT0Delete={`${userName}`}
         />
+
+        {/* Data Grid */}
+        <Box sx={{ 
+          width: "100%", 
+          height: { xs: "400px", sm: "70vh" }, 
+          marginTop: "20px" 
+        }}>
+          <CustomDataGrid
+            loading={isLoading}
+            rows={rows}
+            rowCount={rowCount}
+            getRowId={(row) => row.id}
+            paginationModel={paginationModel}
+            onPaginationModelChange={handlePaginationModelChange}
+            columns={columns}
+            sx={{
+              '& .MuiDataGrid-cell': {
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }
+              },
+              '& .MuiDataGrid-columnHeader': {
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }
+              }
+            }}
+          />
+        </Box>
       </Box>
     </Box>
   )

@@ -76,6 +76,7 @@ export const useUpdateAssetStatus = ()=>{
     mutationFn:updateAssetStatusService,
     onSuccess:()=>{
       queryClient.invalidateQueries({ queryKey:["assets"]});
+      queryClient.invalidateQueries({ queryKey:["asset-kpi"]})
     }
   })
 }

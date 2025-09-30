@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, IconButton, MenuItem, Modal, Select, Typography, type SelectChangeEvent } from "@mui/material"
+import { Box, Breadcrumbs, IconButton, MenuItem, Modal, Select, Typography, type SelectChangeEvent, useTheme, useMediaQuery } from "@mui/material"
 import { FiberManualRecord } from "@mui/icons-material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import { useNavigate } from "react-router-dom";
@@ -36,20 +36,22 @@ const breadcrumbs = [
   </Typography>,
 ];
 
-const style = {
-  position: 'absolute',
+// Responsive modal style
+const getModalStyle = (isMobile: boolean) => ({
+  position: 'absolute' as const,
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 400,
+  width: isMobile ? '90%' : 400,
+  maxWidth: 400,
   bgcolor: 'background.paper',
   boxShadow: 24,
   paddingY: "10px",
-  paddingX: "30px",
+  paddingX: isMobile ? "15px" : "30px",
   borderRadius: "8px",
   maxHeight: "90vh",
   overflowY: "auto"
-};
+});
 
 const PalletSchema = Yup.object<CreatePalletPayload>({
   type: Yup.string().required("Please provide select pallet type."),
@@ -68,16 +70,19 @@ const Pallets = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
   const isDeleting = deletePalletMutation.isPending;
 
+  // Responsive breakpoints
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const [status,setStatus ] = useState<string>("");
-  const handleChangeStatus = (e:SelectChangeEvent<string>)=>{
-      setStatus(e.target.value);
+  const [status, setStatus] = useState<string>("");
+  const handleChangeStatus = (e: SelectChangeEvent<string>) => {
+    setStatus(e.target.value);
   }
-  const { data: palletsList, isLoading } = useGetPallets({ page: paginationModel.page, size: paginationModel.pageSize, search: debouncedSearchTerm , status})
+  const { data: palletsList, isLoading } = useGetPallets({ page: paginationModel.page, size: paginationModel.pageSize, search: debouncedSearchTerm, status })
   const createPalletMutation = useCreatePallet();
   const updatePalletMutation = useUpdatePallet();
   const [palletData, setPalletData] = useState<Pallet | null>(null);
-
 
   const { rows, rowCount } = useMemo(() => {
     if (!palletsList) {
@@ -178,38 +183,122 @@ const Pallets = () => {
     setOpen(true);
   }, []);
 
+  // Responsive columns
   const columns: GridColDef[] = [
-    { field: 'type', headerName: 'Type', flex: 1 },
-    { field: 'currentStackCode', headerName: 'Current Stack Code', flex: 1 },
-    { field: 'currentLocation', headerName: 'Current Location', flex: 1 },
-    { field: 'owner', headerName: 'Owner', flex: 1 },
-    { field: 'lastReference', headerName: 'Last Reference', flex: 1 },
-    { field: 'lastMoveAt', headerName: 'Last Moved At', flex: 1 , 
-      renderCell:(params)=>dateFormatter(params.value)
-    },
-    { field: 'notes', headerName: 'Notes', flex: 1 },
-    { field: 'status', headerName: 'Status', flex: 1 },
     {
-      field: 'createdAt', headerName: 'Created At', flex: 1,
+      field: 'type',
+      headerName: 'Type',
+      flex: 1,
+      minWidth: isSmallMobile ? 80 : 100
+    },
+    {
+      field: 'currentStackCode',
+      headerName: 'Current Stack Code',
+      flex: 1,
+      minWidth: isSmallMobile ? 120 : 150,
+      display: isMobile ? 'none' : 'flex' // Hide on mobile
+    },
+    {
+      field: 'currentLocation',
+      headerName: 'Current Location',
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120
+    },
+    {
+      field: 'owner',
+      headerName: 'Owner',
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120
+    },
+    {
+      field: 'lastReference',
+      headerName: 'Last Reference',
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120,
+      display: isMobile ? 'none' : 'flex' // Hide on mobile
+    },
+    {
+      field: 'lastMoveAt',
+      headerName: 'Last Moved At',
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120,
+      display: isSmallMobile ? 'none' : 'flex', // Hide on very small screens
       renderCell: (params) => dateFormatter(params.value)
     },
     {
-      field: 'updatedAt', headerName: 'Updated At', flex: 1,
+      field: 'notes',
+      headerName: 'Notes',
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120,
+      display: isMobile ? 'none' : 'flex' // Hide on mobile
+    },
+    {
+      field: 'status',
+      headerName: 'Status',
+      flex: 1,
+      minWidth: isSmallMobile ? 80 : 100
+    },
+    {
+      field: 'createdAt',
+      headerName: 'Created At',
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120,
+      display: isSmallMobile ? 'none' : 'flex', // Hide on very small screens
       renderCell: (params) => dateFormatter(params.value)
     },
     {
-      field: 'action', headerName: 'Action', flex: 1,
+      field: 'updatedAt',
+      headerName: 'Updated At',
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120,
+      display: isMobile ? 'none' : 'flex', // Hide on mobile
+      renderCell: (params) => dateFormatter(params.value)
+    },
+    {
+      field: 'action',
+      headerName: 'Action',
+      flex: 1,
+      minWidth: isSmallMobile ? 120 : 150,
       renderCell: (params) => {
         return (
-          <Box sx={{ display: "flex", gap: "10px" }}>
-            <IconButton onClick={() => handleEdit(params.row as Pallet)}>
-              <img src={editIcon} alt="editIcon" style={{ width: "21px", height: "21px" }} />
+          <Box sx={{ display: "flex", gap: "5px" }}>
+            <IconButton
+              size={isSmallMobile ? "small" : "medium"}
+              onClick={() => handleEdit(params.row as Pallet)}
+            >
+              <img
+                src={editIcon}
+                alt="editIcon"
+                style={{
+                  width: isSmallMobile ? "18px" : "21px",
+                  height: isSmallMobile ? "18px" : "21px"
+                }}
+              />
             </IconButton>
-            <IconButton onClick={() => { handleOpenDeleteModal(params?.row?.code); setPalletName(params?.row?.name) }}>
-              <img src={deleteIcon} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
+            <IconButton
+              size={isSmallMobile ? "small" : "medium"}
+              onClick={() => { handleOpenDeleteModal(params?.row?.code); setPalletName(params?.row?.name) }}
+            >
+              <img
+                src={deleteIcon}
+                alt="deleteIconSmall"
+                style={{
+                  width: isSmallMobile ? "20px" : "24px",
+                  height: isSmallMobile ? "20px" : "24px"
+                }}
+              />
             </IconButton>
-            <IconButton>
-              <img src={dotsVertical} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
+            <IconButton
+              size={isSmallMobile ? "small" : "medium"}
+            >
+              <img
+                src={dotsVertical}
+                alt="deleteIconSmall"
+                style={{
+                  width: isSmallMobile ? "20px" : "24px",
+                  height: isSmallMobile ? "20px" : "24px"
+                }}
+              />
             </IconButton>
           </Box>
         );
@@ -217,22 +306,57 @@ const Pallets = () => {
     },
   ];
 
-  const {data:stackResponse } = useGetStacks();
+  const { data: stackResponse } = useGetStacks();
   const stackList = stackResponse?.data || [];
 
   return (
-    <Box sx={{ width: "100%", height: "100vh" }}>
-      <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
-        <Box sx={{ width: "100%", alignItems: "center", display: "flex" }}>
-          <IconButton onClick={() => navigate(-1)}>
-            <ArrowBackIosNewIcon />
+    <Box sx={{
+      width: "100%",
+      minHeight: "100vh",
+      padding: { xs: "10px", sm: "20px" } // Responsive padding
+    }}>
+      {/* Header Section */}
+      <Box sx={{
+        width: "100%",
+        display: "flex",
+        flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
+        justifyContent: "space-between",
+        alignItems: { xs: "flex-start", sm: "center" },
+        gap: { xs: 2, sm: 0 }
+      }}>
+        <Box sx={{
+          display: "flex",
+          alignItems: "center",
+          width: { xs: "100%", sm: "auto" }
+        }}>
+          <IconButton
+            onClick={() => navigate(-1)}
+            size={isSmallMobile ? "small" : "medium"}
+          >
+            <ArrowBackIosNewIcon fontSize={isSmallMobile ? "small" : "medium"} />
           </IconButton>
-          <Typography sx={{ fontSize: "25px", fontWeight: "600", color: "#032541" }}>Pallets</Typography>
+          <Typography sx={{
+            fontSize: { xs: "20px", sm: "25px" },
+            fontWeight: "600",
+            color: "#032541"
+          }}>
+            Pallets
+          </Typography>
         </Box>
-        <CustomAddButton variant="contained" label="Add Pallet" onClick={handleOpen} />
+        <CustomAddButton
+          variant="contained"
+          label="Add Pallet"
+          onClick={handleOpen}
+          sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
+        />
       </Box>
 
-      <Box sx={{ width: "100%", marginTop: "-10px", marginLeft: "40px" }}>
+      {/* Breadcrumbs */}
+      <Box sx={{
+        width: "100%",
+        marginTop: { xs: "10px", sm: "-10px" },
+        marginLeft: { xs: "0px", sm: "40px" }
+      }}>
         <Breadcrumbs
           style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }}
           aria-label="breadcrumb"
@@ -242,46 +366,85 @@ const Pallets = () => {
         </Breadcrumbs>
       </Box>
 
-      <Box sx={{ display: "flex", width: "100%", justifyContent: "space-between", marginTop: "20px" }}>
-        <Box sx={{ }}></Box>
-        <Box sx={{ display:"flex", gap:"20px", alignItems:"center" }}>
-           <Box sx={{ width:"200px" }}>
-          <Select  
-            displayEmpty
-            renderValue={value => value === '' ? 'Select Status' : value}
-            size="small"
-            sx={{ height:"45px", width:"100%",'& .MuiOutlinedInput-notchedOutline': { borderWidth:"1px", borderColor: '#D1D5DB'}, '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#D1D5DB' },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth:"1px", borderColor: '#D1D5DB' }}}   id="status"  value={status} onChange={handleChangeStatus}>
-              <MenuItem value={"IN_STACK"}>In Stack</MenuItem>
-              <MenuItem value={"OUTBOUND"}>Out Bound</MenuItem>
-              <MenuItem value={"RETURNED"}>Returned</MenuItem>
-              <MenuItem value={"IN_REPAIR"}>In Repair</MenuItem>
-              <MenuItem value={"QUARANTINE"}>Quarantined</MenuItem>
-              <MenuItem value={"SCRAP"}>Scrap</MenuItem>
-            </Select>
+      {/* Main Content */}
+      <Box sx={{
+        marginLeft: { xs: "0px", sm: "40px" },
+        marginTop: { xs: "20px", sm: "0px" }
+      }}>
+        {/* Filters Section */}
+        <Box sx={{
+          display: "flex",
+          width: "100%",
+          flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
+          justifyContent: "space-between",
+          marginTop: "20px",
+          gap: { xs: 2, sm: 0 }
+        }}>
+          <Box sx={{ order: { xs: 2, sm: 1 } }}></Box>
+          <Box sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
+            gap: { xs: "10px", sm: "20px" },
+            alignItems: { xs: "stretch", sm: "center" },
+            order: { xs: 1, sm: 2 },
+            width: { xs: "100%", sm: "auto" }
+          }}>
+            <Box sx={{ width: { xs: "100%", sm: "200px" } }}>
+              <Select
+                displayEmpty
+                renderValue={value => value === '' ? 'Select Status' : value}
+                size="small"
+                sx={{
+                  height: "45px",
+                  width: "100%",
+                  '& .MuiOutlinedInput-notchedOutline': { borderWidth: "1px", borderColor: '#D1D5DB' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#D1D5DB' },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth: "1px", borderColor: '#D1D5DB' }
+                }}
+                id="status"
+                value={status}
+                onChange={handleChangeStatus}
+              >
+                <MenuItem value={"IN_STACK"}>In Stack</MenuItem>
+                <MenuItem value={"OUTBOUND"}>Out Bound</MenuItem>
+                <MenuItem value={"RETURNED"}>Returned</MenuItem>
+                <MenuItem value={"IN_REPAIR"}>In Repair</MenuItem>
+                <MenuItem value={"QUARANTINE"}>Quarantined</MenuItem>
+                <MenuItem value={"SCRAP"}>Scrap</MenuItem>
+              </Select>
+            </Box>
+            <CustomSearchTextField
+              value={searchTerm}
+              onChange={handleSearchChange}
+              placeholder="Search pallet..."
+              sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
+            />
+          </Box>
         </Box>
-        <CustomSearchTextField value={searchTerm} onChange={handleSearchChange} placeholder="Search pallet..." />
-        </Box>
-      </Box>
 
-      {/* pallet modal */}
-      <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
-        <Box sx={style}>
-          <form style={{ width: "100%" }} onSubmit={PalletFormik.handleSubmit}>
-            <Typography sx={{ fontSize: "20px", fontWeight: "700" }}>
-              {updatingPallet ? "Update Pallet Details" : "Add Pallet"}
-            </Typography>
-            <Box sx={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "20px" }}>
+        {/* Pallet Modal */}
+        <Modal
+          open={open}
+          onClose={handleClose}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <Box sx={getModalStyle(isMobile)}>
+            <form style={{ width: "100%" }} onSubmit={PalletFormik.handleSubmit}>
+              <Typography sx={{ fontSize: { xs: "18px", sm: "20px" }, fontWeight: "700" }}>
+                {updatingPallet ? "Update Pallet Details" : "Add Pallet"}
+              </Typography>
+              <Box sx={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "20px" }}>
                 <CustomSelect
                   id="type"
                   name="type"
                   label="Type"
                   searchable
                   options={[
-                    {value:"PLASTIC",label:"Plastic"},
-                    {value:"EURO",label:"Euro"},
-                    {value:"WOODEN", label:"Wooden"},
-                    {value:"HEAVY_DUTY", label:"Heavy Duty"},
+                    { value: "PLASTIC", label: "Plastic" },
+                    { value: "EURO", label: "Euro" },
+                    { value: "WOODEN", label: "Wooden" },
+                    { value: "HEAVY_DUTY", label: "Heavy Duty" },
                   ]}
                   onChange={PalletFormik.handleChange}
                   value={PalletFormik.values.type}
@@ -300,19 +463,19 @@ const Pallets = () => {
                   onBlur={PalletFormik.handleBlur}
                   errorMessage={PalletFormik.touched.owner && PalletFormik.errors.owner}
                 />
-                  <CustomSelect
+                <CustomSelect
                   id="initialStackCode"
                   name="initialStackCode"
                   label="Initial Stack"
                   searchable
-                  options={stackList?.map((stack:Stack)=>({value:stack.code,label:stack.warehouse}))}
+                  options={stackList?.map((stack: Stack) => ({ value: stack.code, label: stack.warehouse }))}
                   onChange={PalletFormik.handleChange}
                   value={PalletFormik.values.initialStackCode}
                   onBlur={PalletFormik.handleBlur}
                   error={PalletFormik.touched.initialStackCode && Boolean(PalletFormik.errors.initialStackCode)}
                   helperText={PalletFormik.touched.initialStackCode && PalletFormik.errors.initialStackCode}
                 />
-                 <CustomTextField
+                <CustomTextField
                   id="initialLocation"
                   type="initialLocation"
                   name="initialLocation"
@@ -335,34 +498,66 @@ const Pallets = () => {
                   errorMessage={PalletFormik.touched.notes && PalletFormik.errors.notes}
                 />
               </Box>
-              <Box sx={{ marginBottom: "20px", marginTop: "30px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-                <CustomCancelButton onClick={handleClose} label="Cancel" />
-                <CustomSubmitButton loading={PalletFormik.isSubmitting} label={updatingPallet ? "Update Pallet" : "Create Pallet"}/>
+              <Box sx={{
+                marginBottom: "20px",
+                marginTop: "30px",
+                gap: "20px",
+                width: "100%",
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" }, // Stack buttons on mobile
+                justifyContent: "space-between",
+                alignItems: "center"
+              }}>
+                <CustomCancelButton
+                  onClick={handleClose}
+                  label="Cancel"
+                  sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
+                />
+                <CustomSubmitButton
+                  loading={PalletFormik.isSubmitting}
+                  label={updatingPallet ? "Update Pallet" : "Create Pallet"}
+                  sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
+                />
               </Box>
-          </form>
-        </Box>
-      </Modal>
+            </form>
+          </Box>
+        </Modal>
 
-      {/* delete modal here */}
-      <CustomDeleteComponent
-        loading={isDeleting}
-        open={openDeleteModal}
-        onClose={handleCloseDeleteModal}
-        title={"Delete Pallet"}
-        onConfirm={handleDeletePallet}
-        itemT0Delete={`Selected pallet`}
-      />
-
-      <Box sx={{ width: "100%", height: "70vh", marginTop: "20px" }}>
-        <CustomDataGrid
-          loading={isLoading}
-          rows={rows}
-          rowCount={rowCount}
-          getRowId={(row) => row.code}
-          paginationModel={paginationModel}
-          onPaginationModelChange={handlePaginationModelChange}
-          columns={columns}
+        {/* Delete Modal */}
+        <CustomDeleteComponent
+          loading={isDeleting}
+          open={openDeleteModal}
+          onClose={handleCloseDeleteModal}
+          title={"Delete Pallet"}
+          onConfirm={handleDeletePallet}
+          itemT0Delete={`Selected pallet`}
         />
+
+        {/* DataGrid */}
+        <Box sx={{
+          width: "100%",
+          height: { xs: "400px", sm: "70vh" }, // Adjust height for mobile
+          marginTop: "20px",
+          overflow: "auto"
+        }}>
+          <CustomDataGrid
+            loading={isLoading}
+            rows={rows}
+            rowCount={rowCount}
+            getRowId={(row) => row.code}
+            paginationModel={paginationModel}
+            onPaginationModelChange={handlePaginationModelChange}
+            columns={columns}
+            sx={{
+              '& .MuiDataGrid-cell': {
+                fontSize: { xs: '0.75rem', sm: '0.875rem' } // Smaller font on mobile
+              },
+              '& .MuiDataGrid-columnHeader': {
+                fontSize: { xs: '0.75rem', sm: '0.875rem' } // Smaller header font on mobile
+              }
+            }}
+          />
+        </Box>
       </Box>
     </Box>
   )

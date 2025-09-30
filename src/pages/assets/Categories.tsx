@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, Button, CircularProgress, Divider, IconButton, Menu, MenuItem, Modal, Select, Typography, type SelectChangeEvent } from "@mui/material"
+import { Box, Breadcrumbs, Button, CircularProgress, Divider, IconButton, Menu, MenuItem, Modal, Select, Typography, type SelectChangeEvent, useTheme, useMediaQuery } from "@mui/material"
 import CustomSearchTextField from "../../Components/common/CustomSearchTextField";
 import { FiberManualRecord } from "@mui/icons-material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
@@ -37,222 +37,315 @@ const breadcrumbs = [
     Categories
   </Typography>,
 ];
-  const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    boxShadow: 24,
-    paddingY: "10px",
-    paddingX: "30px",
-    borderRadius: "8px"
-  };
-  
-  const CategorySchema = Yup.object<CreateCategoryPayload>({
-    name:Yup.string().required("Please provide category name."),
-    description:Yup.string().required("Please provide category description"),
-  })
 
-const Categories = ()=>{
+// Responsive modal style
+const getModalStyle = (isMobile: boolean) => ({
+  position: 'absolute' as const,
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: isMobile ? '90%' : 400, // Responsive width
+  maxWidth: 400, // Maximum width
+  bgcolor: 'background.paper',
+  boxShadow: 24,
+  paddingY: "10px",
+  paddingX: isMobile ? "15px" : "30px", // Responsive padding
+  borderRadius: "8px",
+  maxHeight: '90vh', // Prevent modal from being too tall
+  overflow: 'auto' // Enable scrolling if content is too long
+});
+
+const CategorySchema = Yup.object<CreateCategoryPayload>({
+  name: Yup.string().required("Please provide category name."),
+  description: Yup.string().required("Please provide category description"),
+})
+
+const Categories = () => {
   const navigate = useNavigate();
-  const {showSnackbar} = useSnackbar();
-  const deleteCategoryMutation =  useDeleteCategory();
-  const [paginationModel,setPaginationModel] = useState({ page:0, pageSize:10 });
-  const [searchTerm,setSearchTerm]= useState<string>("")
-  const debouncedSearchTerm = useDebounce(searchTerm,500)
+  const { showSnackbar } = useSnackbar();
+  const deleteCategoryMutation = useDeleteCategory();
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
+  const [searchTerm, setSearchTerm] = useState<string>("")
+  const debouncedSearchTerm = useDebounce(searchTerm, 500)
   const isDeleting = deleteCategoryMutation.isPending;
 
-  const [categoryStatus,setCategoryStatus] = useState<string>("");
-  const handleCategoryStatusChange = (e:SelectChangeEvent<string>)=>{
+  // Use MUI theme and breakpoints for responsive design
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const [categoryStatus, setCategoryStatus] = useState<string>("");
+  const handleCategoryStatusChange = (e: SelectChangeEvent<string>) => {
     setCategoryStatus(e.target.value)
   }
 
-    const [startDate,setStartDate] = useState<Date | null>(null);
-  const [endDate,setEndDate] = useState<Date | null>(null);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
 
-  const handleStartDateChange = (date:Date | null)=>{
+  const handleStartDateChange = (date: Date | null) => {
     setStartDate(date);
-    setPaginationModel((prev)=>({...prev, page:0}));
+    setPaginationModel((prev) => ({ ...prev, page: 0 }));
   }
-  const handleEndDateChange = (date:Date | null) =>{
+  const handleEndDateChange = (date: Date | null) => {
     setEndDate(date);
-    setPaginationModel((prev)=>({...prev, page:0}));
+    setPaginationModel((prev) => ({ ...prev, page: 0 }));
   }
 
-  const handleClearDates = ()=>{
+  const handleClearDates = () => {
     setStartDate(null);
     setEndDate(null);
-    setPaginationModel((prev)=>({...prev, page:0 }))
+    setPaginationModel((prev) => ({ ...prev, page: 0 }))
   }
 
-  const {data:categoriesResponse,isLoading} = useGetCategories({ page:paginationModel.page, size:paginationModel.pageSize, search:debouncedSearchTerm, categoryStatus ,startDate: startDate ? formatISO(startDate) : '',  endDate: endDate ? formatISO(endDate) : ''  } );
+  const { data: categoriesResponse, isLoading } = useGetCategories({
+    page: paginationModel.page,
+    size: paginationModel.pageSize,
+    search: debouncedSearchTerm,
+    categoryStatus,
+    startDate: startDate ? formatISO(startDate) : '',
+    endDate: endDate ? formatISO(endDate) : ''
+  });
   const categoriesList = categoriesResponse?.data.content || [];
   const rowCount = categoriesResponse?.data?.totalElements || 0;
-  const createCategoryMutation= useCreateCategory();
+  const createCategoryMutation = useCreateCategory();
   const updateCategoryMutation = useUpdateCategory();
-  const [categoryData,setCategoryData] = useState<Category | null>(null);
+  const [categoryData, setCategoryData] = useState<Category | null>(null);
 
-  const handleSearchChange = useCallback((e:React.ChangeEvent<HTMLInputElement>)=>{
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    setPaginationModel((prev)=>({...prev,page:0}))
-  },[])
+    setPaginationModel((prev) => ({ ...prev, page: 0 }))
+  }, [])
 
   const handlePaginationModelChange = useCallback((newModel: GridPaginationModel) => {
-      setPaginationModel(newModel);
+    setPaginationModel(newModel);
   }, []);
 
-  const [openDeleteModal,setOpenDeleteModal] = useState<boolean>(false);
-  const [selectedCategoryId,setSelectedCategoryId] = useState<string>("");
-  const [categoryName,setCategoryName] =useState<string>("");
+  const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [categoryName, setCategoryName] = useState<string>("");
 
 
-  const handleOpenDeleteModal = (categoryId:string)=>{
+  const handleOpenDeleteModal = (categoryId: string) => {
     setOpenDeleteModal(true);
     setSelectedCategoryId(categoryId);
   }
 
-  const handleCloseDeleteModal = ()=>{
+  const handleCloseDeleteModal = () => {
     setOpenDeleteModal(false);
     setSelectedCategoryId("");
     setCategoryName("");
   }
   const [open, setOpen] = useState(false);
 
-  const handleDeleteCategory = useCallback(async()=>{
-    if(selectedCategoryId){
+  const handleDeleteCategory = useCallback(async () => {
+    if (selectedCategoryId) {
       try {
-       await deleteCategoryMutation.mutateAsync(selectedCategoryId);
-       showSnackbar("Category deleted successfully.", "success");
-       handleCloseDeleteModal();
-    } catch (error) {
-      const err = error as AxiosError<{message?:string}>;
-      showSnackbar(err.response?.data.message || err.message )
-    }
-    }
-  },[selectedCategoryId,showSnackbar, deleteCategoryMutation])
-
-  const [updatingCategory,setUpdatingCategory] = useState<boolean>(false)
-   const CategoryFormik = useFormik<CreateCategoryPayload>({
-      initialValues: {
-        name: categoryData?.name || "",
-        description: categoryData?.description || "",
-      },
-      validationSchema: CategorySchema,
-      enableReinitialize: true, 
-      onSubmit: async (values, { setSubmitting, resetForm }) => {
-        try {
-          if (updatingCategory && categoryData) {
-            await updateCategoryMutation.mutateAsync({ code: categoryData.code, ...values });
-            showSnackbar("Category updated successfully.", "success");
-          } else {
-            await createCategoryMutation.mutateAsync(values);
-            showSnackbar("Category created successfully.", "success");
-          }
-          resetForm();
-          handleClose();
-        } catch (error) {
-          const err = error as AxiosError<{ message?: string }>;
-          showSnackbar(err.response?.data.message || err.message, "error");
-        } finally {
-          setSubmitting(false);
-        }
+        await deleteCategoryMutation.mutateAsync(selectedCategoryId);
+        showSnackbar("Category deleted successfully.", "success");
+        handleCloseDeleteModal();
+      } catch (error) {
+        const err = error as AxiosError<{ message?: string }>;
+        showSnackbar(err.response?.data.message || err.message)
       }
-    });
+    }
+  }, [selectedCategoryId, showSnackbar, deleteCategoryMutation])
+
+  const [updatingCategory, setUpdatingCategory] = useState<boolean>(false)
+  const CategoryFormik = useFormik<CreateCategoryPayload>({
+    initialValues: {
+      name: categoryData?.name || "",
+      description: categoryData?.description || "",
+    },
+    validationSchema: CategorySchema,
+    enableReinitialize: true,
+    onSubmit: async (values, { setSubmitting, resetForm }) => {
+      try {
+        if (updatingCategory && categoryData) {
+          await updateCategoryMutation.mutateAsync({ code: categoryData.code, ...values });
+          showSnackbar("Category updated successfully.", "success");
+        } else {
+          await createCategoryMutation.mutateAsync(values);
+          showSnackbar("Category created successfully.", "success");
+        }
+        resetForm();
+        handleClose();
+      } catch (error) {
+        const err = error as AxiosError<{ message?: string }>;
+        showSnackbar(err.response?.data.message || err.message, "error");
+      } finally {
+        setSubmitting(false);
+      }
+    }
+  });
 
 
-      const handleOpen = useCallback(() => {
-        setOpen(true);
-        setUpdatingCategory(false);
-        setCategoryData(null);
-      }, []);
-    
-      const handleClose = useCallback(() => {
-        setOpen(false);
-        CategoryFormik.resetForm();
-        setUpdatingCategory(false);
-        setCategoryData(null);
-      }, [CategoryFormik]);
-    
-      const handleEdit = useCallback((category: Category) => {
-        setCategoryData(category);
-        setUpdatingCategory(true);
-        setOpen(true);
-      }, []);
+  const handleOpen = useCallback(() => {
+    setOpen(true);
+    setUpdatingCategory(false);
+    setCategoryData(null);
+  }, []);
 
-  const updateCategoryStatusMutation= useUpdateCategoryStatus();
+  const handleClose = useCallback(() => {
+    setOpen(false);
+    CategoryFormik.resetForm();
+    setUpdatingCategory(false);
+    setCategoryData(null);
+  }, [CategoryFormik]);
+
+  const handleEdit = useCallback((category: Category) => {
+    setCategoryData(category);
+    setUpdatingCategory(true);
+    setOpen(true);
+  }, []);
+
+  const updateCategoryStatusMutation = useUpdateCategoryStatus();
   const isDeactivating = updateCategoryStatusMutation.isPending
-  const [selectedCategory,setSelectedCategory ] = useState<Category | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
 
-  
-      const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-      const openActionMenu = Boolean(anchorEl);
-      const handleClickActionMenu = (e: React.MouseEvent<HTMLButtonElement>, category:Category) => {
-        setAnchorEl(e.currentTarget);
-        setSelectedCategory(category)
-      };
-      const handleCloseActionMenu = () => {
-        setAnchorEl(null);
-        setSelectedCategory(null);
-      };
 
-  const handleUpdateCategoryStatus = async ()=>{
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const openActionMenu = Boolean(anchorEl);
+  const handleClickActionMenu = (e: React.MouseEvent<HTMLButtonElement>, category: Category) => {
+    setAnchorEl(e.currentTarget);
+    setSelectedCategory(category)
+  };
+  const handleCloseActionMenu = () => {
+    setAnchorEl(null);
+    setSelectedCategory(null);
+  };
+
+  const handleUpdateCategoryStatus = async () => {
     try {
-      if(selectedCategory){
-         let updateStatusPayload = {};
-        if(selectedCategory.status === "ACTIVE"){
+      if (selectedCategory) {
+        let updateStatusPayload = {};
+        if (selectedCategory.status === "ACTIVE") {
           updateStatusPayload = {
-            code:selectedCategory.code,
-            status:"INACTIVE"
+            code: selectedCategory.code,
+            status: "INACTIVE"
           }
-        } else if(selectedCategory.status === "INACTIVE") {
-          updateStatusPayload ={
-            code:selectedCategory.code,
-            status:"ACTIVE"
+        } else if (selectedCategory.status === "INACTIVE") {
+          updateStatusPayload = {
+            code: selectedCategory.code,
+            status: "ACTIVE"
           }
         }
         await updateCategoryStatusMutation.mutateAsync(updateStatusPayload);
-        showSnackbar("Category status updated successfully","success");
+        showSnackbar("Category status updated successfully", "success");
         handleCloseActionMenu();
       }
     } catch (error) {
-      const err = error as AxiosError<{message?:string}>;
+      const err = error as AxiosError<{ message?: string }>;
       showSnackbar(err.response?.data.message || err.message, "error");
     }
   }
+
+  // Responsive columns for DataGrid
   const columns: GridColDef[] = [
-    { field: 'code', headerName: 'Code', flex:1 },
-    { field: 'name', headerName: 'Name', flex: 1 },
-    { field: 'description', headerName: 'Description', flex: 1 },
-    { field: 'createdAt', headerName: 'Created At', flex: 1,
-      renderCell:(params)=>dateFormatter(params.value)
+    { 
+      field: 'code', 
+      headerName: 'Code', 
+      flex: 1,
+      minWidth: isSmallMobile ? 80 : 100 // Responsive min width
     },
-    { field: 'updatedAt', headerName: 'Updated At', flex: 1,
-      renderCell:(params)=>dateFormatter(params.value)
+    { 
+      field: 'name', 
+      headerName: 'Name', 
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120
     },
-    { field:"status", headerName:"Status" , flex:1},
+    { 
+      field: 'description', 
+      headerName: 'Description', 
+      flex: 1,
+      minWidth: isSmallMobile ? 120 : 150,
+      // Hide description on very small screens to save space
+      display: isSmallMobile ? 'none' : 'flex'
+    },
+    { 
+      field: 'createdAt', 
+      headerName: 'Created At', 
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120,
+      renderCell: (params) => dateFormatter(params.value)
+    },
+    { 
+      field: 'updatedAt', 
+      headerName: 'Updated At', 
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120,
+      // Hide updatedAt on small mobile screens
+      display: isMobile ? 'none' : 'flex',
+      renderCell: (params) => dateFormatter(params.value)
+    },
+    { 
+      field: "status", 
+      headerName: "Status",
+      flex: 1,
+      minWidth: isSmallMobile ? 80 : 100
+    },
     {
-      field: 'action', headerName: 'Action', flex: 1,
+      field: 'action',
+      headerName: 'Action',
+      flex: 1,
+      minWidth: isSmallMobile ? 120 : 150,
       renderCell: (params) => {
         return (
-          <Box sx={{ display: "flex", gap: "10px" }}>
-            <IconButton onClick={() => handleEdit(params.row as Category)}>
-              <img src={editIcon} alt="editIcon" style={{ width: "21px", height: "21px" }} />
+          <Box sx={{ display: "flex", gap: "5px" }}>
+            <IconButton 
+              size={isSmallMobile ? "small" : "medium"}
+              onClick={() => handleEdit(params.row as Category)}
+            >
+              <img 
+                src={editIcon} 
+                alt="editIcon" 
+                style={{ 
+                  width: isSmallMobile ? "18px" : "21px", 
+                  height: isSmallMobile ? "18px" : "21px" 
+                }} 
+              />
             </IconButton>
-            <IconButton onClick={()=>{handleOpenDeleteModal(params?.row?.code); setCategoryName(params?.row?.name)}}>
-              <img src={deleteIcon} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
+            <IconButton 
+              size={isSmallMobile ? "small" : "medium"}
+              onClick={() => { handleOpenDeleteModal(params?.row?.code); setCategoryName(params?.row?.name) }}
+            >
+              <img 
+                src={deleteIcon} 
+                alt="deleteIconSmall" 
+                style={{ 
+                  width: isSmallMobile ? "20px" : "24px", 
+                  height: isSmallMobile ? "20px" : "24px" 
+                }} 
+              />
             </IconButton>
 
-            <IconButton id="action-menu-button"  aria-controls={openActionMenu ? 'action-menu-button' : undefined} aria-haspopup="true" aria-expanded={openActionMenu ? 'true' : undefined} onClick={(e)=> handleClickActionMenu(e, params.row as Category)} >
-              <img src={dotsVertical} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
+            <IconButton 
+              size={isSmallMobile ? "small" : "medium"}
+              id="action-menu-button"
+              aria-controls={openActionMenu ? 'action-menu-button' : undefined}
+              aria-haspopup="true"
+              aria-expanded={openActionMenu ? 'true' : undefined}
+              onClick={(e) => handleClickActionMenu(e, params.row as Category)}
+            >
+              <img 
+                src={dotsVertical} 
+                alt="deleteIconSmall" 
+                style={{ 
+                  width: isSmallMobile ? "20px" : "24px", 
+                  height: isSmallMobile ? "20px" : "24px" 
+                }} 
+              />
             </IconButton>
-            {/* Action menu here */}
-            <Menu id="action-menu-button"  anchorEl={anchorEl} open={openActionMenu} onClose={handleCloseActionMenu}
-              slotProps={{ list: {'aria-labelledby': 'basic-button' }}}>
+            <Menu
+              id="action-menu-button"
+              anchorEl={anchorEl}
+              open={openActionMenu}
+              onClose={handleCloseActionMenu}
+              slotProps={{ list: { 'aria-labelledby': 'basic-button' } }}
+            >
               <MenuItem onClick={handleCloseActionMenu}>View details</MenuItem>
-
-              <MenuItem onClick={handleUpdateCategoryStatus}>{selectedCategory?.status === "ACTIVE" ? "Deactivate" : selectedCategory?.status === "INACTIVE" ? "Activate" : isDeactivating ? <CircularProgress thickness={5}  size={16} sx={{ color:"#333", marginLeft:"20px"}} /> : null}</MenuItem>
+              <MenuItem onClick={handleUpdateCategoryStatus}>
+                {selectedCategory?.status === "ACTIVE" ? "Deactivate" : selectedCategory?.status === "INACTIVE" ? "Activate" : isDeactivating ? <CircularProgress thickness={5} size={16} sx={{ color: "#333", marginLeft: "20px" }} /> : null}
+              </MenuItem>
             </Menu>
           </Box>
         );
@@ -260,44 +353,72 @@ const Categories = ()=>{
     },
   ];
 
-
-
-  const {data:categoriesKPIResponse, isLoading:isKpiLoading } = useGetCatgoriesKPI();
-  const exportCategoriesMutation = useExportCategories(); 
+  const { data: categoriesKPIResponse, isLoading: isKpiLoading } = useGetCatgoriesKPI();
+  const exportCategoriesMutation = useExportCategories();
 
   const handleExport = async () => {
-      try {
-          const blob = await exportCategoriesMutation.mutateAsync();
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `categories_export_${new Date().toISOString().split('T')[0]}.csv`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
-      } catch (error) {
-          const err = error as AxiosError<{message?: string}>;
-          showSnackbar(err.response?.data.message || err.message, "error");
-      }
+    try {
+      const blob = await exportCategoriesMutation.mutateAsync();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `categories_export_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      const err = error as AxiosError<{ message?: string }>;
+      showSnackbar(err.response?.data.message || err.message, "error");
+    }
   };
 
-
-
   return (
-    <Box sx={{ width:"100%",height:"100vh"}}>
-        <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
-        <Box sx={{ width: "100%", alignItems: "center", display: "flex" }}>
-          <IconButton onClick={() => navigate(-1)}>
-            <ArrowBackIosNewIcon />
+    <Box sx={{ 
+      width: "100%", 
+      minHeight: "100vh",
+      padding: { xs: "10px", sm: "20px" } // Responsive padding
+    }}>
+      {/* Header Section */}
+      <Box sx={{ 
+        width: "100%", 
+        display: "flex", 
+        flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
+        justifyContent: "space-between",
+        alignItems: { xs: "flex-start", sm: "center" },
+        gap: { xs: 2, sm: 0 } // Add gap when stacked
+      }}>
+        <Box sx={{ 
+          display: "flex", 
+          alignItems: "center",
+          width: { xs: "100%", sm: "auto" }
+        }}>
+          <IconButton onClick={() => navigate(-1)} size={isSmallMobile ? "small" : "medium"}>
+            <ArrowBackIosNewIcon fontSize={isSmallMobile ? "small" : "medium"} />
           </IconButton>
-          <Typography sx={{ fontSize: "25px", fontWeight: "600", color: "#032541" }}>Categories</Typography>
+          <Typography sx={{ 
+            fontSize: { xs: "20px", sm: "25px" }, 
+            fontWeight: "600", 
+            color: "#032541" 
+          }}>
+            Categories
+          </Typography>
         </Box>
-        <CustomAddButton variant="contained" label="Add Category" onClick={handleOpen} />
+        <CustomAddButton 
+          variant="contained" 
+          label="Add Category" 
+          onClick={handleOpen}
+          sx={{ width: { xs: "100%", sm: "auto" } }} 
+        />
       </Box>
 
-       <Box sx={{ width: "100%", marginTop: "-10px", marginLeft: "40px" }}>
-        <Breadcrumbs 
+      {/* Breadcrumbs */}
+      <Box sx={{ 
+        width: "100%", 
+        marginTop: { xs: "10px", sm: "0px" },
+        marginLeft: { xs: "0px", sm: "40px" }
+      }}>
+        <Breadcrumbs
           style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }}
           aria-label="breadcrumb"
           separator={<FiberManualRecord style={{ fontSize: "0.625rem", fontFamily: "Poppins", color: "#e1e5e8" }} />}
@@ -306,156 +427,358 @@ const Categories = ()=>{
         </Breadcrumbs>
       </Box>
 
-
-      <Box sx={{ marginLeft:"40px"}}>
-       <Box sx={{ width:"100%", marginTop:"10px", marginBottom:"20px"}}>
-              <Box sx={{ width:"100%"}}>
-                 <Typography sx={{ fontSize:"18px", fontWeight:"600", color:"#032541"}}>Categories Overview</Typography>
-              </Box>
-              <Box sx={{ marginTop:"10px", width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-                <Box sx={{ display:"flex", flexDirection:"column" }}>
-                    <Typography sx={{ textAlign:"start", fontSize:"16px", fontWeight:"600", color:"#1F2937" }}>Total</Typography>
-                    <Typography sx={{ fontSize:"40px", fontWeight:"600", color:"#1F2937"}}>{ isKpiLoading? <CircularProgress thickness={5} size={20} sx={{ color:"#333"}}/>  : categoriesKPIResponse?.data?.totalCategories || 0}</Typography>
-                </Box>
-                <Divider orientation="vertical" sx={{ borderWidth:"1px", height:"80px"}} />
-                 <Box sx={{ display:"flex", flexDirection:"column" }}>
-                    <Typography sx={{ textAlign:"start", fontSize:"16px", fontWeight:"600", color:"#059669" }}>Active</Typography>
-                    <Typography sx={{ fontSize:"40px", fontWeight:"600", color:"#059669"}}>{ isKpiLoading? <CircularProgress thickness={5} size={20} sx={{ color:"#333"}}/>: categoriesKPIResponse?.data?.activeCount || 0}</Typography>
-                </Box>
-                  <Divider orientation="vertical" sx={{ borderWidth:"1px", color:"#333", height:"80px"}} />
-                <Box sx={{ display:"flex", flexDirection:"column" }}>
-                    <Typography sx={{ textAlign:"start", fontSize:"16px", fontWeight:"600", color:"#DC2626" }}>Inactive</Typography>
-                    <Typography sx={{ fontSize:"40px", fontWeight:"600", color:"#DC2626"}}>{ isKpiLoading? <CircularProgress thickness={5} size={20} sx={{ color:"#333"}}/> : categoriesKPIResponse?.data?.inactiveCount || 0}</Typography>
-                </Box>
-              </Box>
-      
-              <Divider sx={{ width:"100%", borderWidth:"1px", color:"#333"}}/>
-            </Box>
-
-       <Box sx={{ display: "flex", width: "100%", justifyContent: "space-between", marginTop: "20px" }}>
-        <Box sx={{ }}>
-           <Box sx={{  display:"flex", gap:"10px"}}>
-           </Box>
-        <Button variant="contained" onClick={handleExport} disabled={exportCategoriesMutation.isPending} endIcon={exportCategoriesMutation.isPending ? <CircularProgress thickness={5} size={16} sx={{ color:"#333" }}  /> : <img src={menuIcon} alt="menu icon"/>}
-          sx={{  backgroundColor: '#f5f6f7', borderRadius:"8px", ":hover":{boxShadow:"none"}, height:"48px", border:"1px solid #333", boxShadow:"none", textWrap:"nowrap",color:'#032541', textTransform: 'none', fontSize: '14px', fontWeight:"500"}}>
-          {exportCategoriesMutation.isPending ? 'Exporting...' : 'Export CSV'}
-        </Button>
-        </Box>
-        <Box sx={{ display:"flex", gap:"20px", alignItems:"center"}}>
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <DatePicker disableFuture label="Start Date"  value={startDate} onChange={handleStartDateChange}
-            slotProps={{ textField: { size: 'small', sx: { width: 150 }}}}
-          />
-          <DatePicker disableFuture  label="End Date" value={endDate} onChange={handleEndDateChange}
-            sx={{ width:"200px"}} 
-            slotProps={{   textField: {
-             placeholder: "Select end date", size: 'small',
-             sx: { width: 150 }
-            }
-          }}
-          />
-          {(startDate || endDate) && (
-            <Button   variant="outlined" size="small" onClick={handleClearDates} sx={{ borderRadius:"8px", borderColor:"#D1D5DB", textTransform:"none", color:"#333", height: '40px' }}>Clear dates</Button>
-          )}
-       </LocalizationProvider>
-        <Box sx={{ width:"200px" }}>
-          <Select  
-            displayEmpty
-            renderValue={value => value === '' ? 'Select Status' : value}
-            size="small"
-            sx={{ width:"100%",'& .MuiOutlinedInput-notchedOutline': { borderWidth:"1px", borderColor: '#D1D5DB'}, '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#D1D5DB' },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth:"1px", borderColor: '#D1D5DB' }}}   id="status"  value={status} onChange={handleCategoryStatusChange}>
-              <MenuItem value={"ACTIVE"}>Active</MenuItem>
-              <MenuItem value={"INACTIVE"}>Inactive</MenuItem>
-              {/* <MenuItem value={"ARCHIVED"}>Archived</MenuItem> */}
-            </Select>
-          </Box>
-         <CustomSearchTextField
-          value={searchTerm}
-          onChange={handleSearchChange}
-          placeholder="Search category..."
-        />
-        </Box>
-       
-      </Box>
-      {/* category modal */}
-      <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
-        <Box sx={style}>
-          <form style={{ width: "100%" }} onSubmit={CategoryFormik.handleSubmit}>
-            <Typography sx={{ fontSize: "20px", fontWeight: "700" }}>
-              {updatingCategory ? "Update Category Details" : "Add Category"}
+      {/* Main Content */}
+      <Box sx={{ 
+        marginLeft: { xs: "0px", sm: "40px" },
+        marginTop: { xs: "20px", sm: "0px" }
+      }}>
+        {/* Overview Section */}
+        <Box sx={{ 
+          width: "100%", 
+          marginTop: "10px", 
+          marginBottom: "20px"
+        }}>
+          <Box sx={{ width: "100%" }}>
+            <Typography sx={{ 
+              fontSize: { xs: "16px", sm: "18px" }, 
+              fontWeight: "600", 
+              color: "#032541" 
+            }}>
+              Categories Overview
             </Typography>
-            <Box sx={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "20px" }}>
-              <CustomTextField
-                id="name"
-                name="name"
-                label="Name"
-                type="text"
-                placeholder="Name"
-                onChange={CategoryFormik.handleChange}
-                value={CategoryFormik.values.name}
-                onBlur={CategoryFormik.handleBlur}
-                errorMessage={CategoryFormik.touched.name && CategoryFormik.errors.name}
-              />
-              <CustomTextField
-                id="description"
-                type="text"
-                name="description"
-                label="Description"
-                placeholder="Description"
-                onChange={CategoryFormik.handleChange}
-                value={CategoryFormik.values.description}
-                onBlur={CategoryFormik.handleBlur}
-                errorMessage={CategoryFormik.touched.description && CategoryFormik.errors.description}
-              />
-              <Box sx={{
-                marginBottom: "20px",
-                marginTop:"10px",
-                gap: "20px",
-                width: "100%",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center"
+          </Box>
+          {/* KPI Cards - Stack on mobile */}
+          <Box sx={{ 
+            marginTop: "10px", 
+            width: "100%", 
+            display: "flex", 
+            flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
+            alignItems: { xs: "flex-start", sm: "center" }, 
+            justifyContent: "space-between",
+            gap: { xs: 2, sm: 0 } // Add gap when stacked
+          }}>
+            <Box sx={{ 
+              display: "flex", 
+              flexDirection: "column",
+              width: { xs: "100%", sm: "auto" }
+            }}>
+              <Typography sx={{ 
+                textAlign: { xs: "center", sm: "start" },
+                fontSize: "16px", 
+                fontWeight: "600", 
+                color: "#1F2937" 
               }}>
-                <CustomCancelButton onClick={handleClose} label="Cancel" />
-                <CustomSubmitButton
-                  loading={CategoryFormik.isSubmitting}
-                  label={updatingCategory ? "Update Category" : "Create Category"}
-                />
-              </Box>
+                Total
+              </Typography>
+              <Typography sx={{ 
+                fontSize: { xs: "32px", sm: "40px" }, 
+                fontWeight: "600", 
+                color: "#1F2937",
+                textAlign: { xs: "center", sm: "left" }
+              }}>
+                {isKpiLoading ? <CircularProgress thickness={5} size={20} sx={{ color: "#333" }} /> : categoriesKPIResponse?.data?.totalCategories || 0}
+              </Typography>
             </Box>
-          </form>
+            <Divider 
+              orientation={isMobile ? "horizontal" : "vertical"} 
+              sx={{ 
+                borderWidth: "1px", 
+                width: { xs: "100%", sm: "auto" },
+                height: { xs: "auto", sm: "80px" }
+              }} 
+            />
+            <Box sx={{ 
+              display: "flex", 
+              flexDirection: "column",
+              width: { xs: "100%", sm: "auto" }
+            }}>
+              <Typography sx={{ 
+                textAlign: { xs: "center", sm: "start" },
+                fontSize: "16px", 
+                fontWeight: "600", 
+                color: "#059669" 
+              }}>
+                Active
+              </Typography>
+              <Typography sx={{ 
+                fontSize: { xs: "32px", sm: "40px" }, 
+                fontWeight: "600", 
+                color: "#059669",
+                textAlign: { xs: "center", sm: "left" }
+              }}>
+                {isKpiLoading ? <CircularProgress thickness={5} size={20} sx={{ color: "#333" }} /> : categoriesKPIResponse?.data?.activeCount || 0}
+              </Typography>
+            </Box>
+            <Divider 
+              orientation={isMobile ? "horizontal" : "vertical"} 
+              sx={{ 
+                borderWidth: "1px", 
+                color: "#333", 
+                width: { xs: "100%", sm: "auto" },
+                height: { xs: "auto", sm: "80px" }
+              }} 
+            />
+            <Box sx={{ 
+              display: "flex", 
+              flexDirection: "column",
+              width: { xs: "100%", sm: "auto" }
+            }}>
+              <Typography sx={{ 
+                textAlign: { xs: "center", sm: "start" },
+                fontSize: "16px", 
+                fontWeight: "600", 
+                color: "#DC2626" 
+              }}>
+                Inactive
+              </Typography>
+              <Typography sx={{ 
+                fontSize: { xs: "32px", sm: "40px" }, 
+                fontWeight: "600", 
+                color: "#DC2626",
+                textAlign: { xs: "center", sm: "left" }
+              }}>
+                {isKpiLoading ? <CircularProgress thickness={5} size={20} sx={{ color: "#333" }} /> : categoriesKPIResponse?.data?.inactiveCount || 0}
+              </Typography>
+            </Box>
+          </Box>
+          <Divider sx={{ width: "100%", borderWidth: "1px", color: "#333", marginTop: { xs: "20px", sm: "0px" } }} />
         </Box>
-      </Modal>
 
-    {/* delete modal here */}
-    <CustomDeleteComponent
-      loading={isDeleting}
-      open={openDeleteModal}  
-      onClose={handleCloseDeleteModal} 
-      title={"Delete Category"} 
-      onConfirm={handleDeleteCategory} 
-      itemT0Delete={`${categoryName} category`}
-      />
+        {/* Filters and Actions Section */}
+        <Box sx={{ 
+          display: "flex", 
+          width: "100%", 
+          flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
+          justifyContent: "space-between", 
+          marginTop: "20px",
+          gap: { xs: 2, sm: 0 } // Add gap when stacked
+        }}>
+          {/* Export Button */}
+          <Box sx={{ 
+            order: { xs: 2, sm: 1 }, // Reorder on mobile
+            width: { xs: "100%", sm: "auto" }
+          }}>
+            <Button 
+              variant="contained" 
+              onClick={handleExport} 
+              disabled={exportCategoriesMutation.isPending} 
+              endIcon={exportCategoriesMutation.isPending ? <CircularProgress thickness={5} size={16} sx={{ color: "#333" }} /> : <img src={menuIcon} alt="menu icon" />}
+              sx={{ 
+                backgroundColor: '#f5f6f7', 
+                borderRadius: "8px", 
+                ":hover": { boxShadow: "none" }, 
+                height: "48px", 
+                border: "1px solid #333", 
+                boxShadow: "none", 
+                textWrap: "nowrap", 
+                color: '#032541', 
+                textTransform: 'none', 
+                fontSize: '14px', 
+                fontWeight: "500",
+                width: { xs: "100%", sm: "auto" } // Full width on mobile
+              }}
+            >
+              {exportCategoriesMutation.isPending ? 'Exporting...' : 'Export CSV'}
+            </Button>
+          </Box>
 
-        <Box sx={{ width: "100%", height: "70vh", marginTop: "20px" }}>
-        <CustomDataGrid
-          loading={isLoading}
-          rows={categoriesList}
-          rowCount={rowCount}
-          getRowId={(row)=>row.id}
-          paginationModel={paginationModel}
-          onPaginationModelChange={handlePaginationModelChange}
-          columns={columns}
+          {/* Filters */}
+          <Box sx={{ 
+            display: "flex", 
+            flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
+            gap: "20px", 
+            alignItems: { xs: "stretch", sm: "center" },
+            order: { xs: 1, sm: 2 }, // Reorder on mobile
+            width: { xs: "100%", sm: "auto" }
+          }}>
+            {/* Date Pickers */}
+            <Box sx={{ 
+              display: "flex", 
+              flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
+              gap: "10px",
+              width: { xs: "100%", sm: "auto" }
+            }}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker 
+                  disableFuture 
+                  label="Start Date"  
+                  value={startDate} 
+                  onChange={handleStartDateChange}
+                  slotProps={{ 
+                    textField: { 
+                      size: 'small', 
+                      sx: { width: { xs: "100%", sm: 150 } } // Full width on mobile
+                    }
+                  }}
+                />
+                <DatePicker 
+                  disableFuture  
+                  label="End Date" 
+                  value={endDate} 
+                  onChange={handleEndDateChange}
+                  slotProps={{
+                    textField: {
+                      placeholder: "Select end date", 
+                      size: 'small',
+                      sx: { width: { xs: "100%", sm: 150 } } // Full width on mobile
+                    }
+                  }}
+                />
+                {(startDate || endDate) && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={handleClearDates}
+                    sx={{
+                      borderRadius: "8px",
+                      borderColor: "#D1D5DB",
+                      textTransform: "none",
+                      color: "#333",
+                      height: '40px',
+                      width: { xs: "100%", sm: "auto" } // Full width on mobile
+                    }}
+                  >
+                    Clear dates
+                  </Button>
+                )}
+              </LocalizationProvider>
+            </Box>
+
+            {/* Status Select and Search */}
+            <Box sx={{ 
+              display: "flex", 
+              flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
+              gap: "10px",
+              width: { xs: "100%", sm: "auto" }
+            }}>
+              <Box sx={{ width: { xs: "100%", sm: "200px" } }}>
+                <Select
+                  displayEmpty
+                  renderValue={value => value === '' ? 'Select Status' : value}
+                  size="small"
+                  sx={{
+                    width: "100%",
+                    '& .MuiOutlinedInput-notchedOutline': { borderWidth: "1px", borderColor: '#D1D5DB' },
+                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#D1D5DB' },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth: "1px", borderColor: '#D1D5DB' }
+                  }}
+                  id="status"
+                  value={categoryStatus}
+                  onChange={handleCategoryStatusChange}
+                >
+                  <MenuItem value={"ACTIVE"}>Active</MenuItem>
+                  <MenuItem value={"INACTIVE"}>Inactive</MenuItem>
+                </Select>
+              </Box>
+              <CustomSearchTextField
+                value={searchTerm}
+                onChange={handleSearchChange}
+                placeholder="Search category..."
+                sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
+              />
+            </Box>
+          </Box>
+        </Box>
+
+        {/* Category Modal */}
+        <Modal 
+          open={open} 
+          onClose={handleClose} 
+          aria-labelledby="modal-modal-title" 
+          aria-describedby="modal-modal-description"
+        >
+          <Box sx={getModalStyle(isMobile)}>
+            <form style={{ width: "100%" }} onSubmit={CategoryFormik.handleSubmit}>
+              <Typography sx={{ fontSize: { xs: "18px", sm: "20px" }, fontWeight: "700" }}>
+                {updatingCategory ? "Update Category Details" : "Add Category"}
+              </Typography>
+              <Box sx={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "20px" }}>
+                <CustomTextField
+                  id="name"
+                  name="name"
+                  label="Name"
+                  type="text"
+                  placeholder="Name"
+                  onChange={CategoryFormik.handleChange}
+                  value={CategoryFormik.values.name}
+                  onBlur={CategoryFormik.handleBlur}
+                  errorMessage={CategoryFormik.touched.name && CategoryFormik.errors.name}
+                />
+                <CustomTextField
+                  id="description"
+                  type="text"
+                  name="description"
+                  label="Description"
+                  placeholder="Description"
+                  onChange={CategoryFormik.handleChange}
+                  value={CategoryFormik.values.description}
+                  onBlur={CategoryFormik.handleBlur}
+                  errorMessage={CategoryFormik.touched.description && CategoryFormik.errors.description}
+                />
+                <Box sx={{
+                  marginBottom: "20px",
+                  marginTop: "10px",
+                  gap: "20px",
+                  width: "100%",
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" }, // Stack buttons on mobile
+                  justifyContent: "space-between",
+                  alignItems: "center"
+                }}>
+                  <CustomCancelButton 
+                    onClick={handleClose} 
+                    label="Cancel" 
+                    sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
+                  />
+                  <CustomSubmitButton
+                    loading={CategoryFormik.isSubmitting}
+                    label={updatingCategory ? "Update Category" : "Create Category"}
+                    sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
+                  />
+                </Box>
+              </Box>
+            </form>
+          </Box>
+        </Modal>
+
+        {/* Delete Modal */}
+        <CustomDeleteComponent
+          loading={isDeleting}
+          open={openDeleteModal}
+          onClose={handleCloseDeleteModal}
+          title={"Delete Category"}
+          onConfirm={handleDeleteCategory}
+          itemT0Delete={`${categoryName} category`}
         />
-      </Box>
+
+        {/* DataGrid */}
+        <Box sx={{ 
+          width: "100%", 
+          height: { xs: "400px", sm: "70vh" }, // Adjust height for mobile
+          marginTop: "20px",
+          overflow: "auto" // Ensure horizontal scrolling on mobile
+        }}>
+          <CustomDataGrid
+            loading={isLoading}
+            rows={categoriesList}
+            rowCount={rowCount}
+            getRowId={(row) => row.id}
+            paginationModel={paginationModel}
+            onPaginationModelChange={handlePaginationModelChange}
+            columns={columns}
+            sx={{
+              '& .MuiDataGrid-cell': {
+                fontSize: { xs: '0.75rem', sm: '0.875rem' } // Smaller font on mobile
+              },
+              '& .MuiDataGrid-columnHeader': {
+                fontSize: { xs: '0.75rem', sm: '0.875rem' } // Smaller header font on mobile
+              }
+            }}
+          />
+        </Box>
       </Box>
     </Box>
   )
 }
 
 export default Categories
-
-// https://asset-inventory-management-production.up.railway.app/api/v1/aims/categories?page=0&size=20
-// https://asset-inventory-management-production.up.railway.app/api/v1/aims/categories?page=1&size=10
-

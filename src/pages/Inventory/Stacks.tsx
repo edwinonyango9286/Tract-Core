@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, IconButton, Modal, Typography } from "@mui/material"
+import { Box, Breadcrumbs, IconButton, Modal, Typography, useTheme, useMediaQuery } from "@mui/material"
 import CustomSearchTextField from "../../Components/common/CustomSearchTextField";
 import { FiberManualRecord } from "@mui/icons-material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
@@ -33,20 +33,22 @@ const breadcrumbs = [
   </Typography>,
 ];
 
-const style = {
-  position: 'absolute',
+// Responsive modal style
+const getModalStyle = (isMobile: boolean) => ({
+  position: 'absolute' as const,
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 400,
+  width: isMobile ? '90%' : 400,
+  maxWidth: 400,
   bgcolor: 'background.paper',
   boxShadow: 24,
   paddingY: "10px",
-  paddingX: "30px",
+  paddingX: isMobile ? "15px" : "30px",
   borderRadius: "8px",
   maxHeight: "90vh",
   overflowY: "auto"
-};
+});
 
 const StackSchema = Yup.object<CreateStackPayload>({
   warehouse: Yup.string().required("Please provide stack warehouse."),
@@ -67,9 +69,13 @@ const Stacks = () => {
   const createStackMutation = useCreateStack();
   const updateStackMutation = useUpdateStack();
   const [stackData, setStackData] = useState<Stack | null>(null)
-   const stacksList = stackResponse?.data || [];
-   const rowCount = stacksList?.length || 0;
+  const stacksList = stackResponse?.data || [];
+  const rowCount = stacksList?.length || 0;
 
+  // Responsive breakpoints
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -158,32 +164,93 @@ const Stacks = () => {
     setOpen(true);
   }, []);
 
+  // Responsive columns
   const columns: GridColDef[] = [
-    { field: 'warehouse', headerName: 'Warehouse', flex: 1 },
-    { field: 'zone', headerName: 'Zone', flex: 1 },
-    { field: 'capacity', headerName: 'Capacity', flex: 1 },
-    { field: 'description', headerName: 'Description', flex: 1 },
     {
-      field: 'createdAt', headerName: 'Created At', flex: 1,
+      field: 'warehouse',
+      headerName: 'Warehouse',
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120
+    },
+    {
+      field: 'zone',
+      headerName: 'Zone',
+      flex: 1,
+      minWidth: isSmallMobile ? 80 : 100
+    },
+    {
+      field: 'capacity',
+      headerName: 'Capacity',
+      flex: 1,
+      minWidth: isSmallMobile ? 80 : 100
+    },
+    {
+      field: 'description',
+      headerName: 'Description',
+      flex: 1,
+      minWidth: isSmallMobile ? 120 : 150,
+      display: isSmallMobile ? 'none' : 'flex' // Hide description on very small screens
+    },
+    {
+      field: 'createdAt',
+      headerName: 'Created At',
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120,
       renderCell: (params) => dateFormatter(params.value)
     },
     {
-      field: 'updatedAt', headerName: 'Updated At', flex: 1,
+      field: 'updatedAt',
+      headerName: 'Updated At',
+      flex: 1,
+      minWidth: isSmallMobile ? 100 : 120,
+      display: isMobile ? 'none' : 'flex', // Hide on mobile
       renderCell: (params) => dateFormatter(params.value)
     },
     {
-      field: 'action', headerName: 'Action', flex: 1,
+      field: 'action',
+      headerName: 'Action',
+      flex: 1,
+      minWidth: isSmallMobile ? 120 : 150,
       renderCell: (params) => {
         return (
-          <Box sx={{ display: "flex", gap: "10px" }}>
-            <IconButton onClick={() => handleEdit(params.row as Stack)}>
-              <img src={editIcon} alt="editIcon" style={{ width: "21px", height: "21px" }} />
+          <Box sx={{ display: "flex", gap: "5px" }}>
+            <IconButton
+              size={isSmallMobile ? "small" : "medium"}
+              onClick={() => handleEdit(params.row as Stack)}
+            >
+              <img
+                src={editIcon}
+                alt="editIcon"
+                style={{
+                  width: isSmallMobile ? "18px" : "21px",
+                  height: isSmallMobile ? "18px" : "21px"
+                }}
+              />
             </IconButton>
-            <IconButton onClick={() => { handleOpenDeleteModal(params?.row?.code); setStackName(params?.row?.code) }}>
-              <img src={deleteIcon} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
+            <IconButton
+              size={isSmallMobile ? "small" : "medium"}
+              onClick={() => { handleOpenDeleteModal(params?.row?.code); setStackName(params?.row?.code) }}
+            >
+              <img
+                src={deleteIcon}
+                alt="deleteIconSmall"
+                style={{
+                  width: isSmallMobile ? "20px" : "24px",
+                  height: isSmallMobile ? "20px" : "24px"
+                }}
+              />
             </IconButton>
-            <IconButton>
-              <img src={dotsVertical} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
+            <IconButton
+              size={isSmallMobile ? "small" : "medium"}
+            >
+              <img
+                src={dotsVertical}
+                alt="deleteIconSmall"
+                style={{
+                  width: isSmallMobile ? "20px" : "24px",
+                  height: isSmallMobile ? "20px" : "24px"
+                }}
+              />
             </IconButton>
           </Box>
         );
@@ -192,18 +259,53 @@ const Stacks = () => {
   ];
 
   return (
-    <Box sx={{ width: "100%", height: "100vh" }}>
-      <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
-        <Box sx={{ width: "100%", alignItems: "center", display: "flex" }}>
-          <IconButton onClick={() => navigate(-1)}>
-            <ArrowBackIosNewIcon />
+    <Box sx={{
+      width: "100%",
+      minHeight: "100vh",
+      padding: { xs: "10px", sm: "20px" } // Responsive padding
+    }}>
+      {/* Header Section */}
+      <Box sx={{
+        width: "100%",
+        display: "flex",
+        flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
+        justifyContent: "space-between",
+        alignItems: { xs: "flex-start", sm: "center" },
+        gap: { xs: 2, sm: 0 }
+      }}>
+        <Box sx={{
+          display: "flex",
+          alignItems: "center",
+          width: { xs: "100%", sm: "auto" }
+        }}>
+          <IconButton
+            onClick={() => navigate(-1)}
+            size={isSmallMobile ? "small" : "medium"}
+          >
+            <ArrowBackIosNewIcon fontSize={isSmallMobile ? "small" : "medium"} />
           </IconButton>
-          <Typography sx={{ fontSize: "25px", fontWeight: "600", color: "#032541" }}>Stacks</Typography>
+          <Typography sx={{
+            fontSize: { xs: "20px", sm: "25px" },
+            fontWeight: "600",
+            color: "#032541"
+          }}>
+            Stacks
+          </Typography>
         </Box>
-        <CustomAddButton variant="contained" label="Add Stack" onClick={handleOpen} />
+        <CustomAddButton
+          variant="contained"
+          label="Add Stack"
+          onClick={handleOpen}
+          sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
+        />
       </Box>
 
-      <Box sx={{ width: "100%", marginTop: "-10px", marginLeft: "40px" }}>
+      {/* Breadcrumbs */}
+      <Box sx={{
+        width: "100%",
+        marginTop: { xs: "10px", sm: "-10px" },
+        marginLeft: { xs: "0px", sm: "40px" }
+      }}>
         <Breadcrumbs
           style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }}
           aria-label="breadcrumb"
@@ -213,22 +315,39 @@ const Stacks = () => {
         </Breadcrumbs>
       </Box>
 
-      <Box sx={{ display: "flex", width: "100%", justifyContent: "flex-start", marginTop: "20px" }}>
-        <CustomSearchTextField
-          value={searchTerm}
-          onChange={handleSearchChange}
-          placeholder="Search stack..."
-        />
-      </Box>
+      {/* Main Content */}
+      <Box sx={{
+        marginLeft: { xs: "0px", sm: "40px" },
+        marginTop: { xs: "20px", sm: "0px" }
+      }}>
+        {/* Search Field */}
+        <Box sx={{
+          display: "flex",
+          width: "100%",
+          justifyContent: "flex-start",
+          marginTop: "20px"
+        }}>
+          <CustomSearchTextField
+            value={searchTerm}
+            onChange={handleSearchChange}
+            placeholder="Search stack..."
+            sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
+          />
+        </Box>
 
-      {/* stack modal */}
-      <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
-        <Box sx={style}>
-          <form style={{ width: "100%" }} onSubmit={StackFormik.handleSubmit}>
-            <Typography sx={{ fontSize: "20px", fontWeight: "700" }}>
-              {updatingStack ? "Update Stack Details" : "Add Stack"}
-            </Typography>
-            <Box sx={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "20px" }}>
+        {/* Stack Modal */}
+        <Modal
+          open={open}
+          onClose={handleClose}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <Box sx={getModalStyle(isMobile)}>
+            <form style={{ width: "100%" }} onSubmit={StackFormik.handleSubmit}>
+              <Typography sx={{ fontSize: { xs: "18px", sm: "20px" }, fontWeight: "700" }}>
+                {updatingStack ? "Update Stack Details" : "Add Stack"}
+              </Typography>
+              <Box sx={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "20px" }}>
                 <CustomTextField
                   id="warehouse"
                   type="warehouse"
@@ -251,7 +370,7 @@ const Stacks = () => {
                   onBlur={StackFormik.handleBlur}
                   errorMessage={StackFormik.touched.capacity && StackFormik.errors.capacity}
                 />
-              
+
                 <CustomTextField
                   id="zone"
                   type="text"
@@ -263,47 +382,79 @@ const Stacks = () => {
                   onBlur={StackFormik.handleBlur}
                   errorMessage={StackFormik.touched.zone && StackFormik.errors.zone}
                 />
-                
-              <CustomTextField
-                id="description"
-                type="text"
-                name="description"
-                label="Description"
-                placeholder="Description"
-                onChange={StackFormik.handleChange}
-                value={StackFormik.values.description}
-                onBlur={StackFormik.handleBlur}
-                errorMessage={StackFormik.touched.description && StackFormik.errors.description}
-              />
-              <Box sx={{ marginBottom: "20px", marginTop: "10px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <CustomCancelButton onClick={handleClose} label="Cancel" />
-                <CustomSubmitButton  loading={StackFormik.isSubmitting} label={updatingStack ? "Update Stack" : "Create Stack"} />
+
+                <CustomTextField
+                  id="description"
+                  type="text"
+                  name="description"
+                  label="Description"
+                  placeholder="Description"
+                  onChange={StackFormik.handleChange}
+                  value={StackFormik.values.description}
+                  onBlur={StackFormik.handleBlur}
+                  errorMessage={StackFormik.touched.description && StackFormik.errors.description}
+                />
+                <Box sx={{
+                  marginBottom: "20px",
+                  marginTop: "10px",
+                  gap: "20px",
+                  width: "100%",
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" }, // Stack buttons on mobile
+                  justifyContent: "space-between",
+                  alignItems: "center"
+                }}>
+                  <CustomCancelButton
+                    onClick={handleClose}
+                    label="Cancel"
+                    sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
+                  />
+                  <CustomSubmitButton
+                    loading={StackFormik.isSubmitting}
+                    label={updatingStack ? "Update Stack" : "Create Stack"}
+                    sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
+                  />
+                </Box>
               </Box>
-            </Box>
-          </form>
-        </Box>
-      </Modal>
+            </form>
+          </Box>
+        </Modal>
 
-      {/* delete modal here */}
-      <CustomDeleteComponent
-        loading={isDeleting}
-        open={openDeleteModal}
-        onClose={handleCloseDeleteModal}
-        title={"Delete Stack"}
-        onConfirm={handleDeleteStack}
-        itemT0Delete={`${stackName} stack`}
-      />
-
-      <Box sx={{ width: "100%", height: "70vh", marginTop: "20px" }}>
-        <CustomDataGrid
-          loading={isLoading}
-          rows={stacksList}
-          rowCount={rowCount}
-          getRowId={(row) => row.code}
-          paginationModel={paginationModel}
-          onPaginationModelChange={handlePaginationModelChange}
-          columns={columns}
+        {/* Delete Modal */}
+        <CustomDeleteComponent
+          loading={isDeleting}
+          open={openDeleteModal}
+          onClose={handleCloseDeleteModal}
+          title={"Delete Stack"}
+          onConfirm={handleDeleteStack}
+          itemT0Delete={`${stackName} stack`}
         />
+
+        {/* DataGrid */}
+        <Box sx={{
+          width: "100%",
+          height: { xs: "400px", sm: "70vh" }, // Adjust height for mobile
+          marginTop: "20px",
+          overflow: "auto"
+        }}>
+          <CustomDataGrid
+            loading={isLoading}
+            rows={stacksList}
+            rowCount={rowCount}
+            getRowId={(row) => row.code}
+            paginationModel={paginationModel}
+            onPaginationModelChange={handlePaginationModelChange}
+            columns={columns}
+            sx={{
+              '& .MuiDataGrid-cell': {
+                fontSize: { xs: '0.75rem', sm: '0.875rem' } // Smaller font on mobile
+              },
+              '& .MuiDataGrid-columnHeader': {
+                fontSize: { xs: '0.75rem', sm: '0.875rem' } // Smaller header font on mobile
+              }
+            }}
+          />
+        </Box>
       </Box>
     </Box>
   )
