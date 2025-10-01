@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, Button, CircularProgress, Divider, IconButton, InputLabel, Menu, MenuItem, Modal, Select, TextField, Typography, type SelectChangeEvent, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Breadcrumbs, Button, CircularProgress, Divider, IconButton, InputLabel, Menu, MenuItem, Modal, Select, TextField, Typography, type SelectChangeEvent, useMediaQuery, useTheme, Paper } from "@mui/material"
 import CustomSearchTextField from "../../Components/common/CustomSearchTextField";
 import { FiberManualRecord } from "@mui/icons-material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
@@ -93,7 +93,6 @@ const Assets = () => {
   const isDeleting = deleteAssetMutation.isPending;
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
   const [startDate,setStartDate] = useState<Date | null>(null);
     const [endDate,setEndDate] = useState<Date | null>(null);
@@ -479,27 +478,26 @@ const updateStatusModalStyle = {
   return (
     <Box sx={{ width: "100%", minHeight: "100vh", p: { xs: 1, sm: 2 } }}>
       <Box sx={{ width: "100%", display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", gap: 2 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center" }}>
           <IconButton onClick={() => navigate(-1)} size="small">
-            <ArrowBackIosNewIcon fontSize="small" />
+            <ArrowBackIosNewIcon />
           </IconButton>
           <Typography sx={{ fontSize: { xs: "20px", sm: "25px" }, fontWeight: "600", color: "#032541" }}>Assets</Typography>
         </Box>
         <CustomAddButton variant="contained" label="Add Asset" onClick={handleOpen} />
       </Box>
 
-      <Box sx={{ width: "100%", mt: 1 }}>
+      <Box sx={{ marginLeft:"30px", marginTop:"-10px", width: "100%"}}>
         <Breadcrumbs style={{ fontFamily: "Poppins", fontSize: "14px" }} aria-label="breadcrumb" separator={<FiberManualRecord style={{ fontSize: "0.625rem", fontFamily: "Poppins", color: "#e1e5e8" }} />}>
           {breadcrumbs}
         </Breadcrumbs>
       </Box>
 
-       <Box sx={{ mt: 2 }}>
+       <Box sx={{ width:"100%" }}>
         <Box sx={{ width: "100%", mb: 3 }}>
-        <Box sx={{ width: "100%" }}>
-           <Typography sx={{ fontSize: { xs: "16px", sm: "18px" }, fontWeight: "600", color: "#032541" }}>Assets Overview</Typography>
-        </Box>
         <Box sx={{ mt: 2, width: "100%", display: "flex", flexDirection: { xs: "column", sm: "row" }, alignItems: "center", justifyContent: "space-between", gap: 2 }}>
+
+           <Paper sx={{ width:"" }}></Paper>
           <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}>
               <Typography sx={{ textAlign: "center", fontSize: { xs: "14px", sm: "16px" }, fontWeight: "600", color: "#1F2937" }}>Total</Typography>
               <Typography sx={{ fontSize: { xs: "30px", sm: "40px" }, fontWeight: "600", color: "#1F2937"}}>{ isKpiLoading? <CircularProgress thickness={5} size={20} sx={{ color:"#333"}}/>  : assetKPIResponse?.data.totalAssets || 0}</Typography>
@@ -1072,7 +1070,7 @@ const updateStatusModalStyle = {
             </Box>  
             
             <Box  sx={{ mb: 2, mt: 3, width: "100%", display: "flex", justifyContent: "flex-end" }}>
-              <CustomCancelButton style={{ width: { xs: "100%", sm: "200px" }}} onClick={handleCloseViewModal} label="Close"/>
+              <CustomCancelButton style={{ width: "200px" }} onClick={handleCloseViewModal} label="Close"/>
             </Box>
           </Box>
         </Box>

@@ -18,36 +18,37 @@ import CustomDataGrid from '../Components/common/CustomDataGrid';
 import { useState } from 'react';
 import { useGetMovements } from '../hooks/useMovements';
 import { useGetUsers } from '../hooks/useUsers';
+import { useGetInventoryKPI } from '../hooks/useInventory';
 
 const Dashboard = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+    const {data:inventoryKPIResponse, isLoading:loadingInventoryKPI} = useGetInventoryKPI();
+    const inventoryKPIData = inventoryKPIResponse?.data
 
-    const salesData = [
-    { month: 'Jan', sales: 4000 },
-    { month: 'Feb', sales: 3000 },
-    { month: 'Mar', sales: 5000 },
-    { month: 'Apr', sales: 2780 },
-    { month: 'May', sales: 1890 },
-    { month: 'Jun', sales: 2390 },
-    { month: 'Jul', sales: 3490 },
-    { month: 'Aug', sales: 4000 },
-    { month: 'Sep', sales: 6000 },
-    { month: 'Oct', sales: 7000 },
-    { month: 'Nov', sales: 8000 },
-    { month: 'Dec', sales: 9000 },
-  ];
+  const palletStatusData = inventoryKPIData ? [
+  { name: 'In Stack', value: inventoryKPIData.totals.inStack, rate: inventoryKPIData.totals.inStackRate },
+  { name: 'Outbound', value: inventoryKPIData.totals.outbound, rate: inventoryKPIData.totals.outboundRate },
+  { name: 'Returned', value: inventoryKPIData.totals.returned, rate: inventoryKPIData.totals.returnRate },
+  { name: 'In Repair', value: inventoryKPIData.totals.inRepair },
+  { name: 'Quarantine', value: inventoryKPIData.totals.quarantine },
+  { name: 'Scrap', value: inventoryKPIData.totals.scrap },
+] : [];
 
-  const dailyData = [
-  { day: 'Mon', sales: 1200 },
-  { day: 'Tue', sales: 1900 },
-  { day: 'Wed', sales: 1500 },
-  { day: 'Thu', sales: 2100 },
-  { day: 'Fri', sales: 1800 },
-  { day: 'Sat', sales: 2500 },
-  { day: 'Sun', sales: 1700 },
-];
+
+const stackUtilizationData = inventoryKPIData?.stackUtilization.map(stack => ({
+  name: stack.stackCode,
+  utilization: stack.utilization,
+  used: stack.used,
+  capacity: stack.capacity
+})) || [];
+
+const flowData = inventoryKPIData ? [
+  { name: 'Dispatches', count: inventoryKPIData.flow.dispatchCount },
+  { name: 'Returns', count: inventoryKPIData.flow.returnCount },
+  { name: 'Avg Return Days', count: inventoryKPIData.flow.avgDispatchToReturnDays },
+] : [];
 
 
 const [paginationModel,setPaginationModel] = useState({ page:0, pageSize:10})
@@ -64,7 +65,7 @@ const palletsCount =getPallestResponse?.data.totalElements || 0;
 
 const {data:getStackResponse, isLoading:loadingStacks} = useGetStacks();
 const stackCount = getStackResponse?.data.length || 0;
-const [selectedTimePeriod, setSelectedTimePeriod] = useState("Weekly");
+const [selectedTimePeriod, setSelectedTimePeriod] = useState("Status");
 
 const {data:movementsResponse, isLoading:loadingMovements} = useGetMovements();
 const movementsList = movementsResponse?.data.content.slice(0,5) || [];
@@ -78,156 +79,209 @@ const columns: GridColDef[] = [
     { field: 'name', headerName: 'Name', flex: 1, minWidth: 120 },
     { field: 'model', headerName: 'Model', flex: 1, minWidth: 100 },
     { field: 'serialNumber', headerName: 'Serial Number', flex: 1, minWidth: 120 },
-    { field: 'lastInspectionDate', headerName: 'Last Inspection', flex: 1, minWidth: 130,
-      renderCell:(params)=>dateFormatter(params.value)
-    },
-    { field: 'nextInspectionDue', headerName: 'Next Inspection', flex: 1, minWidth: 130,
-      renderCell:(params)=>dateFormatter(params.value)
-     },
+    { field: 'lastInspectionDate', headerName: 'Last Inspection', flex: 1, minWidth: 130, renderCell:(params)=>dateFormatter(params.value)},
+    { field: 'nextInspectionDue', headerName: 'Next Inspection', flex: 1, minWidth: 130, renderCell:(params)=>dateFormatter(params.value)},
     { field: 'assignedTo', headerName: 'Assigned To', flex: 1, minWidth: 120 },
-    {
-      field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 120,
-      renderCell: (params) => dateFormatter(params.value)
-    },
-    { field: 'status', headerName: 'Status', flex: 1, minWidth: 100 },]
+    { field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 120, renderCell: (params) => dateFormatter(params.value)},
+    { field: 'status', headerName: 'Status', flex: 1, minWidth: 100 }]
+
   return (
-    <Box sx={{width:"100%", padding: { xs: "16px", sm: "24px" }}}> 
+    <Box sx={{ marginTop:"-20px", width:"100%", padding: { xs: "16px", sm: "24px" }}} > 
       <Box sx={{width:"100%",display:"flex",alignItems:"start",gap:"12px", flexDirection:"column"}}>
       {/* Stats Cards Section */}
-      <Box sx={{ width:"100%", display: 'grid', gridTemplateColumns: { 
-        xs: "1fr", 
-        sm: "repeat(2, 1fr)", 
-        md: "repeat(4, 1fr)" 
-      }, gap: { xs: 2, sm: 3, md: "24px" }, marginBottom:"24px" }}>
-        <Paper component={"button"} onClick={()=>navigate("/dashboard/assets")} elevation={0} sx={{ display:"flex", flexDirection:"column", gap:"12px", border:"1px solid #EAECF0", borderRadius:"8px", cursor:"pointer", padding: { xs: "16px", sm: "20px 16px" }, boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)" }}>
+      <Box sx={{ width:"100%", display: 'grid', gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)", lg:"repeat(6, 1fr)"}, gap: { xs: 2, sm: 3, md: "20px" }, marginBottom:"24px" }}>
+        <Paper style={{ }} component={"button"} onClick={()=>navigate("/dashboard/assets")} elevation={0} sx={{ display:"flex", flexDirection:"column",border:"1px solid #EAECF0", borderRadius:"8px", cursor:"pointer", padding: { xs: "16px", sm: "20px 16px" }, boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)" }}>
           <Box sx={{display:"flex", justifyContent:"space-between"}}>
-           <Typography sx={{textAlign:"start", color:"#032541", fontSize: { xs: "16px", sm: "20px" }, fontWeight:"700"}} variant="h6">Total Assets</Typography>
+           <Typography sx={{textAlign:"start", color:"#032541", fontSize: { xs: "14px", sm: "16px" }, fontWeight:"700"}} variant="h6">Total Assets</Typography>
            <IconButton sx={{ padding: { xs: "4px", sm: "8px" } }}>
             <img src={dotsVerticalIcon} alt="dotsVerticalIcon"/>
            </IconButton>
           </Box>
           <Box sx={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
           <Box sx={{display:"flex", flexDirection:"column", gap:"6px"}}>
-            { loadingAssets ?  <CircularProgress thickness={5} size={20} sx={{ color:"#1F2937"}}/> : <Typography sx={{textAlign:"start",color:"#032541", fontSize: { xs: "24px", sm: "28px" }, fontWeight:"600"}} variant="h4">{assetsCount}</Typography>}
+            { loadingAssets ?  <CircularProgress thickness={5} size={20} sx={{ color:"#1F2937"}}/> : <Typography sx={{textAlign:"start",color:"#032541", fontSize: { xs: "20px", sm: "24px" }, fontWeight:"600"}} variant="h4">{assetsCount}</Typography>}
              <Box sx={{display:"flex", gap:"4px", alignItems:"center", justifyContent:"start"}}>
                 <img src={arrowUpIconGreen} alt="arrowUpIcon" />
                 <Typography sx={{ color:"#667085", fontSize: { xs: "12px", sm: "14px" }, fontWeight:"400"}}><span style={{color:"#027A48", fontSize: "14px" , fontWeight:"500"}}>40%</span> vs last month </Typography>
              </Box>
           </Box>
-          <img src={chartIconGreen} alt="chatIcon" />
+          <img src={chartIconGreen} alt="chatIcon" style={{ width:"60px", height:"60px"}} />
           </Box>
         </Paper>
 
 
-       <Paper component={"button"} onClick={()=>navigate("/dashboard/stack")} elevation={0} sx={{ display:"flex", flexDirection:"column", gap:"12px", border:"1px solid #EAECF0", borderRadius:"8px", cursor:"pointer", padding: { xs: "16px", sm: "20px 16px" }, boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)" }}>
+       <Paper component={"button"} onClick={()=>navigate("/dashboard/stack")} elevation={0} sx={{ display:"flex", flexDirection:"column",border:"1px solid #EAECF0", borderRadius:"8px", cursor:"pointer", padding: { xs: "16px", sm: "20px 16px" }, boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)" }}>
           <Box sx={{display:"flex", justifyContent:"space-between"}}>
-           <Typography sx={{textAlign:"start", color:"#032541", fontSize: { xs: "16px", sm: "20px" }, fontWeight:"700"}} variant="h6">Total Stack</Typography>
+           <Typography sx={{textAlign:"start", color:"#032541", fontSize: { xs: "14px", sm: "16px" }, fontWeight:"700"}} variant="h6">Total Stack</Typography>
             <IconButton sx={{ padding: { xs: "4px", sm: "8px" } }}>
              <img style={{height:  "24px" , width:"24px" }} src={dotsVerticalIcon} alt="dotsVerticalIcon"/>
            </IconButton>
           </Box>
           <Box sx={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
           <Box sx={{display:"flex", flexDirection:"column", gap:"6px"}}>
-             {loadingStacks ? <CircularProgress thickness={5} size={20} sx={{ color:"#1F2937"}}/> : <Typography sx={{ textAlign:"start", color:"#032541", fontSize: { xs: "24px", sm: "28px" }, fontWeight:"600"}} variant="h4">{stackCount}</Typography> }
+             {loadingStacks ? <CircularProgress thickness={5} size={20} sx={{ color:"#1F2937"}}/> : <Typography sx={{ textAlign:"start", color:"#032541", fontSize: { xs: "20px", sm: "24px" }, fontWeight:"600"}} variant="h4">{stackCount}</Typography> }
              <Box sx={{display:"flex", gap:"4px", alignItems:"center", justifyContent:"start"}}>
                 <img src={arrowDownRedIcon} alt="arrowUpIcon" style={{ width: "16px", height: "16px" }} />
                 <Typography sx={{ color:"#667085", fontSize: { xs: "12px", sm: "14px" }, fontWeight:"400"}}><span style={{color:"#B42318", fontSize: "14px" , fontWeight:"500"}}>40%</span> vs last month </Typography>
              </Box>
           </Box>
-          <img src={chartRedIcon} alt="chatIcon" style={{ width:  "40px" , height: "40px" }} />
+          <img src={chartRedIcon} alt="chatIcon" style={{ width:"60px", height:"60px"}}/>
           </Box>
         </Paper>
 
-        <Paper component={"button"} onClick={()=>navigate("/dashboard/pallet")} elevation={0} sx={{ display:"flex", flexDirection:"column", gap:"12px", border:"1px solid #EAECF0", borderRadius:"8px", cursor:"pointer", padding: { xs: "16px", sm: "20px 16px" }, boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)" }}>
+        <Paper component={"button"} onClick={()=>navigate("/dashboard/pallet")} elevation={0} sx={{ display:"flex", flexDirection:"column", border:"1px solid #EAECF0", borderRadius:"8px", cursor:"pointer", padding: { xs: "16px", sm: "20px 16px" }, boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)" }}>
           <Box sx={{display:"flex", justifyContent:"space-between"}}>
-           <Typography sx={{color:"#032541", fontSize: { xs: "16px", sm: "20px" }, fontWeight:"700"}} variant="h6">Total Pallets</Typography>
+           <Typography sx={{color:"#032541", fontSize: { xs: "14px", sm: "16px" }, fontWeight:"700"}} variant="h6">Total Pallets</Typography>
            <IconButton sx={{ padding: { xs: "4px", sm: "8px" } }}>
              <img style={{width:  "24px" , height: "24px" }} src={dotsVerticalIcon} alt="dotsVerticalIcon"/>
            </IconButton>
           </Box>
           <Box sx={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
           <Box sx={{display:"flex", flexDirection:"column", gap:"6px"}}>
-             { loadingPallets ? <CircularProgress thickness={5} size={20} sx={{ color:"#1F2937"}}  /> : <Typography sx={{textAlign:"start", color:"#032541", fontSize: { xs: "24px", sm: "28px" }, fontWeight:"600"}} variant="h4">{palletsCount}</Typography> }
+             { loadingPallets ? <CircularProgress thickness={5} size={20} sx={{ color:"#1F2937"}}  /> : <Typography sx={{textAlign:"start", color:"#032541", fontSize: { xs: "20px", sm: "24px" }, fontWeight:"600"}} variant="h4">{palletsCount}</Typography> }
              <Box sx={{display:"flex", gap:"4px", alignItems:"center", justifyContent:"start"}}>
                 <img src={arrowUpIconGreen} alt="arrowUpIcon" style={{ width:  "16px" , height:  "16px"  }} />
                 <Typography sx={{ color:"#667085", fontSize: { xs: "12px", sm: "14px" }, fontWeight:"400"}}><span style={{color:"#027A48", fontSize: "14px" , fontWeight:"500"}}>40%</span> vs last month </Typography>
              </Box>
           </Box>
-          <img src={chartIconGreen} alt="chatIcon" style={{ width: "40px" , height: "40px" }} />
+          <img src={chartIconGreen} alt="chatIcon" style={{ width:"60px", height:"60px" }}/>
           </Box>
         </Paper>
 
-        <Paper component={"button"} onClick={()=>navigate("/dashboard/movement")} elevation={0} sx={{ display:"flex", flexDirection:"column", gap:"12px", border:"1px solid #EAECF0", borderRadius:"8px", cursor:"pointer", padding: { xs: "16px", sm: "20px 16px" }, boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)" }}>
+        <Paper component={"button"} onClick={()=>navigate("/dashboard/movement")} elevation={0} sx={{ display:"flex", flexDirection:"column", border:"1px solid #EAECF0", borderRadius:"8px", cursor:"pointer", padding: { xs: "16px", sm: "20px 16px" }, boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)" }}>
           <Box sx={{display:"flex", justifyContent:"space-between"}}>
-           <Typography sx={{textAlign:"start", color:"#032541", fontSize: { xs: "16px", sm: "20px" }, fontWeight:"700"}} variant="h6">Total Movements</Typography>
+           <Typography sx={{textAlign:"start", color:"#032541", fontSize: { xs: "14px", sm: "16px" }, fontWeight:"700"}} variant="h6">Total Movements</Typography>
            <IconButton sx={{ padding: { xs: "4px", sm: "8px" } }}>
              <img style={{width:"24px", height:"24px" }} src={dotsVerticalIcon} alt="dotsVerticalIcon"/>
            </IconButton>
           </Box>
           <Box sx={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
           <Box sx={{display:"flex", flexDirection:"column", gap:"6px"}}>
-            { loadingMovements ? <CircularProgress size={20} thickness={5} sx={{ color:"#1F2937"}}/> : <Typography sx={{textAlign:"start", color:"#032541", fontSize: { xs: "24px", sm: "28px" }, fontWeight:"600"}} variant="h4">{movementsCount}</Typography>}
+            { loadingMovements ? <CircularProgress size={20} thickness={5} sx={{ color:"#1F2937"}}/> : <Typography sx={{textAlign:"start", color:"#032541", fontSize: { xs: "20px", sm: "24px" }, fontWeight:"600"}} variant="h4">{movementsCount}</Typography>}
              <Box sx={{display:"flex", gap:"4px", alignItems:"center", justifyContent:"start"}}>
                 <img src={arrowUpIconGreen} alt="arrowUpIcon" style={{ width: "16px" , height:  "16px"  }} />
                 <Typography sx={{ color:"#667085", fontSize: { xs: "12px", sm: "14px" }, fontWeight:"400"}}><span style={{color:"#027A48", fontSize: "14px" , fontWeight:"500"}}>40%</span> vs last month </Typography>
              </Box>
           </Box>
-          <img src={chartIconGreen} alt="chatIcon" style={{ width: "40px" , height: "40px"  }} />
+          <img src={chartIconGreen} alt="chatIcon" style={{ width:"60px", height:"60px"}} />
           </Box>
         </Paper>
 
+          <Paper elevation={0} sx={{ display:"flex", flexDirection:"column", border:"1px solid #EAECF0", borderRadius:"8px", cursor:"pointer", padding: { xs: "16px", sm: "20px 16px" }, boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)" }}>
+            <Box sx={{display:"flex", justifyContent:"space-between"}}>
+              <Typography sx={{textAlign:"start", color:"#032541", fontSize: { xs: "14px", sm: "16px" }, fontWeight:"700"}} variant="h6">Stack Utilization</Typography>
+              <IconButton sx={{ padding: { xs: "4px", sm: "8px" } }}>
+                <img src={dotsVerticalIcon} alt="dotsVerticalIcon"/>
+              </IconButton>
+            </Box>
+            <Box sx={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+              <Box sx={{display:"flex", flexDirection:"column", gap:"6px"}}>
+                {loadingInventoryKPI ? <CircularProgress thickness={5} size={20} sx={{ color:"#1F2937"}}/> : (
+                  <Typography sx={{textAlign:"start",color:"#032541", fontSize: { xs: "20px", sm: "24px" }, fontWeight:"600"}} variant="h4">
+                    {inventoryKPIData ? Math.max(...inventoryKPIData.stackUtilization.map(s => s.utilization)) : 0}%
+                  </Typography>
+                )}
+                <Box sx={{display:"flex", gap:"4px", alignItems:"center", justifyContent:"start"}}>
+                  <img src={arrowUpIconGreen} alt="arrowUpIcon" />
+                  <Typography sx={{ color:"#667085", fontSize: { xs: "12px", sm: "14px" }, fontWeight:"400"}}>
+                    Peak utilization rate
+                  </Typography>
+                </Box>
+              </Box>
+              <img src={chartIconGreen} alt="chatIcon" style={{ width:"60px", height:"60px"}} />
+            </Box>
+          </Paper>
+          <Paper elevation={0} sx={{ display:"flex", flexDirection:"column", border:"1px solid #EAECF0", borderRadius:"8px", cursor:"pointer", padding: { xs: "16px", sm: "20px 16px" }, boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)" }}>
+            <Box sx={{display:"flex", justifyContent:"space-between"}}>
+              <Typography sx={{textAlign:"start", color:"#032541", fontSize: { xs: "14px", sm: "16px" }, fontWeight:"700"}} variant="h6">Risk Level</Typography>
+              <IconButton sx={{ padding: { xs: "4px", sm: "8px" } }}>
+                <img src={dotsVerticalIcon} alt="dotsVerticalIcon"/>
+              </IconButton>
+            </Box>
+            <Box sx={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+              <Box sx={{display:"flex", flexDirection:"column", gap:"6px"}}>
+                {loadingInventoryKPI ? <CircularProgress thickness={5} size={20} sx={{ color:"#1F2937"}}/> : (
+                  <Typography sx={{textAlign:"start",color:"#032541", fontSize: { xs: "20px", sm: "24px" }, fontWeight:"600"}} variant="h4">
+                    {inventoryKPIData?.risk?.overdueDays || 0}d
+                  </Typography>
+                )}
+                <Box sx={{display:"flex", gap:"4px", alignItems:"center", justifyContent:"start"}}>
+                  <img src={inventoryKPIData?.risk?.overdueDays > 7 ? arrowDownRedIcon : arrowUpIconGreen} alt="risk indicator" />
+                  <Typography sx={{ color:"#667085", fontSize: { xs: "12px", sm: "14px" }, fontWeight:"400"}}>
+                    Overdue days
+                  </Typography>
+                </Box>
+              </Box>
+              <img src={inventoryKPIData?.risk?.overdueDays > 7 ? chartRedIcon : chartIconGreen} style={{ width:"60px", height:"60px"}} alt="risk chart" />
+            </Box>
+          </Paper>
       </Box>
 
-      {/* Main Content Area */}
       <Box sx={{ width:"100%", display:"flex",flexDirection: { xs: "column", lg: "row" }, gap:"20px"}}>  
-        {/* Left Content - Chart and Cards */}
         <Box sx={{ width: { xs: "100%", lg: "76%" }, display:"flex", gap:"20px", flexDirection:"column"}}>
-
-         {/* Chart Section */}
-         <Paper elevation={0} sx={{padding: { xs: "16px", sm: "24px" },width:"100%", height: { xs: "400px", sm: "500px", md: "600px" }, backgroundColor:"#fff",boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)"}}>
-          <Box sx={{ width:"100%",display:"flex",flexDirection:"column", gap:"10px"}}> 
-            <Box sx={{width:"100%", display:"flex", flexDirection: { xs: "column", sm: "row" }, justifyContent:"space-between", gap: { xs: 2, sm: 0 }}}>
-              <Typography variant='body2'  sx={{color:"#1F2937", fontWeight:"700", fontSize: { xs: "18px", sm: "20px" }, textAlign:"start"}}>Total payment (Ksh 11,353,373.67)</Typography>
-              <Box sx={{display:"flex", justifyContent: { xs: "start", sm: "end" }, gap:"8px", width: { xs: "100%", sm: "50%" }}}>
-                <Box  onClick={()=>setSelectedTimePeriod("Weekly")} sx={{ cursor:"pointer", width:"72px", justifyContent:"center", display:"flex", flexDirection:"column", gap:"2px"}}>
-                  <Typography sx={{ alignSelf:"center", color: selectedTimePeriod === "Weekly" ? "#2563EB" :"#4B5563",  fontSize:"14px", fontWeight:"600"}}>Weekly</Typography>
-                 { selectedTimePeriod === "Weekly" && <Divider sx={{borderWidth:"2px", borderRadius:"4px",  backgroundColor:"#2563EB" }}/>}
+          <Paper elevation={0} sx={{padding: { xs: "16px", sm: "24px" },width:"100%", height: { xs: "400px", sm: "500px", md: "600px" }, backgroundColor:"#fff",boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)"}}>
+            <Box sx={{ width:"100%",display:"flex",flexDirection:"column", gap:"10px"}}> 
+              <Box sx={{width:"100%", display:"flex", flexDirection: { xs: "column", sm: "row" }, justifyContent:"space-between", gap: { xs: 2, sm: 0 }}}>
+                <Typography variant='body2' sx={{color:"#1F2937", fontWeight:"700", fontSize: { xs: "18px", sm: "20px" }, textAlign:"start"}}>
+                  Pallet Status Overview (Total: {inventoryKPIData?.totals.totalPallets || 0})
+                </Typography>
+                <Box sx={{display:"flex", justifyContent: { xs: "start", sm: "end" }, gap:"8px", width: { xs: "100%", sm: "50%" }}}>
+                  <Box onClick={()=>setSelectedTimePeriod("Status")} sx={{ cursor:"pointer", width:"72px", justifyContent:"center", display:"flex", flexDirection:"column", gap:"2px"}}>
+                    <Typography sx={{ alignSelf:"center", color: selectedTimePeriod === "Status" ? "#2563EB" :"#4B5563",  fontSize:"14px", fontWeight:"600"}}>Status</Typography>
+                    {selectedTimePeriod === "Status" && <Divider sx={{borderWidth:"2px", borderRadius:"4px",  backgroundColor:"#2563EB" }}/>}
+                  </Box>
+                  <Box onClick={()=>setSelectedTimePeriod("Utilization")} sx={{ cursor:"pointer", width:"72px", justifyContent:"center", display:"flex", flexDirection:"column", gap:"2px"}}>
+                    <Typography sx={{ alignSelf:"center", color: selectedTimePeriod === "Utilization" ? "#2563EB" :"#4B5563",  fontSize:"14px", fontWeight:"600"}}>Stacks</Typography>
+                    {selectedTimePeriod === "Utilization" && <Divider sx={{borderWidth:"2px", borderRadius:"4px", backgroundColor:"#2563EB" }}/>}
+                  </Box>
+                  <IconButton sx={{ padding: { xs: "4px", sm: "8px" } }}>
+                    <img src={dotVerticalIconGrey} alt="dotVerticalIcon" style={{ width:"25px", height:"25px"}} />
+                  </IconButton>
                 </Box>
-                <Box onClick={()=>setSelectedTimePeriod("Monthly")} sx={{ cursor:"pointer", width:"72px", justifyContent:"center", display:"flex", flexDirection:"column", gap:"2px"}}>
-                  <Typography sx={{ alignSelf:"center", color: selectedTimePeriod === "Monthly" ? "#2563EB" :"#4B5563",  fontSize:"14px", fontWeight:"600"}}>Monthly</Typography>
-                  { selectedTimePeriod === "Monthly" && <Divider sx={{borderWidth:"2px", borderRadius:"4px", backgroundColor:"#2563EB" }}/>}
-                </Box>
-                <IconButton sx={{ padding: { xs: "4px", sm: "8px" } }}>
-                  <img src={dotVerticalIconGrey} alt="dotVerticalIcon" style={{ width:"25px", height:"25px"}} />
-                </IconButton>
-
+              </Box>
+              <Box sx={{width:"100%", marginTop:"14px"}}>
+                {loadingInventoryKPI ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
+                    <CircularProgress  thickness={5} size={24} sx={{ color:"#333"}} />
+                  </Box>
+                ) : (
+                  <ResponsiveContainer width="100%" height={isMobile ? 300 : isTablet ? 400 : 500}>
+                    {selectedTimePeriod === "Status" ? (
+                      <BarChart data={palletStatusData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip 
+                          formatter={(value, name) => {
+                            if (name === 'rate') return [`${value}%`, 'Rate'];
+                            return [value, 'Count'];
+                          }}
+                        />
+                        <Legend />
+                        <Bar dataKey="value" name="Count" fill="#032541" />
+                        <Bar dataKey="rate" name="Rate (%)" fill="#027A48" />
+                      </BarChart>
+                    ) : (
+                      <BarChart data={stackUtilizationData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip 
+                          formatter={(value, name) => {
+                            if (name === 'utilization') return [`${value}%`, 'Utilization'];
+                            return [value, name === 'used' ? 'Used' : 'Capacity'];
+                          }}
+                        />
+                        <Legend />
+                        <Bar dataKey="utilization" name="Utilization (%)" fill="#2563EB" />
+                        <Bar dataKey="used" name="Used" fill="#032541" />
+                      </BarChart>
+                    )}
+                  </ResponsiveContainer>
+                )}
               </Box>
             </Box>
-            <Box sx={{width:"100%", marginTop:"14px"}}>
-              <ResponsiveContainer width="100%" height={isMobile ? 300 : isTablet ? 400 : 500}>
-                { selectedTimePeriod ==="Weekly" ? 
-                    <BarChart data={dailyData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                       <XAxis dataKey="day" />
-                       <YAxis />
-                       <Tooltip />
-                       <Legend />
-                       <Bar dataKey="sales" fill="#032541" />
-                  </BarChart>
-                :
-                <BarChart data={salesData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="sales" fill="#032541" />
-                </BarChart>}
-              </ResponsiveContainer>
-            </Box>
-
-          </Box>
-         </Paper>
+          </Paper>
 
          {/* Users and Movements Cards */}
          <Box sx={{ display:"flex", flexDirection: { xs: "column", md: "row" }, gap:"20px", width:"100%" }}>
