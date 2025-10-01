@@ -83,12 +83,16 @@ const columns: GridColDef[] = [
     { field: 'nextInspectionDue', headerName: 'Next Inspection', flex: 1, minWidth: 130, renderCell:(params)=>dateFormatter(params.value)},
     { field: 'assignedTo', headerName: 'Assigned To', flex: 1, minWidth: 120 },
     { field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 120, renderCell: (params) => dateFormatter(params.value)},
-    { field: 'status', headerName: 'Status', flex: 1, minWidth: 100 }]
-
+    { field: 'status', headerName: 'Status', flex: 1, minWidth: 100,
+        renderCell:(params)=>(
+        <Box sx={{ marginTop:"10px",borderRadius:"16px", display:"flex", justifyContent:"center", alignItems:"center", width: params.value === "IN_USE" ? "70px" : params.value === "IN_REPAIR" || params.value === "IN_STORAGE" || params.value ==="DISPOSED" ? "80px" : "90px", padding:"4px", backgroundColor: params.value === "IN_USE" ? "#ECFDF3": params.value === "IN_REPAIR" ? "#F2F4F7"  : params.value === "IN_STORAGE" ? "#FEF3F2" : params.value === "DISPOSED" ? "#FEF3F2" : ""}}>
+           <Typography sx={{ fontSize:"12px", fontWeight:"500", textAlign:"center", color:params.value === "IN_USE" ? "#027A48": params.value === "DISPOSED" ? "#B42318"  : params.value === "IN_REPAIR" ? "#344054" :  params.value === "IN_STORAGE" ? "#B54708" : "#333"}}>{params.value}</Typography>
+        </Box>
+    )
+     },]
   return (
     <Box sx={{ marginTop:"-20px", width:"100%", padding: { xs: "16px", sm: "24px" }}} > 
       <Box sx={{width:"100%",display:"flex",alignItems:"start",gap:"12px", flexDirection:"column"}}>
-      {/* Stats Cards Section */}
       <Box sx={{ width:"100%", display: 'grid', gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)", lg:"repeat(6, 1fr)"}, gap: { xs: 2, sm: 3, md: "20px" }, marginBottom:"24px" }}>
         <Paper style={{ }} component={"button"} onClick={()=>navigate("/dashboard/assets")} elevation={0} sx={{ display:"flex", flexDirection:"column",border:"1px solid #EAECF0", borderRadius:"8px", cursor:"pointer", padding: { xs: "16px", sm: "20px 16px" }, boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)" }}>
           <Box sx={{display:"flex", justifyContent:"space-between"}}>

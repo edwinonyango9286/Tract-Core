@@ -15,6 +15,7 @@ export interface User {
   userIdNumber?: string;
   phoneVerified: boolean;
   roleDescription?: string;
+  secure_url?:string;
 }
 
 export interface GetUsersParams {

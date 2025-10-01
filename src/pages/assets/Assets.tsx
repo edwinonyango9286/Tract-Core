@@ -405,9 +405,6 @@ const updateStatusModalStyle = {
       field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 120,
       renderCell: (params) => dateFormatter(params.value)
     },
-
-    // IN_USE, IN_REPAIR, IN_STORAGE, DISPOSED
-
     { field: 'status', headerName: 'Status', flex: 1, minWidth: 100,
         renderCell:(params)=>(
         <Box sx={{ marginTop:"10px",borderRadius:"16px", display:"flex", justifyContent:"center", alignItems:"center", width: params.value === "IN_USE" ? "70px" : params.value === "IN_REPAIR" || params.value === "IN_STORAGE" || params.value ==="DISPOSED" ? "80px" : "90px", padding:"4px", backgroundColor: params.value === "IN_USE" ? "#ECFDF3": params.value === "IN_REPAIR" ? "#F2F4F7"  : params.value === "IN_STORAGE" ? "#FEF3F2" : params.value === "DISPOSED" ? "#FEF3F2" : ""}}>

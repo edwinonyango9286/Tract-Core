@@ -310,20 +310,8 @@ const Pallets = () => {
   const stackList = stackResponse?.data || [];
 
   return (
-    <Box sx={{
-      width: "100%",
-      minHeight: "100vh",
-      padding: { xs: "10px", sm: "20px" } // Responsive padding
-    }}>
-      {/* Header Section */}
-      <Box sx={{
-        width: "100%",
-        display: "flex",
-        flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
-        justifyContent: "space-between",
-        alignItems: { xs: "flex-start", sm: "center" },
-        gap: { xs: 2, sm: 0 }
-      }}>
+    <Box sx={{ width: "100%", minHeight: "100vh" }}>
+      <Box sx={{width: "100%", display: "flex", justifyContent: "space-between", alignItems: { xs: "flex-start", sm: "center" }, gap: { xs: 2, sm: 0 }}}>
         <Box sx={{
           display: "flex",
           alignItems: "center",
@@ -347,15 +335,15 @@ const Pallets = () => {
           variant="contained"
           label="Add Pallet"
           onClick={handleOpen}
-          sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
+          style={{ width:"140px"}}
         />
       </Box>
 
       {/* Breadcrumbs */}
       <Box sx={{
         width: "100%",
-        marginTop: { xs: "10px", sm: "-10px" },
-        marginLeft: { xs: "0px", sm: "40px" }
+        marginTop: { xs: "-16px", sm: "-10px" },
+        marginLeft: { xs: "30px", sm: "40px" }
       }}>
         <Breadcrumbs
           style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }}
@@ -383,7 +371,7 @@ const Pallets = () => {
           <Box sx={{ order: { xs: 2, sm: 1 } }}></Box>
           <Box sx={{
             display: "flex",
-            flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
+            flexDirection: { xs: "column", sm: "row" },
             gap: { xs: "10px", sm: "20px" },
             alignItems: { xs: "stretch", sm: "center" },
             order: { xs: 1, sm: 2 },
@@ -413,12 +401,7 @@ const Pallets = () => {
                 <MenuItem value={"SCRAP"}>Scrap</MenuItem>
               </Select>
             </Box>
-            <CustomSearchTextField
-              value={searchTerm}
-              onChange={handleSearchChange}
-              placeholder="Search pallet..."
-              sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
-            />
+            <CustomSearchTextField value={searchTerm} onChange={handleSearchChange} placeholder="Search pallet..." sx={{ width: { xs: "100%", sm: "auto" } }}/>
           </Box>
         </Box>
 
@@ -498,32 +481,14 @@ const Pallets = () => {
                   errorMessage={PalletFormik.touched.notes && PalletFormik.errors.notes}
                 />
               </Box>
-              <Box sx={{
-                marginBottom: "20px",
-                marginTop: "30px",
-                gap: "20px",
-                width: "100%",
-                display: "flex",
-                flexDirection: { xs: "column", sm: "row" }, // Stack buttons on mobile
-                justifyContent: "space-between",
-                alignItems: "center"
-              }}>
-                <CustomCancelButton
-                  onClick={handleClose}
-                  label="Cancel"
-                  sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
-                />
-                <CustomSubmitButton
-                  loading={PalletFormik.isSubmitting}
-                  label={updatingPallet ? "Update Pallet" : "Create Pallet"}
-                  sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
-                />
+              <Box sx={{ marginBottom: "20px",marginTop: "30px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between",alignItems: "center"}}>
+                <CustomCancelButton onClick={handleClose} label="Cancel" sx={{ width: { xs: "100%", sm: "auto" } }}/>
+                <CustomSubmitButton loading={PalletFormik.isSubmitting} label={updatingPallet ? "Update Pallet" : "Create Pallet"} sx={{ width: { xs: "100%", sm: "auto" } }} />
               </Box>
             </form>
           </Box>
         </Modal>
 
-        {/* Delete Modal */}
         <CustomDeleteComponent
           loading={isDeleting}
           open={openDeleteModal}
@@ -533,13 +498,7 @@ const Pallets = () => {
           itemT0Delete={`Selected pallet`}
         />
 
-        {/* DataGrid */}
-        <Box sx={{
-          width: "100%",
-          height: { xs: "400px", sm: "70vh" }, // Adjust height for mobile
-          marginTop: "20px",
-          overflow: "auto"
-        }}>
+        <Box sx={{ width: "100%", height: { xs: "400px", sm: "70vh" }, marginTop: "20px", overflow: "auto"}}>
           <CustomDataGrid
             loading={isLoading}
             rows={rows}
@@ -548,14 +507,6 @@ const Pallets = () => {
             paginationModel={paginationModel}
             onPaginationModelChange={handlePaginationModelChange}
             columns={columns}
-            sx={{
-              '& .MuiDataGrid-cell': {
-                fontSize: { xs: '0.75rem', sm: '0.875rem' } // Smaller font on mobile
-              },
-              '& .MuiDataGrid-columnHeader': {
-                fontSize: { xs: '0.75rem', sm: '0.875rem' } // Smaller header font on mobile
-              }
-            }}
           />
         </Box>
       </Box>
