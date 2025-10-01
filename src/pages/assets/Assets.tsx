@@ -410,7 +410,7 @@ const updateStatusModalStyle = {
 
     { field: 'status', headerName: 'Status', flex: 1, minWidth: 100,
         renderCell:(params)=>(
-        <Box sx={{ marginTop:"10px",borderRadius:"16px", display:"flex", justifyContent:"center", alignItems:"center", width: params.value === "IN_USE" ? "70px" : params.value === "IN_REPAIR" || params.value === "IN_STORAGE" || params.value ==="DISPOSED" ? "100px" : "90px", padding:"4px", backgroundColor: params.value === "IN_USE" ? "#ECFDF3": params.value === "IN_REPAIR" ? "#F2F4F7"  : params.value === "IN_STORAGE" ? "#FEF3F2" : params.value === "DISPOSED" ? "#FEF3F2" : ""}}>
+        <Box sx={{ marginTop:"10px",borderRadius:"16px", display:"flex", justifyContent:"center", alignItems:"center", width: params.value === "IN_USE" ? "70px" : params.value === "IN_REPAIR" || params.value === "IN_STORAGE" || params.value ==="DISPOSED" ? "80px" : "90px", padding:"4px", backgroundColor: params.value === "IN_USE" ? "#ECFDF3": params.value === "IN_REPAIR" ? "#F2F4F7"  : params.value === "IN_STORAGE" ? "#FEF3F2" : params.value === "DISPOSED" ? "#FEF3F2" : ""}}>
            <Typography sx={{ fontSize:"12px", fontWeight:"500", textAlign:"center", color:params.value === "IN_USE" ? "#027A48": params.value === "DISPOSED" ? "#B42318"  : params.value === "IN_REPAIR" ? "#344054" :  params.value === "IN_STORAGE" ? "#B54708" : "#333"}}>{params.value}</Typography>
         </Box>
     )

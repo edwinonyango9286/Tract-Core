@@ -362,57 +362,31 @@ const Categories = () => {
               </Typography>
             </Box>
             <Divider orientation={isMobile ? "horizontal" : "vertical"} sx={{ borderWidth: "1px", width: { xs: "100%", sm: "auto" },height: { xs: "auto", sm: "80px" }}}/>
-            <Box sx={{ 
-              display: "flex", 
-              flexDirection: "column",
-              width: { xs: "100%", sm: "auto" }
-            }}>
-              <Typography sx={{ 
-                textAlign: { xs: "center", sm: "start" },
-                fontSize: "16px", 
-                fontWeight: "600", 
-                color: "#059669" 
-              }}>
+            <Box sx={{ display: "flex", flexDirection: "column", width: { xs: "100%", sm: "auto" }}}>
+              <Typography sx={{ textAlign: { xs: "center", sm: "start" }, fontSize: "16px", fontWeight: "600", color: "#059669"}}>
                 Active
               </Typography>
-              <Typography sx={{ 
-                fontSize: { xs: "32px", sm: "40px" }, 
-                fontWeight: "600", 
-                color: "#059669",
-                textAlign: { xs: "center", sm: "left" }
-              }}>
+              <Typography sx={{ fontSize: { xs: "32px", sm: "40px" }, fontWeight: "600", color: "#059669", textAlign: { xs: "center", sm: "left" }}}>
                 {isKpiLoading ? <CircularProgress thickness={5} size={20} sx={{ color: "#333" }} /> : categoriesKPIResponse?.data?.activeCount || 0}
               </Typography>
             </Box>
-            <Divider 
-              orientation={isMobile ? "horizontal" : "vertical"} 
-              sx={{ 
-                borderWidth: "1px", 
-                color: "#333", 
-                width: { xs: "100%", sm: "auto" },
-                height: { xs: "auto", sm: "80px" }
-              }} 
-            />
-            <Box sx={{ 
-              display: "flex", 
-              flexDirection: "column",
-              width: { xs: "100%", sm: "auto" }
-            }}>
-              <Typography sx={{ 
-                textAlign: { xs: "center", sm: "start" },
-                fontSize: "16px", 
-                fontWeight: "600", 
-                color: "#DC2626" 
-              }}>
+            <Divider orientation={isMobile ? "horizontal" : "vertical"} sx={{ borderWidth: "1px", color: "#333", width: { xs: "100%", sm: "auto" }, height: { xs: "auto", sm: "80px" }}}/>
+            <Box sx={{ display: "flex", flexDirection: "column", width: { xs: "100%", sm: "auto" }}}>
+              <Typography sx={{ textAlign: { xs: "center", sm: "start" },fontSize: "16px",fontWeight: "600",color: "#DC2626"}}>
                 Inactive
               </Typography>
-              <Typography sx={{ 
-                fontSize: { xs: "32px", sm: "40px" }, 
-                fontWeight: "600", 
-                color: "#DC2626",
-                textAlign: { xs: "center", sm: "left" }
-              }}>
+              <Typography sx={{ fontSize: { xs: "32px", sm: "40px" },fontWeight: "600", color: "#DC2626", textAlign: { xs: "center", sm: "left" }}}>
                 {isKpiLoading ? <CircularProgress thickness={5} size={20} sx={{ color: "#333" }} /> : categoriesKPIResponse?.data?.inactiveCount || 0}
+              </Typography>
+            </Box>
+
+            <Divider orientation={isMobile ? "horizontal" : "vertical"} sx={{ borderWidth: "1px", color: "#333", width: { xs: "100%", sm: "auto" }, height: { xs: "auto", sm: "80px" }}}/>
+            <Box sx={{ display: "flex", flexDirection: "column", width: { xs: "100%", sm: "auto" }}}>
+              <Typography sx={{ textAlign: { xs: "center", sm: "start" },fontSize: "16px",fontWeight: "600",color: "#344054"}}>
+                Archived
+              </Typography>
+              <Typography sx={{ fontSize: { xs: "32px", sm: "40px" },fontWeight: "600", color: "#344054", textAlign: { xs: "center", sm: "left" }}}>
+                {isKpiLoading ? <CircularProgress thickness={5} size={20} sx={{ color: "#333" }} /> : categoriesKPIResponse?.data?.archivedCount || 0}
               </Typography>
             </Box>
           </Box>

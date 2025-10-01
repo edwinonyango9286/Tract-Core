@@ -79,8 +79,6 @@ const Movements = () => {
   const [searchTerm, setSearchTerm] = useState<string>("")
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
   const isDeleting = deleteMovementMutation.isPending;
-
-  // Responsive breakpoints
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -211,66 +209,67 @@ const Movements = () => {
     setOpen(true);
   }, []);
 
-  // Responsive columns
   const columns: GridColDef[] = [
     { 
       field: 'palletCode', 
       headerName: 'Pallet Code', 
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120
+      minWidth: 120
     },
     { 
       field: 'movementType', 
       headerName: 'Movement Type', 
       flex: 1,
-      minWidth: isSmallMobile ? 120 : 140
+      minWidth: 140
     },
     { 
       field: 'fromStackCode', 
       headerName: 'From Stack', 
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120,
-      display: isMobile ? 'none' : 'flex'
+      minWidth: 120,
     },
     { 
       field: 'toStackCode', 
       headerName: 'To Stack', 
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120,
-      display: isMobile ? 'none' : 'flex'
+      minWidth: 120,
     },
     { 
       field: 'fromLocation', 
       headerName: 'From', 
       flex: 1,
-      minWidth: isSmallMobile ? 80 : 100
+      minWidth: 100
     },
     { 
       field: 'toLocation', 
       headerName: 'To', 
       flex: 1,
-      minWidth: isSmallMobile ? 80 : 100
+      minWidth: 100
     },
     { 
       field: 'operatorName', 
       headerName: 'Operator Name', 
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120,
-      display: isSmallMobile ? 'none' : 'flex'
+      minWidth: 120,
     },
-    { 
-      field: 'returnCondition', 
-      headerName: 'Return Condition', 
-      flex: 1,
-      minWidth: isSmallMobile ? 100 : 120,
-      display: isMobile ? 'none' : 'flex'
-    },
+   
     { 
       field: 'moveAt', 
       headerName: 'Moved At', 
       flex: 1, 
-      minWidth: isSmallMobile ? 100 : 120,
+      minWidth: 120,
       renderCell:(params)=>dateFormatter(params.value) 
+    },
+     { 
+      field: 'returnCondition', 
+      headerName: 'Return Condition', 
+      flex: 1,
+      minWidth: 120,
+      renderCell:(params)=>(
+      <Box sx={{ marginTop:"10px",borderRadius:"16px", display:"flex", justifyContent:"center", alignItems:"center",width: params.value === "GOOD" ? "60px" : params.value === "DAMAGED" ? "80px" : "90px", padding:"4px", backgroundColor: params.value === "GOOD" ? "#ECFDF3": params.value === "DAMAGED" ? "#FEF3F2" : params.value == "REPAIRABLE" ?  "#F2F4F7" :""}}>
+        <Typography sx={{ fontSize:"12px", fontWeight:"500", textAlign:"center", color:params.value === "GOOD" ? "#027A48": params.value === "DAMAGED" ? "#B42318": params.value === "REPAIRABLE" ? "#344054" :""}}>{params.value}</Typography>
+      </Box>
+     )
     },
     {
       field: 'action', 
@@ -280,41 +279,14 @@ const Movements = () => {
       renderCell: (params) => {
         return (
           <Box sx={{ display: "flex", gap: "5px" }}>
-            <IconButton 
-              size={isSmallMobile ? "small" : "medium"}
-              onClick={() => handleEdit(params.row as Movement)}
-            >
-              <img 
-                src={editIcon} 
-                alt="editIcon" 
-                style={{ 
-                  width: isSmallMobile ? "18px" : "21px", 
-                  height: isSmallMobile ? "18px" : "21px" 
-                }} 
-              />
+            <IconButton size={isSmallMobile ? "small" : "medium"} onClick={() => handleEdit(params.row as Movement)}>
+              <img src={editIcon} alt="editIcon" style={{ width: isSmallMobile ? "18px" : "21px", height: isSmallMobile ? "18px" : "21px" }}/>
             </IconButton>
-            <IconButton 
-              size={isSmallMobile ? "small" : "medium"}
-              onClick={() => { handleOpenDeleteModal(params?.row?.code); setMovementCode(params?.row?.moveId) }}
-            >
-              <img 
-                src={deleteIcon} 
-                alt="deleteIconSmall" 
-                style={{ 
-                  width: isSmallMobile ? "20px" : "24px", 
-                  height: isSmallMobile ? "20px" : "24px" 
-                }} 
-              />
+            <IconButton size={isSmallMobile ? "small" : "medium"} onClick={() => { handleOpenDeleteModal(params?.row?.code); setMovementCode(params?.row?.moveId) }}>
+              <img src={deleteIcon} alt="deleteIconSmall" style={{ width: isSmallMobile ? "20px" : "24px", height: isSmallMobile ? "20px" : "24px"}}/>
             </IconButton>
             <IconButton size={isSmallMobile ? "small" : "medium"}>
-              <img 
-                src={dotsVertical} 
-                alt="deleteIconSmall" 
-                style={{ 
-                  width: isSmallMobile ? "20px" : "24px", 
-                  height: isSmallMobile ? "20px" : "24px" 
-                }} 
-              />
+              <img src={dotsVertical} alt="deleteIconSmall" style={{ width: isSmallMobile ? "20px" : "24px", height: isSmallMobile ? "20px" : "24px" }}/>
             </IconButton>
           </Box>
         );
@@ -345,82 +317,28 @@ const Movements = () => {
 
 
   return (
-    <Box sx={{ 
-      width: "100%", 
-      minHeight: "100vh",
-      padding: { xs: "10px", sm: "20px" }
-    }}>
-      {/* Header Section */}
-      <Box sx={{ 
-        width: "100%", 
-        display: "flex", 
-        flexDirection: { xs: "column", sm: "row" },
-        justifyContent: "space-between",
-        alignItems: { xs: "flex-start", sm: "center" },
-        gap: { xs: 2, sm: 0 }
-      }}>
-        <Box sx={{ 
-          display: "flex", 
-          alignItems: "center",
-          width: { xs: "100%", sm: "auto" }
-        }}>
-          <IconButton 
-            onClick={() => navigate(-1)}
-            size={isSmallMobile ? "small" : "medium"}
-          >
+    <Box sx={{ overflow:"hidden", width: "100%", minHeight: "100vh"}}>
+      <Box sx={{ width: "100%",  display: "flex", justifyContent: "space-between", alignItems: { xs: "flex-start", sm: "center" },gap: { xs: 2, sm: 0 }}}>
+        <Box sx={{ display: "flex", alignItems: "center", width: { xs: "100%", sm: "auto" }}}>
+          <IconButton onClick={() => navigate(-1)} size={isSmallMobile ? "small" : "medium"}>
             <ArrowBackIosNewIcon fontSize={isSmallMobile ? "small" : "medium"} />
           </IconButton>
-          <Typography sx={{ 
-            fontSize: { xs: "20px", sm: "25px" }, 
-            fontWeight: "600", 
-            color: "#032541" 
-          }}>
+          <Typography sx={{ fontSize: { xs: "20px", sm: "25px" }, fontWeight: "600", color: "#032541" }}>
             Movements
           </Typography>
         </Box>
-        <CustomAddButton 
-          variant="contained" 
-          label="Add Movement" 
-          onClick={handleOpen}
-          sx={{ width: { xs: "100%", sm: "auto" } }}
+         <CustomAddButton style={{ width:"150px"}} variant="contained"  label="Add Movement" onClick={handleOpen}
         />
       </Box>
 
-      {/* Breadcrumbs */}
-      <Box sx={{ 
-        width: "100%", 
-        marginTop: { xs: "10px", sm: "-10px" },
-        marginLeft: { xs: "0px", sm: "40px" }
-      }}>
-        <Breadcrumbs
-          style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }}
-          aria-label="breadcrumb"
-          separator={<FiberManualRecord style={{ fontSize: "0.625rem", fontFamily: "Poppins", color: "#e1e5e8" }} />}
-        >
+      <Box sx={{ width: "100%", marginTop: { xs: "-16px", sm: "-10px" }, marginLeft: { xs: "30px", sm: "40px" }}}>
+        <Breadcrumbs style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }} aria-label="breadcrumb" separator={<FiberManualRecord style={{ fontSize: "0.625rem", fontFamily: "Poppins", color: "#e1e5e8" }} />}>
           {breadcrumbs}
         </Breadcrumbs>
       </Box>
-
-      {/* Main Content */}
-      <Box sx={{ 
-        marginLeft: { xs: "0px", sm: "40px" },
-        marginTop: { xs: "20px", sm: "0px" }
-      }}>
-
-      {/* Filters Section */}
-      <Box sx={{ 
-        display: "flex", 
-        width: "100%", 
-        flexDirection: { xs: "column", sm: "row" },
-        justifyContent: "space-between", 
-        marginTop: "20px",
-        gap: { xs: 2, sm: 0 }
-      }}>
-        {/* Export Button */}
-        <Box sx={{ 
-          order: { xs: 2, sm: 1 },
-          width: { xs: "100%", sm: "auto" }
-        }}>
+      <Box sx={{ marginLeft: { xs: "0px", sm: "40px" }, marginTop: { xs: "20px", sm: "0px" }}}>
+      <Box sx={{ display: "flex", width: "100%", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", marginTop: "20px", gap: { xs: 2, sm: 0 }}}>
+        <Box sx={{ order: { xs: 2, sm: 1 }, width: { xs: "100%", sm: "auto" }}}>
           <Button 
             variant="contained" 
             onClick={handleExport} 
@@ -444,22 +362,8 @@ const Movements = () => {
           </Button>
         </Box>
 
-        {/* Filters */}
-        <Box sx={{ 
-          display:"flex", 
-          flexDirection: { xs: "column", sm: "row" },
-          gap:"20px", 
-          alignItems: { xs: "stretch", sm: "center" },
-          order: { xs: 1, sm: 2 },
-          width: { xs: "100%", sm: "auto" }
-        }}>
-          {/* Date Pickers */}
-          <Box sx={{ 
-            display: "flex", 
-            flexDirection: { xs: "column", sm: "row" },
-            gap: "10px",
-            width: { xs: "100%", sm: "auto" }
-          }}>
+        <Box sx={{ display:"flex", flexDirection: { xs: "column", sm: "row" }, gap:"20px", alignItems: { xs: "stretch", sm: "center" },order: { xs: 1, sm: 2 }, width: { xs: "100%", sm: "auto" }}}>
+          <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: "10px", width: { xs: "100%", sm: "auto" }}}>
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <DatePicker 
                 disableFuture 
@@ -504,14 +408,7 @@ const Movements = () => {
               )}
             </LocalizationProvider>
           </Box>
-
-          {/* Type Select and Search */}
-          <Box sx={{ 
-            display: "flex", 
-            flexDirection: { xs: "column", sm: "row" },
-            gap: "10px",
-            width: { xs: "100%", sm: "auto" }
-          }}>
+          <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: "10px", width: { xs: "100%", sm: "auto" }}}>
             <Box sx={{ width: { xs: "100%", sm: "200px" } }}>
               <Select  
                 displayEmpty
@@ -539,12 +436,7 @@ const Movements = () => {
                 <MenuItem value={"REPAIR_OUT"}>Repair_Out</MenuItem>
               </Select>
             </Box>
-            <CustomSearchTextField 
-              value={searchTerm} 
-              onChange={handleSearchChange} 
-              placeholder="Search asset..."
-              sx={{ width: { xs: "100%", sm: "auto" } }}
-            />
+            <CustomSearchTextField value={searchTerm} onChange={handleSearchChange} placeholder="Search movement..." sx={{ width: { xs: "100%", sm: "auto" } }}/>
           </Box>
         </Box>
       </Box>
@@ -557,13 +449,7 @@ const Movements = () => {
               {updatingMovement ? "Update Movement Details" : "Add Movement"}
             </Typography>
             <Box sx={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "20px" }}>
-              {/* Stack form fields vertically on mobile */}
-              <Box sx={{ 
-                width:"100%", 
-                display: "flex", 
-                flexDirection: { xs: "column", sm: "row" },
-                gap: "15px" 
-              }}>
+              <Box sx={{ width:"100%", display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: "15px"}}>
                 <Box sx={{ width: { xs: "100%", sm: "50%" }}}>
                   <CustomSelect
                   id="palletCode"
@@ -606,11 +492,7 @@ const Movements = () => {
                 />
                 </Box>
               </Box>
-              <Box sx={{ 
-                display: "flex", 
-                flexDirection: { xs: "column", sm: "row" },
-                gap: "15px" 
-              }}>
+              <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: "15px" }}>
                 <Box sx={{ width: { xs: "100%", sm: "50%" }}}>
                 <CustomSelect
                   id="fromStackCode"
@@ -646,11 +528,7 @@ const Movements = () => {
                 />
                 </Box>
               </Box>
-              <Box sx={{ 
-                display: "flex", 
-                flexDirection: { xs: "column", sm: "row" },
-                gap: "15px" 
-              }}>
+              <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: "15px" }}>
                 <CustomTextField
                   id="fromLocation"
                   name="fromLocation"
@@ -714,7 +592,7 @@ const Movements = () => {
                   options={[
                     { value: "GOOD", label: "Good" },
                     { value: "DAMAGED", label: "Damaged" },
-                    { value: "REPAIRABLE", label: "Repaired" },
+                    { value: "REPAIRABLE", label: "Repairable" },
                   ]}
                   onChange={MovementFormik.handleChange}
                   value={MovementFormik.values.returnCondition}
@@ -724,7 +602,9 @@ const Movements = () => {
                 />
                <CustomTextField
                 id="notes"
+                rows={4}
                 type="text"
+                multiline
                 name="notes"
                 label="Notes"
                 placeholder="Notes"
@@ -733,33 +613,15 @@ const Movements = () => {
                 onBlur={MovementFormik.handleBlur}
                 errorMessage={MovementFormik.touched.notes && MovementFormik.errors.notes}
               />
-              <Box sx={{ 
-                marginBottom: "20px",
-                marginTop: "10px", 
-                gap: "20px", 
-                width: "100%", 
-                display: "flex", 
-                flexDirection: { xs: "column", sm: "row" },
-                justifyContent: "space-between",
-                alignItems: "center" 
-              }}>
-                <CustomCancelButton 
-                  onClick={handleClose} 
-                  label="Cancel" 
-                  sx={{ width: { xs: "100%", sm: "auto" } }}
-                />
-                <CustomSubmitButton 
-                  loading={MovementFormik.isSubmitting} 
-                  label={updatingMovement ? "Update Movement" : "Create Movement"}
-                  sx={{ width: { xs: "100%", sm: "auto" } }}
-                />
+              <Box sx={{ marginBottom: "20px", marginTop: "10px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+                <CustomCancelButton onClick={handleClose} label="Cancel" sx={{ width: { xs: "100%", sm: "auto" } }}/>
+                <CustomSubmitButton loading={MovementFormik.isSubmitting} label={updatingMovement ? "Update Movement" : "Create Movement"}sx={{ width: { xs: "100%", sm: "auto" } }}/>
               </Box>
             </Box>
           </form>
         </Box>
       </Modal>
 
-      {/* delete modal here */}
       <CustomDeleteComponent
         loading={isDeleting}
         open={openDeleteModal}
@@ -769,11 +631,7 @@ const Movements = () => {
         itemT0Delete={`${movementCode} movement`}
       />
 
-      <Box sx={{ 
-        width: "100%", 
-        height: { xs: "400px", sm: "70vh" }, 
-        marginTop: "20px" 
-      }}>
+      <Box sx={{ width: "100%", height: { xs: "400px", sm: "70vh" }, marginTop: "20px" }}>
         <CustomDataGrid
           loading={isLoading}
           rows={movementsList}
@@ -782,14 +640,6 @@ const Movements = () => {
           paginationModel={paginationModel}
           onPaginationModelChange={handlePaginationModelChange}
           columns={columns}
-          sx={{
-            '& .MuiDataGrid-cell': {
-              fontSize: { xs: '0.75rem', sm: '0.875rem' }
-            },
-            '& .MuiDataGrid-columnHeader': {
-              fontSize: { xs: '0.75rem', sm: '0.875rem' }
-            }
-          }}
         />
       </Box>
       </Box>
