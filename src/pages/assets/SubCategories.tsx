@@ -448,18 +448,8 @@ const SubCategories = () => {
           <Divider sx={{ width: "100%", borderWidth: "1px", color: "#333", marginTop: { xs: "20px", sm: "0px" } }} />
         </Box>
 
-        <Box sx={{
-          display: "flex",
-          width: "100%",
-          flexDirection: { xs: "column", sm: "row" },
-          justifyContent: "space-between",
-          marginTop: "10px",
-          gap: { xs: 2, sm: 0 }
-        }}>
-          <Box sx={{
-            order: { xs: 2, sm: 1 }, 
-            width: { xs: "100%", sm: "auto" }
-          }}>
+        <Box sx={{ display: "flex", width: "100%", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", marginTop: "10px", gap: { xs: 2, sm: 0 }}}>
+          <Box sx={{ order: { xs: 2, sm: 1 },width: { xs: "100%", sm: "auto" }}}>
             <Button
               variant="contained"
               onClick={handleExport}
@@ -477,29 +467,15 @@ const SubCategories = () => {
                 textTransform: 'none',
                 fontSize: '14px',
                 fontWeight: "500",
-                width: { xs: "100%", sm: "auto" } // Full width on mobile
+                width: { xs: "100%", sm: "auto" } 
               }}
             >
               {exportSubCategoriesMutation.isPending ? 'Exporting...' : 'Export CSV'}
             </Button>
           </Box>
 
-          {/* Filters */}
-          <Box sx={{
-            display: "flex",
-            flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
-            gap: { xs: "10px", sm: "20px" },
-            alignItems: { xs: "stretch", sm: "center" },
-            order: { xs: 1, sm: 2 }, // Reorder on mobile
-            width: { xs: "100%", sm: "auto" }
-          }}>
-            {/* Date Pickers */}
-            <Box sx={{
-              display: "flex",
-              flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
-              gap: "10px",
-              width: { xs: "100%", sm: "auto" }
-            }}>
+          <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: { xs: "10px", sm: "20px" }, alignItems: { xs: "stretch", sm: "center" }, order: { xs: 1, sm: 2 }, width: { xs: "100%", sm: "auto" }}}>
+            <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: "10px", width: { xs: "100%", sm: "auto" }}}>
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <DatePicker
                   disableFuture
@@ -509,7 +485,7 @@ const SubCategories = () => {
                   slotProps={{
                     textField: {
                       size: 'small',
-                      sx: { width: { xs: "100%", sm: 150 } } // Full width on mobile
+                      sx: { width: { xs: "100%", sm: 150 } } 
                     }
                   }}
                 />
@@ -522,35 +498,18 @@ const SubCategories = () => {
                     textField: {
                       placeholder: "Select end date",
                       size: 'small',
-                      sx: { width: { xs: "100%", sm: 150 } } // Full width on mobile
+                      sx: { width: { xs: "100%", sm: 150 } } 
                     }
                   }}
                 />
                 {(startDate || endDate) && (
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={handleClearDates}
-                    sx={{
-                      borderRadius: "8px",
-                      borderColor: "#D1D5DB",
-                      textTransform: "none",
-                      color: "#333",
-                      height: '40px',
-                      width: { xs: "100%", sm: "auto" } // Full width on mobile
-                    }}
-                  >
+                  <Button variant="outlined"size="small" onClick={handleClearDates} sx={{ borderRadius: "8px", borderColor: "#D1D5DB", textTransform: "none", color: "#333", height: '40px', width: { xs: "100%", sm: "auto" }}}>
                     Clear dates
                   </Button>
                 )}
               </LocalizationProvider>
             </Box>
-            <Box sx={{
-              display: "flex",
-              flexDirection: { xs: "column", sm: "row" }, 
-              gap: "10px",
-              width: { xs: "100%", sm: "auto" }
-            }}>
+            <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: "10px", width: { xs: "100%", sm: "auto" }}}>
               <Box sx={{ width: { xs: "100%", sm: "200px" } }}>
                 <Select
                   displayEmpty
@@ -570,18 +529,10 @@ const SubCategories = () => {
                   <MenuItem value={"INACTIVE"}>Inactive</MenuItem>
                 </Select>
               </Box>
-
-              <CustomSearchTextField
-                value={searchTerm}
-                onChange={handleSearchChange}
-                placeholder="Search category..."
-                sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
-              />
+              <CustomSearchTextField value={searchTerm} onChange={handleSearchChange} placeholder="Search category..." sx={{ width: { xs: "100%", sm: "auto" } }}/>
             </Box>
           </Box>
         </Box>
-
-        {/* Sub Category Modal */}
         <Modal
           open={open}
           onClose={handleClose}
@@ -632,33 +583,15 @@ const SubCategories = () => {
                   helperText={SubCategoryFormik.touched.categoryCode && SubCategoryFormik.errors.categoryCode}
                 />
 
-                <Box sx={{
-                  marginBottom: "20px",
-                  marginTop: "10px",
-                  gap: "20px",
-                  width: "100%",
-                  display: "flex",
-                  flexDirection: { xs: "column", sm: "row" }, // Stack buttons on mobile
-                  justifyContent: "space-between",
-                  alignItems: "center"
-                }}>
-                  <CustomCancelButton
-                    onClick={handleClose}
-                    label="Cancel"
-                    sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
-                  />
-                  <CustomSubmitButton
-                    loading={SubCategoryFormik.isSubmitting}
-                    label={updatingSubCategory ? "Update Sub Category" : "Create Sub Category"}
-                    sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
-                  />
+                <Box sx={{ marginBottom: "20px", marginTop: "10px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <CustomCancelButton onClick={handleClose} label="Cancel" sx={{ width: { xs: "100%", sm: "auto" } }}/>
+                  <CustomSubmitButton loading={SubCategoryFormik.isSubmitting} label={updatingSubCategory ? "Update Sub Category" : "Create Sub Category"} sx={{ width: { xs: "100%", sm: "auto" } }}/>
                 </Box>
               </Box>
             </form>
           </Box>
         </Modal>
 
-        {/* Delete Modal */}
         <CustomDeleteComponent
           loading={isDeleting}
           open={openDeleteModal}
@@ -668,13 +601,7 @@ const SubCategories = () => {
           itemT0Delete={`${subCategoryName} category`}
         />
 
-        {/* DataGrid */}
-        <Box sx={{
-          width: "100%",
-          height: { xs: "400px", sm: "70vh" }, // Adjust height for mobile
-          marginTop: "20px",
-          overflow: "auto"
-        }}>
+        <Box sx={{ width: "100%", height: { xs: "400px", sm: "70vh" }, marginTop: "20px", overflow: "auto"}}>
           <CustomDataGrid
             loading={isLoading}
             rows={rows}
@@ -683,14 +610,6 @@ const SubCategories = () => {
             paginationModel={paginationModel}
             onPaginationModelChange={handlePaginationModelChange}
             columns={columns}
-            sx={{
-              '& .MuiDataGrid-cell': {
-                fontSize: { xs: '0.75rem', sm: '0.875rem' } // Smaller font on mobile
-              },
-              '& .MuiDataGrid-columnHeader': {
-                fontSize: { xs: '0.75rem', sm: '0.875rem' } // Smaller header font on mobile
-              }
-            }}
           />
         </Box>
       </Box>
