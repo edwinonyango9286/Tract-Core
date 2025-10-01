@@ -199,53 +199,53 @@ const Users = () => {
   }, []);
 
 
-  const columns: GridColDef[] = useMemo(() => [
+  const columns: GridColDef[] = [
     { 
       field: 'firstname', 
       headerName: 'First Name', 
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120
+      minWidth: 120
     },
     { 
       field: 'lastname', 
       headerName: 'Last Name', 
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120
+      minWidth:  120
     },
     { 
       field: 'email', 
       headerName: 'Email', 
       flex: 1,
-      minWidth: isSmallMobile ? 150 : 180,
-      display: isSmallMobile ? 'none' : 'flex'
+      minWidth: 180,
     },
     { 
       field: 'userPhoneNumber', 
       headerName: 'Phone Number', 
       flex: 1,
-      minWidth: isSmallMobile ? 120 : 140,
-      display: isMobile ? 'none' : 'flex'
+      minWidth: 140,
     },
     { 
       field: 'userIdNumber', 
       headerName: 'Id Number', 
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120,
-      display: isSmallMobile ? 'none' : 'flex'
+      minWidth: 120,
     },
     { 
       field: 'phoneVerified', 
       headerName: 'Phone Verified', 
       flex: 1, 
-      minWidth: isSmallMobile ? 100 : 120,
-      renderCell:(params)=>  { return params.value ? <Typography>Yes</Typography>: <Typography>No</Typography> }
+      minWidth:  120,
+        renderCell:(params)=>(
+              <Box sx={{ marginTop:"10px",borderRadius:"16px", display:"flex", justifyContent:"center", alignItems:"center",width:"40px", padding:"4px", backgroundColor: params.value  ? "#ECFDF3":  "#FEF3F2" }}>
+                 <Typography sx={{ fontSize:"12px", fontWeight:"500", textAlign:"center", color:params.value ? "#027A48": "#B42318"}}>{params.value ? "Yes" : "No"}</Typography>
+              </Box>
+     )
     },
     { 
       field: "roleDescription", 
       headerName:"Role Description", 
       flex:1,
-      minWidth: isSmallMobile ? 120 : 150,
-      display: isMobile ? 'none' : 'flex'
+      minWidth: 150,
     },
     {
       field: 'action', 
@@ -281,36 +281,17 @@ const Users = () => {
                 }} 
               />
             </IconButton>
-            <IconButton 
-              size={isSmallMobile ? "small" : "medium"}
-              id="basic-button"
+            <IconButton size={isSmallMobile ? "small" : "medium"} id="basic-button"
               aria-controls={openActionMenu ? 'basic-menu' : undefined}
               aria-haspopup="true"
               aria-expanded={openActionMenu ? 'true' : undefined}
               onClick={handleClickActionMenu}
             >
-              <img 
-                src={dotsVertical} 
-                alt="dotsVertical" 
-                style={{ 
-                  width: isSmallMobile ? "20px" : "24px", 
-                  height: isSmallMobile ? "20px" : "24px" 
-                }} 
-              />
+              <img src={dotsVertical} alt="dotsVertical" style={{ width: isSmallMobile ? "20px" : "24px", height: isSmallMobile ? "20px" : "24px" }} />
             </IconButton>
 
             {/* Action Menu */}
-            <Menu
-              id="basic-menu"
-              anchorEl={anchorElementAction}
-              open={openActionMenu}
-              onClose={handleCloseActionMenu}
-              slotProps={{
-                list: {
-                  'aria-labelledby': 'basic-button',
-                },
-              }}
-            >
+            <Menu id="basic-menu" anchorEl={anchorElementAction} open={openActionMenu} onClose={handleCloseActionMenu} slotProps={{ list: { 'aria-labelledby': 'basic-button', }}}>
               <MenuItem onClick={handleCloseActionMenu}>View Details</MenuItem>
               <MenuItem onClick={handleCloseActionMenu}>Reset Password</MenuItem>
               <MenuItem onClick={handleCloseActionMenu}>Send Invitation</MenuItem>
@@ -319,86 +300,34 @@ const Users = () => {
         );
       }
     },
-  ], [handleEdit, isMobile, isSmallMobile]);
+  ]
 
   return (
-    <Box sx={{ 
-      width: "100%", 
-      minHeight: "100vh",
-      padding: { xs: "10px", sm: "20px" }
-    }}>
-      {/* Header Section */}
-      <Box sx={{ 
-        width: "100%", 
-        display: "flex", 
-        flexDirection: { xs: "column", sm: "row" },
-        justifyContent: "space-between",
-        alignItems: { xs: "flex-start", sm: "center" },
-        gap: { xs: 2, sm: 0 }
-      }}>
-        <Box sx={{ 
-          width: "100%", 
-          alignItems: "center", 
-          display: "flex" 
-        }}>
-          <IconButton 
-            onClick={() => navigate(-1)}
-            size={isSmallMobile ? "small" : "medium"}
-          >
+    <Box sx={{ width: "100%", minHeight: "100vh",  }}>
+      <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: { xs: "flex-start", sm: "center" }, gap: { xs: 2, sm: 0 }}}>
+        <Box sx={{ width: "100%", alignItems: "center", display: "flex" }}>
+          <IconButton onClick={() => navigate(-1)} size={isSmallMobile ? "small" : "medium"}>
             <ArrowBackIosNewIcon fontSize={isSmallMobile ? "small" : "medium"} />
           </IconButton>
-          <Typography sx={{ 
-            fontSize: { xs: "20px", sm: "25px" }, 
-            fontWeight: "600", 
-            color: "#032541" 
-          }}>
+          <Typography sx={{ fontSize: { xs: "20px", sm: "25px" }, fontWeight: "600", color: "#032541" }}>
             Users
           </Typography>
         </Box>
-        <CustomAddButton 
-          variant="contained" 
-          label="Add User" 
-          onClick={handleOpen}
-          sx={{ width: { xs: "100%", sm: "auto" } }}
-        />
+        <CustomAddButton style={{ width:"120px"}} variant="contained" label="Add User" onClick={handleOpen}/>
       </Box>
 
       {/* Breadcrumbs */}
-      <Box sx={{ 
-        width: "100%", 
-        marginTop: { xs: "10px", sm: "-10px" },
-        marginLeft: { xs: "0px", sm: "40px" }
-      }}>
-        <Breadcrumbs
-          style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }}
-          aria-label="breadcrumb"
-          separator={<FiberManualRecord style={{ fontSize: "0.625rem", fontFamily: "Poppins", color: "#e1e5e8" }} />}
-        >
+      <Box sx={{   width: "100%",  marginTop: { xs: "-20px", sm: "-10px" }, marginLeft: { xs:"30px", sm:"40px"}}}>
+        <Breadcrumbs style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }} aria-label="breadcrumb" separator={<FiberManualRecord style={{ fontSize: "0.625rem", fontFamily: "Poppins", color: "#e1e5e8" }} />}>
           {breadcrumbs}
         </Breadcrumbs>
       </Box>
 
-      {/* Main Content */}
-      <Box sx={{ 
-        marginLeft: { xs: "0px", sm: "40px" },
-        marginTop: { xs: "20px", sm: "0px" }
-      }}>
-        {/* Search Field */}
-        <Box sx={{ 
-          display: "flex", 
-          width: "100%", 
-          justifyContent: "flex-start", 
-          marginTop: "20px" 
-        }}>
-          <CustomSearchTextField 
-            value={searchTerm} 
-            onChange={handleSearchChange} 
-            placeholder="Search user..."
-            sx={{ width: { xs: "100%", sm: "auto" } }}
-          />
+      <Box sx={{ marginLeft: { xs: "0px", sm: "40px" }, marginTop: { xs: "20px", sm: "0px" }}}>
+        <Box sx={{ display: "flex", width: "100%", justifyContent: "flex-end",  marginTop: "20px" }}>
+          <CustomSearchTextField value={searchTerm} onChange={handleSearchChange} placeholder="Search user..." sx={{ width: { xs: "100%", sm: "auto" } }}/>
         </Box>
 
-        {/* User Modal */}
         <Modal 
           open={open} 
           onClose={handleClose} 
@@ -510,26 +439,9 @@ const Users = () => {
                   error={UserFormik.touched.role && Boolean(UserFormik.errors.role)}
                   helperText ={UserFormik.touched.role && UserFormik.errors.role}
                 />
-                <Box sx={{ 
-                  marginBottom: "20px",
-                  marginTop: "30px", 
-                  gap: "20px", 
-                  width: "100%", 
-                  display: "flex", 
-                  flexDirection: { xs: "column", sm: "row" },
-                  justifyContent: "space-between", 
-                  alignItems: "center" 
-                }}>
-                  <CustomCancelButton 
-                    onClick={handleClose} 
-                    label="Cancel" 
-                    sx={{ width: { xs: "100%", sm: "auto" } }}
-                  />
-                  <CustomSubmitButton 
-                    loading={UserFormik.isSubmitting} 
-                    label={updatingUser ? "Update User" : "Create User"}
-                    sx={{ width: { xs: "100%", sm: "auto" } }}
-                  />
+                <Box sx={{ marginBottom: "20px", marginTop: "30px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <CustomCancelButton onClick={handleClose} label="Cancel" sx={{ width: { xs: "100%", sm: "auto" } }}/>
+                  <CustomSubmitButton loading={UserFormik.isSubmitting} label={updatingUser ? "Update User" : "Create User"} sx={{ width: { xs: "100%", sm: "auto" } }}/>
                 </Box>
               </Box>
             </form>
@@ -547,11 +459,7 @@ const Users = () => {
         />
 
         {/* Data Grid */}
-        <Box sx={{ 
-          width: "100%", 
-          height: { xs: "400px", sm: "70vh" }, 
-          marginTop: "20px" 
-        }}>
+        <Box sx={{ width: "100%", height: { xs: "400px", sm: "70vh" }, marginTop: "20px"}}>
           <CustomDataGrid
             loading={isLoading}
             rows={rows}
@@ -560,14 +468,6 @@ const Users = () => {
             paginationModel={paginationModel}
             onPaginationModelChange={handlePaginationModelChange}
             columns={columns}
-            sx={{
-              '& .MuiDataGrid-cell': {
-                fontSize: { xs: '0.75rem', sm: '0.875rem' }
-              },
-              '& .MuiDataGrid-columnHeader': {
-                fontSize: { xs: '0.75rem', sm: '0.875rem' }
-              }
-            }}
           />
         </Box>
       </Box>

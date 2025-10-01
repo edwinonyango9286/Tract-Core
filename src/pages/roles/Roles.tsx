@@ -153,7 +153,6 @@ const handleSearchChange = useCallback((e:React.ChangeEvent<HTMLInputElement>)=>
   }, []);
 
 
-
 const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
 const [selectedRoleCode,setSelectedRoleCode] = useState<number | null>(null);
 const [selectedRoleName,setSelectedRoleName] = useState<string>("");
@@ -182,54 +181,50 @@ const handleDeleteRole =  useCallback(async()=>{
   }
 },[selectedRoleCode, showSnackbar, deleteRoleMutation])
 
-  const columns: GridColDef[] = useMemo(() => [
+  const columns: GridColDef[] = [
       { 
         field: 'roleName', 
         headerName: 'Name', 
         flex:1,
-        minWidth: isSmallMobile ? 100 : 120
+        minWidth: 120
       },
       { 
         field: 'roleShortDesc', 
         headerName: 'Short Description', 
         flex:1,
-        minWidth: isSmallMobile ? 120 : 150,
-        display: isSmallMobile ? 'none' : 'flex'
+        minWidth: 150,
       },
-      { 
-        field: 'roleDescription', 
-        headerName: 'Description', 
-        flex:1,
-        minWidth: isSmallMobile ? 120 : 150,
-        display: isMobile ? 'none' : 'flex'
-      },
-      { 
-        field: 'roleStatus', 
-        headerName: 'Status', 
-        flex:1,
-        minWidth: isSmallMobile ? 80 : 100
-      },
+      
       { 
         field: 'createDate', 
         headerName: 'Created At', 
         flex:1,
         minWidth: isSmallMobile ? 100 : 120,
-        display: isSmallMobile ? 'none' : 'flex',
         renderCell:(params)=>(dateFormatter(params.row.createDate))
       },
       { 
         field: 'lastModified', 
         headerName: 'Updated At', 
         flex:1,
-        minWidth: isSmallMobile ? 100 : 120,
-        display: isMobile ? 'none' : 'flex',
+        minWidth: 120,
         renderCell:(params)=>(dateFormatter(params.row.lastModified))
+      },
+      { 
+        field: 'roleStatus', 
+        headerName: 'Status', 
+        flex:1,
+        minWidth: 100,
+        renderCell:(params)=>(
+        <Box sx={{ marginTop:"10px",borderRadius:"16px", display:"flex", justifyContent:"center", alignItems:"center",width: params.value === "ACTIVE" ? "70px" : params.value === "INACTIVE" ? "80px" : "90px", padding:"4px", backgroundColor: params.value === "ACTIVE" ? "#ECFDF3": params.value === "INACTIVE" ? "#FEF3F2" : ""}}>
+           <Typography sx={{ fontSize:"12px", fontWeight:"500", textAlign:"center", color:params.value === "ACTIVE" ? "#027A48": params.value === "INACTIVE" ? "#B42318"  :"#333"}}>{params.value}</Typography>
+        </Box>
+      )
       },
       {
         field: 'action', 
         headerName: 'Action', 
         flex: 1,
-        minWidth: isSmallMobile ? 120 : 150,
+        minWidth: 150,
         renderCell: (params) => {
           return (
             <Box sx={{ display: "flex", gap: "5px" }}>
@@ -273,7 +268,7 @@ const handleDeleteRole =  useCallback(async()=>{
           );
         }
       },
-  ], [handleEdit, isMobile, isSmallMobile]);
+  ];
 
   const handlePaginationModelChange = useCallback((newModel: GridPaginationModel) => {
       setPaginationModel(newModel);
@@ -284,96 +279,35 @@ const handleDeleteRole =  useCallback(async()=>{
   };
 
   return (
-    <Box sx={{ 
-      width:"100%", 
-      minHeight:"100vh",
-      padding: { xs: "10px", sm: "20px" }
-    }}>
-      {/* Header Section */}
-      <Box sx={{ 
-        width:"100%", 
-        display:"flex", 
-        flexDirection: { xs: "column", sm: "row" },
-        justifyContent:"space-between",
-        alignItems: { xs: "flex-start", sm: "center" },
-        gap: { xs: 2, sm: 0 }
-      }}>
-        <Box sx={{ 
-          display:"flex", 
-          alignItems:"center",
-          width: { xs: "100%", sm: "auto" }
-        }}>
-          <IconButton 
-            onClick={()=>navigate(-1)} 
-            size={isSmallMobile ? "small" : "medium"}
-          >
+    <Box sx={{ marginTop:{ xs:"-10px", sm:"-20px"}, width:"100%", minHeight:"100vh" }}>
+      <Box sx={{ width:"100%", display:"flex", justifyContent:"space-between", alignItems: { xs: "flex-start", sm: "center" }, gap: { xs: 2, sm: 0 }}}>
+        <Box sx={{ display:"flex", alignItems:"center", width: { xs: "100%", sm: "auto" }}}>
+          <IconButton onClick={()=>navigate(-1)} size={isSmallMobile ? "small" : "medium"}>
             <ArrowBackIosNewIcon fontSize={isSmallMobile ? "small" : "medium"} />
           </IconButton>
-          <Typography sx={{ 
-            fontSize: { xs: "20px", sm: "25px" }, 
-            fontWeight:"600", 
-            color:"#032541"
-          }}>
-            Roles
-          </Typography>
+          <Typography sx={{ fontSize: { xs: "20px", sm: "25px" },fontWeight:"600", color:"#032541" }}>Roles</Typography>
         </Box>
-        <CustomAddButton 
-          variant="contained" 
-          label="Add role" 
-          onClick={handleOpen}
-          sx={{ width: { xs: "100%", sm: "auto" } }}
-        />
+        <CustomAddButton style={{ width:"120px"}} variant="contained" label="Add role" onClick={handleOpen}/>
       </Box>
 
       {/* Breadcrumbs */}
-      <Box sx={{ 
-        width:"100%", 
-        marginTop: { xs: "10px", sm: "-10px" },
-        marginLeft: { xs: "0px", sm: "40px" }
-      }}>
-        <Breadcrumbs 
-          style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }} 
-          aria-label="breadcrumb"
-          separator={ <FiberManualRecord style={{ fontSize: "0.625rem", fontFamily: "Poppins", color: "#e1e5e8" }}/>} 
-        > 
+      <Box sx={{ width:"100%",  marginTop:{ xs: "-16px", sm:"-10px"}, marginLeft:{ xs: "30px", sm:"40px"} }}>
+        <Breadcrumbs style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }} aria-label="breadcrumb" separator={ <FiberManualRecord style={{ fontSize: "0.625rem", fontFamily: "Poppins", color: "#e1e5e8" }}/>}> 
           {breadcrumbs}
         </Breadcrumbs>
       </Box>
 
       {/* Main Content */}
-      <Box sx={{ 
-        marginLeft: { xs: "0px", sm: "40px" },
-        marginTop: { xs: "20px", sm: "0px" }
-      }}>
-        {/* Search Field */}
-        <Box sx={{ 
-          display: "flex", 
-          width: "100%", 
-          justifyContent: "flex-start", 
-          marginTop: "20px" 
-        }}>
-          <CustomSearchTextField
-            value={searchTerm}
-            onChange={handleSearchChange}
-            placeholder="Search roles..."
-            sx={{ width: { xs: "100%", sm: "auto" } }}
-          />
+      <Box sx={{ marginLeft: { xs: "0px", sm: "40px" }, marginTop: { xs: "20px", sm: "0px" }}}>
+        <Box sx={{ display: "flex", width: "100%", justifyContent: "flex-end", marginTop: "20px"}}>
+          <CustomSearchTextField   value={searchTerm} onChange={handleSearchChange} placeholder="Search roles..." sx={{ width: { xs: "100%", sm: "auto" } }}/>
         </Box>
 
-        {/* Add Role Modal */}
-        <Modal 
-          open={open} 
-          onClose={handleClose} 
-          aria-labelledby="modal-modal-title" 
-          aria-describedby="modal-modal-description"
-        >
+        <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title"  aria-describedby="modal-modal-description">
           <Box sx={getModalStyle(isMobile)}>
             <form style={{ width:"100%"}} onSubmit={roleFormik.handleSubmit}>
-              <Typography sx={{ 
-                fontSize: { xs: "18px", sm: "20px" }, 
-                fontWeight:"700"
-              }}>
-                {updatingRole ? "Update Role Details" :"Add Role"}
+              <Typography sx={{ color:"#032541", fontSize: { xs: "18px", sm: "20px" }, fontWeight:"700" }}>
+                {updatingRole ? "Update role details" :"Add role"}
               </Typography>
               <Box sx={{ marginTop:"10px", display:"flex", flexDirection:"column", gap:"20px"}}>
                 <CustomTextField  
@@ -426,26 +360,9 @@ const handleDeleteRole =  useCallback(async()=>{
                 {roleFormik.touched.permissions && roleFormik.errors.permissions && (
                   <Typography sx={{ fontSize:"12px", marginTop:"-15px", color:"#dc3545" }}>{roleFormik.errors.permissions}</Typography>
                 )}
-                <Box sx={{ 
-                  marginTop:"10px", 
-                  marginBottom:"20px", 
-                  gap:"20px", 
-                  width:"100%", 
-                  display:"flex", 
-                  flexDirection: { xs: "column", sm: "row" },
-                  justifyContent:"space-between", 
-                  alignItems:"center"
-                }}>
-                  <CustomCancelButton  
-                    onClick={()=>{handleClose()}} 
-                    label="Cancel"
-                    sx={{ width: { xs: "100%", sm: "auto" } }}
-                  />
-                  <CustomSubmitButton 
-                    loading={roleFormik.isSubmitting}  
-                    label={ updatingRole ? "Update Role" :"Create Role" }
-                    sx={{ width: { xs: "100%", sm: "auto" } }}
-                  />
+                <Box sx={{ marginTop:"10px", marginBottom:"20px", gap:"20px", width:"100%", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                  <CustomCancelButton onClick={()=>{handleClose()}} label="Cancel" sx={{ width: { xs: "100%", sm: "auto" } }}/>
+                  <CustomSubmitButton loading={roleFormik.isSubmitting} label={ updatingRole ? "Update Role" :"Create Role" } sx={{ width: { xs: "100%", sm: "auto" } }}/>
                 </Box>
               </Box>
             </form>
@@ -463,11 +380,7 @@ const handleDeleteRole =  useCallback(async()=>{
         />
 
         {/* Data Grid */}
-        <Box sx={{ 
-          width:"100%" , 
-          height: { xs: "400px", sm: "70vh" }, 
-          marginTop:"20px"
-        }}>
+        <Box sx={{ width:"100%" , height: { xs: "400px", sm: "70vh" }, marginTop:"20px" }}>
           <CustomDataGrid
             loading={isLoading}
             rowCount={rowCount}
@@ -476,14 +389,6 @@ const handleDeleteRole =  useCallback(async()=>{
             paginationModel={paginationModel}
             onPaginationModelChange={handlePaginationModelChange}
             columns={columns}
-            sx={{
-              '& .MuiDataGrid-cell': {
-                fontSize: { xs: '0.75rem', sm: '0.875rem' }
-              },
-              '& .MuiDataGrid-columnHeader': {
-                fontSize: { xs: '0.75rem', sm: '0.875rem' }
-              }
-            }}
           />
         </Box>
       </Box>

@@ -405,14 +405,24 @@ const updateStatusModalStyle = {
       field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 120,
       renderCell: (params) => dateFormatter(params.value)
     },
-    { field: 'status', headerName: 'Status', flex: 1, minWidth: 100 },
+
+    // IN_USE, IN_REPAIR, IN_STORAGE, DISPOSED
+
+    { field: 'status', headerName: 'Status', flex: 1, minWidth: 100,
+        renderCell:(params)=>(
+        <Box sx={{ marginTop:"10px",borderRadius:"16px", display:"flex", justifyContent:"center", alignItems:"center", width: params.value === "IN_USE" ? "70px" : params.value === "IN_REPAIR" || params.value === "IN_STORAGE" || params.value ==="DISPOSED" ? "100px" : "90px", padding:"4px", backgroundColor: params.value === "IN_USE" ? "#ECFDF3": params.value === "IN_REPAIR" ? "#F2F4F7"  : params.value === "IN_STORAGE" ? "#FEF3F2" : params.value === "DISPOSED" ? "#FEF3F2" : ""}}>
+           <Typography sx={{ fontSize:"12px", fontWeight:"500", textAlign:"center", color:params.value === "IN_USE" ? "#027A48": params.value === "DISPOSED" ? "#B42318"  : params.value === "IN_REPAIR" ? "#344054" :  params.value === "IN_STORAGE" ? "#B54708" : "#333"}}>{params.value}</Typography>
+        </Box>
+    )
+     },
+
     {
-      field: 'action', headerName: 'Action', flex: 1, minWidth: 120,
+      field: 'action', headerName: 'Action', flex: 1, minWidth: 130,
       renderCell: (params) => {
         const assetCode = params.row.code;
         const openActionMenu = Boolean(anchorElMap[assetCode]);
         return (
-          <Box sx={{ display: "flex", gap: "10px", flexWrap: isMobile ? "wrap" : "nowrap" }}>
+          <Box sx={{ display: "flex", gap: "10px",}}>
             <IconButton onClick={() => handleEdit(params.row as Asset)} size="small">
               <img src={editIcon} alt="editIcon" style={{ width: "18px", height: "18px" }} />
             </IconButton>
@@ -420,7 +430,6 @@ const updateStatusModalStyle = {
               <img src={deleteIcon} alt="deleteIconSmall" style={{ width: "20px", height: "20px" }} />
             </IconButton>
             
-            {/* CHANGED: Use row-specific menu handlers */}
             <IconButton  
               id={`action-menu-button-${assetCode}`}
               aria-controls={openActionMenu ? `action-menu-${assetCode}` : undefined}
@@ -432,7 +441,6 @@ const updateStatusModalStyle = {
               <img src={dotsVertical} alt="dotsvertical" style={{ width: "20px", height: "20px" }} />
             </IconButton>
 
-            {/* CHANGED: Row-specific menu */}
             <Menu 
               id={`action-menu-${assetCode}`}
               anchorEl={anchorElMap[assetCode]}
@@ -476,18 +484,18 @@ const updateStatusModalStyle = {
   };
 
   return (
-    <Box sx={{ width: "100%", minHeight: "100vh", p: { xs: 1, sm: 2 } }}>
-      <Box sx={{ width: "100%", display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", gap: 2 }}>
+    <Box sx={{ width: "100%", minHeight: "100vh", overflow:"hidden", }}>
+      <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between", gap: 2 }}>
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <IconButton onClick={() => navigate(-1)} size="small">
-            <ArrowBackIosNewIcon />
+            <ArrowBackIosNewIcon sx={{ fontSize:"20px"}} />
           </IconButton>
           <Typography sx={{ fontSize: { xs: "20px", sm: "25px" }, fontWeight: "600", color: "#032541" }}>Assets</Typography>
         </Box>
-        <CustomAddButton variant="contained" label="Add Asset" onClick={handleOpen} />
+        <CustomAddButton style={{ width:"100px"}} variant="contained" label="Add Asset" onClick={handleOpen} />
       </Box>
 
-      <Box sx={{ marginLeft:"30px", marginTop:"-10px", width: "100%"}}>
+      <Box sx={{ marginLeft:{ xs:"30px", }, marginTop:"-4px", width: "100%"}}>
         <Breadcrumbs style={{ fontFamily: "Poppins", fontSize: "14px" }} aria-label="breadcrumb" separator={<FiberManualRecord style={{ fontSize: "0.625rem", fontFamily: "Poppins", color: "#e1e5e8" }} />}>
           {breadcrumbs}
         </Breadcrumbs>
@@ -905,7 +913,7 @@ const updateStatusModalStyle = {
                 </Box>
               </Box>
               
-              <Box sx={{ mb: 2, mt: 2, gap: 2, width: "100%", display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: "center"}}>
+              <Box sx={{ mb: 2, mt: 2, gap: 2, width: "100%", display: "flex",  justifyContent: "space-between", alignItems: "center"}}>
                 <CustomCancelButton onClick={handleClose} label="Cancel" fullWidth={isMobile} />
                 <CustomSubmitButton  loading={AssetFormik.isSubmitting} label={updatingAsset ? "Update Asset" : "Create Asset"} fullWidth={isMobile} />
               </Box>
@@ -942,7 +950,7 @@ const updateStatusModalStyle = {
               helperText={UpdateAssetStatusFormik.touched.status && UpdateAssetStatusFormik.errors.status}
             />
           </Box>
-          <Box sx={{ display:"flex", flexDirection: { xs: "column", sm: "row" }, justifyContent:"space-between", gap: 2, mt: 3 }}>
+          <Box sx={{ display:"flex", justifyContent:"space-between", gap: 2, mt: 3 }}>
             <CustomCancelButton onClick={handleCloseUpdateStatusModal} label={"Cancel"} fullWidth={isMobile} />
             <CustomSubmitButton loading={UpdateAssetStatusFormik.isSubmitting}  label="Update" fullWidth={isMobile} />
           </Box>
@@ -1106,7 +1114,7 @@ const updateStatusModalStyle = {
             onBlur={AssignFormik.handleBlur}
             errorMessage={AssignFormik.touched.location && AssignFormik.errors.location}
           />
-          <Box sx={{ width:"100%", gap: 2, mt: 2, mb: 2, display:"flex", flexDirection: { xs: "column", sm: "row" }, justifyContent:"space-around"}}>
+          <Box sx={{ width:"100%", gap: 2, mt: 2, mb: 2, display:"flex", justifyContent:"space-around"}}>
             <CustomCancelButton onClick={handleCloseAssignUserModal} label={"Cancel"} fullWidth={isMobile} />
             <CustomSubmitButton loading={AssignFormik.isSubmitting}  label="Assign" fullWidth={isMobile} />
           </Box>

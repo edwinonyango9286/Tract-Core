@@ -237,7 +237,13 @@ const handleDeletePermission = useCallback(async () => {
     { field: 'permissionDescription', headerName: 'Description', flex: 1, minWidth: 150 },
     { field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 150, renderCell:(params)=>dateFormatter(params.value)},
     { field: 'updatedAt', headerName: 'Updated At', flex: 1, minWidth: 150, renderCell:(params)=> dateFormatter(params.value)},
-    { field: 'status', headerName:"Status", flex: 1, minWidth: 100},
+    { field: 'status', headerName:"Status", flex: 1, minWidth: 100,
+      renderCell:(params)=>(
+        <Box sx={{ marginTop:"10px",borderRadius:"16px", display:"flex", justifyContent:"center", alignItems:"center",width: params.value === "ACTIVE" ? "70px" : params.value === "INACTIVE" ? "80px" : "90px", padding:"4px", backgroundColor: params.value === "ACTIVE" ? "#ECFDF3": params.value === "INACTIVE" ? "#FEF3F2" : ""}}>
+           <Typography sx={{ fontSize:"12px", fontWeight:"500", textAlign:"center", color:params.value === "ACTIVE" ? "#027A48": params.value === "INACTIVE" ? "#B42318"  :"#333"}}>{params.value}</Typography>
+        </Box>
+      )
+    },
     {
       field: 'action', headerName: 'Action', flex: 1, minWidth: 120,
       renderCell: (params) => {
@@ -297,14 +303,14 @@ const handleRefreshPermissions = useCallback(async () => {
 
 
   return (
-    <Box sx={{ width: "100%", height: "auto", padding: { xs: "16px", sm: "24px" } }}>
+    <Box sx={{ width: "100%", height: "auto", marginTop:{ sm:"-10px"} }}>
       <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between", gap: { xs: 2, sm: 0 } }}>
         <Box sx={{ width: "100%", alignItems: "center", display: "flex" }}>
           <IconButton onClick={() => navigate(-1)} sx={{ padding: { xs: "4px", sm: "8px" } }}>
             <ArrowBackIosNewIcon  sx={{ fontSize: "20px" }} />
           </IconButton>
-          <Typography sx={{ fontSize: "25px", fontWeight: "600", color: "#032541" }}>Permissions</Typography>
-        </Box>
+            <Typography sx={{ fontSize: { xs: "20px", sm: "25px" },fontWeight:"600", color:"#032541" }}>Permissions</Typography>
+          </Box>
           <CustomAddButton style={{ width:"164px"}} variant="contained" label="Add Permission" onClick={handleOpen} />
       </Box>
 
@@ -377,8 +383,8 @@ const handleRefreshPermissions = useCallback(async () => {
       <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
         <Box sx={style}>
           <form style={{ width: "100%" }} onSubmit={PermissionsFormik.handleSubmit}>
-            <Typography sx={{ fontSize: { xs: "18px", sm: "20px" }, fontWeight: "700" }}>
-              {updatingPermission ? "Update Permission Details" : "Add Permission"}
+            <Typography sx={{ color:"#032541", fontSize: { xs: "18px", sm: "20px" }, fontWeight: "700" }}>
+              {updatingPermission ? "Update permission details" : "Add permission"}
             </Typography>
             <Box sx={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "20px" }}>
               <CustomTextField
@@ -405,22 +411,9 @@ const handleRefreshPermissions = useCallback(async () => {
                 errorMessage={PermissionsFormik.touched.permissionDescription && PermissionsFormik.errors.permissionDescription}
                 fullWidth
               />
-              <Box sx={{
-                marginBottom: "20px",
-                marginTop: "10px",
-                gap: "20px",
-                width: "100%",
-                display: "flex",
-                flexDirection: { xs: "column", sm: "row" },
-                justifyContent: "space-between",
-                alignItems: "center"
-              }}>
+              <Box sx={{ marginBottom: "20px", marginTop: "10px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <CustomCancelButton onClick={handleClose} label="Cancel" fullWidth={isMobile} />
-                <CustomSubmitButton
-                  loading={PermissionsFormik.isSubmitting}
-                  label={updatingPermission ? "Update Permission" : "Create Permission"}
-                  fullWidth={isMobile}
-                />
+                <CustomSubmitButton loading={PermissionsFormik.isSubmitting} label={updatingPermission ? "Update Permission" : "Create Permission"} fullWidth={isMobile}/>
               </Box>
             </Box>
           </form>
