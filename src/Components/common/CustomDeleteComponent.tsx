@@ -1,4 +1,4 @@
-import { Box, Button, Modal, Typography } from '@mui/material'
+import { Box, Button, Modal, Typography, useMediaQuery, useTheme } from '@mui/material'
 import warningRemoveIcon from "../../assets/icons/warningRemoveIcon.svg";
 
 interface CustomDeleteComponentProps {
@@ -11,16 +11,21 @@ interface CustomDeleteComponentProps {
 }
 
 const CustomDeleteComponent = ({ title, onClose, loading, onConfirm, open, itemT0Delete }:CustomDeleteComponentProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const style = {
-  position: 'absolute',
+  position: 'absolute' as const,
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 400,
+  width: isMobile ? '90%' : 400, 
+  maxWidth: 400,
   bgcolor: 'background.paper',
   boxShadow: 24,
-  padding: "24px",
-  borderRadius:"8px",
+  paddingY: "10px",
+  paddingX: isMobile ? "15px" : "30px", 
+  borderRadius: "8px",
+  maxHeight: '90vh', 
 };
   
   return (
@@ -42,9 +47,9 @@ const CustomDeleteComponent = ({ title, onClose, loading, onConfirm, open, itemT
                 </Typography>
                 </Box>
                 </Box>
-                <Box sx={{ width:"100%", display:"flex", marginTop:"10px", gap:"20px"}}>
-                <Button onClick={onClose} variant='outlined' sx={{ height:"46px", width:"130px", borderRadius:"8px", fontSize:"14px", fontWeight:"600", color:"#032541", border:"1px solid #032541" }}>Cancel</Button>
-                <Button onClick={onConfirm} loading={loading} disabled={loading} variant='contained' sx={{ height:'46px', width:"130px", backgroundColor:"#dc3545", borderRadius:"8px", fontSize:"14px", fontWeight:"600", color:"#fff",textTransform:"none" }}>Delete</Button>
+                <Box sx={{ width:"100%", display:"flex", marginTop:"10px", marginBottom:"10px", gap:"20px"}}>
+                <Button onClick={onClose} variant='outlined' sx={{ height:"46px", width:{xs:"110px", md:"130px"}, borderRadius:"8px", fontSize:"14px", fontWeight:"600", color:"#032541", border:"1px solid #032541" }}>Cancel</Button>
+                <Button onClick={onConfirm} loading={loading} disabled={loading} variant='contained' sx={{ height:'46px', width:{xs:"110px", md:"130px"}, backgroundColor:"#dc3545", borderRadius:"8px", fontSize:"14px", fontWeight:"600", color:"#fff",textTransform:"none" }}>Delete</Button>
               </Box>
                 </Box>
             </Box>

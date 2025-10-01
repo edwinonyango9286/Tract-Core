@@ -38,21 +38,20 @@ const breadcrumbs = [
   </Typography>,
 ];
 
-// Responsive modal style
 const getModalStyle = (isMobile: boolean) => ({
   position: 'absolute' as const,
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: isMobile ? '90%' : 400, // Responsive width
-  maxWidth: 400, // Maximum width
+  width: isMobile ? '90%' : 400, 
+  maxWidth: 400,
   bgcolor: 'background.paper',
   boxShadow: 24,
   paddingY: "10px",
-  paddingX: isMobile ? "15px" : "30px", // Responsive padding
+  paddingX: isMobile ? "15px" : "30px", 
   borderRadius: "8px",
-  maxHeight: '90vh', // Prevent modal from being too tall
-  overflow: 'auto' // Enable scrolling if content is too long
+  maxHeight: '90vh', 
+  overflow: 'auto' 
 });
 
 const CategorySchema = Yup.object<CreateCategoryPayload>({
@@ -68,8 +67,6 @@ const Categories = () => {
   const [searchTerm, setSearchTerm] = useState<string>("")
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
   const isDeleting = deleteCategoryMutation.isPending;
-
-  // Use MUI theme and breakpoints for responsive design
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -239,49 +236,49 @@ const Categories = () => {
     }
   }
 
-  // Responsive columns for DataGrid
   const columns: GridColDef[] = [
     { 
       field: 'code', 
       headerName: 'Code', 
       flex: 1,
-      minWidth: isSmallMobile ? 80 : 100 // Responsive min width
+      minWidth: 100 
     },
     { 
       field: 'name', 
       headerName: 'Name', 
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120
+      minWidth: 120
     },
     { 
       field: 'description', 
       headerName: 'Description', 
       flex: 1,
-      minWidth: isSmallMobile ? 120 : 150,
-      // Hide description on very small screens to save space
-      display: isSmallMobile ? 'none' : 'flex'
+      minWidth:  150,
     },
     { 
       field: 'createdAt', 
       headerName: 'Created At', 
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120,
+      minWidth: 120,
       renderCell: (params) => dateFormatter(params.value)
     },
     { 
       field: 'updatedAt', 
       headerName: 'Updated At', 
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120,
-      // Hide updatedAt on small mobile screens
-      display: isMobile ? 'none' : 'flex',
+      minWidth: 120,
       renderCell: (params) => dateFormatter(params.value)
     },
     { 
       field: "status", 
       headerName: "Status",
       flex: 1,
-      minWidth: isSmallMobile ? 80 : 100
+      minWidth: 100,
+         renderCell:(params)=>(
+              <Box sx={{ marginTop:"10px",borderRadius:"16px", display:"flex", justifyContent:"center", alignItems:"center",width: params.value === "ACTIVE" ? "70px" : params.value === "INACTIVE" || params.value === "ARCHIVED" ? "80px" : "90px", padding:"4px", backgroundColor: params.value === "ACTIVE" ? "#ECFDF3": params.value === "INACTIVE" ? "#FEF3F2" : params.value === "ARCHIVED" ? "#F2F4F7" :""}}>
+                 <Typography sx={{ fontSize:"12px", fontWeight:"500", textAlign:"center", color:params.value === "ACTIVE" ? "#027A48": params.value === "INACTIVE" ? "#B42318"  :  params.value === "ARCHIVED" ? "#344054" : ""}}>{params.value}</Typography>
+              </Box>
+    )
     },
     {
       field: 'action',
@@ -291,57 +288,17 @@ const Categories = () => {
       renderCell: (params) => {
         return (
           <Box sx={{ display: "flex", gap: "5px" }}>
-            <IconButton 
-              size={isSmallMobile ? "small" : "medium"}
-              onClick={() => handleEdit(params.row as Category)}
-            >
-              <img 
-                src={editIcon} 
-                alt="editIcon" 
-                style={{ 
-                  width: isSmallMobile ? "18px" : "21px", 
-                  height: isSmallMobile ? "18px" : "21px" 
-                }} 
-              />
+            <IconButton size={isSmallMobile ? "small" : "medium"} onClick={() => handleEdit(params.row as Category)}>
+              <img src={editIcon} alt="editIcon" style={{ width: isSmallMobile ? "18px" : "21px", height: isSmallMobile ? "18px" : "21px" }}/>
             </IconButton>
-            <IconButton 
-              size={isSmallMobile ? "small" : "medium"}
-              onClick={() => { handleOpenDeleteModal(params?.row?.code); setCategoryName(params?.row?.name) }}
-            >
-              <img 
-                src={deleteIcon} 
-                alt="deleteIconSmall" 
-                style={{ 
-                  width: isSmallMobile ? "20px" : "24px", 
-                  height: isSmallMobile ? "20px" : "24px" 
-                }} 
-              />
+            <IconButton size={isSmallMobile ? "small" : "medium"} onClick={() => { handleOpenDeleteModal(params?.row?.code); setCategoryName(params?.row?.name) }}>
+              <img src={deleteIcon}  alt="deleteIconSmall" style={{ width: isSmallMobile ? "20px" : "24px", height: isSmallMobile ? "20px" : "24px"}}/>
             </IconButton>
 
-            <IconButton 
-              size={isSmallMobile ? "small" : "medium"}
-              id="action-menu-button"
-              aria-controls={openActionMenu ? 'action-menu-button' : undefined}
-              aria-haspopup="true"
-              aria-expanded={openActionMenu ? 'true' : undefined}
-              onClick={(e) => handleClickActionMenu(e, params.row as Category)}
-            >
-              <img 
-                src={dotsVertical} 
-                alt="deleteIconSmall" 
-                style={{ 
-                  width: isSmallMobile ? "20px" : "24px", 
-                  height: isSmallMobile ? "20px" : "24px" 
-                }} 
-              />
+            <IconButton size={isSmallMobile ? "small" : "medium"} id="action-menu-button" aria-controls={openActionMenu ? 'action-menu-button' : undefined} aria-haspopup="true" aria-expanded={openActionMenu ? 'true' : undefined} onClick={(e) => handleClickActionMenu(e, params.row as Category)}>
+              <img src={dotsVertical} alt="deleteIconSmall" style={{ width: isSmallMobile ? "20px" : "24px", height: isSmallMobile ? "20px" : "24px"}}/>
             </IconButton>
-            <Menu
-              id="action-menu-button"
-              anchorEl={anchorEl}
-              open={openActionMenu}
-              onClose={handleCloseActionMenu}
-              slotProps={{ list: { 'aria-labelledby': 'basic-button' } }}
-            >
+            <Menu id="action-menu-button" anchorEl={anchorEl} open={openActionMenu} onClose={handleCloseActionMenu} slotProps={{ list: { 'aria-labelledby': 'basic-button' } }}>
               <MenuItem onClick={handleCloseActionMenu}>View details</MenuItem>
               <MenuItem onClick={handleUpdateCategoryStatus}>
                 {selectedCategory?.status === "ACTIVE" ? "Deactivate" : selectedCategory?.status === "INACTIVE" ? "Activate" : isDeactivating ? <CircularProgress thickness={5} size={16} sx={{ color: "#333", marginLeft: "20px" }} /> : null}
@@ -374,119 +331,37 @@ const Categories = () => {
   };
 
   return (
-    <Box sx={{ 
-      width: "100%", 
-      minHeight: "100vh",
-      padding: { xs: "10px", sm: "20px" } // Responsive padding
-    }}>
-      {/* Header Section */}
-      <Box sx={{ 
-        width: "100%", 
-        display: "flex", 
-        flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
-        justifyContent: "space-between",
-        alignItems: { xs: "flex-start", sm: "center" },
-        gap: { xs: 2, sm: 0 } // Add gap when stacked
-      }}>
-        <Box sx={{ 
-          display: "flex", 
-          alignItems: "center",
-          width: { xs: "100%", sm: "auto" }
-        }}>
+    <Box sx={{ width: "100%", minHeight: "100vh", overflow:"hidden", marginTop:{ sm: "-10px"} }}>
+      <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: { xs: "flex-start", sm: "center" }, gap: { xs: 2, sm: 0 }}}>
+        <Box sx={{ display: "flex", alignItems: "center", width: { xs: "100%", sm: "auto" }}}>
           <IconButton onClick={() => navigate(-1)} size={isSmallMobile ? "small" : "medium"}>
             <ArrowBackIosNewIcon fontSize={isSmallMobile ? "small" : "medium"} />
           </IconButton>
-          <Typography sx={{ 
-            fontSize: { xs: "20px", sm: "25px" }, 
-            fontWeight: "600", 
-            color: "#032541" 
-          }}>
+          <Typography sx={{ fontSize: { xs: "20px", sm: "25px" }, fontWeight: "600", color: "#032541" }}>
             Categories
           </Typography>
         </Box>
-        <CustomAddButton 
-          variant="contained" 
-          label="Add Category" 
-          onClick={handleOpen}
-          sx={{ width: { xs: "100%", sm: "auto" } }} 
-        />
+        <CustomAddButton style={{ width:"140px"}} variant="contained" label="Add Category" onClick={handleOpen}/>
       </Box>
 
       {/* Breadcrumbs */}
-      <Box sx={{ 
-        width: "100%", 
-        marginTop: { xs: "10px", sm: "0px" },
-        marginLeft: { xs: "0px", sm: "40px" }
-      }}>
-        <Breadcrumbs
-          style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }}
-          aria-label="breadcrumb"
-          separator={<FiberManualRecord style={{ fontSize: "0.625rem", fontFamily: "Poppins", color: "#e1e5e8" }} />}
-        >
+      <Box sx={{ width: "100%", marginTop: { xs: "-16px", sm: "-10px" }, marginLeft: { xs: "30px", sm: "40px" }}}>
+        <Breadcrumbs style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }} aria-label="breadcrumb" separator={<FiberManualRecord style={{ fontSize: "0.625rem", fontFamily: "Poppins", color: "#e1e5e8" }} />}>
           {breadcrumbs}
         </Breadcrumbs>
       </Box>
-
-      {/* Main Content */}
-      <Box sx={{ 
-        marginLeft: { xs: "0px", sm: "40px" },
-        marginTop: { xs: "20px", sm: "0px" }
-      }}>
-        {/* Overview Section */}
-        <Box sx={{ 
-          width: "100%", 
-          marginTop: "10px", 
-          marginBottom: "20px"
-        }}>
-          <Box sx={{ width: "100%" }}>
-            <Typography sx={{ 
-              fontSize: { xs: "16px", sm: "18px" }, 
-              fontWeight: "600", 
-              color: "#032541" 
-            }}>
-              Categories Overview
-            </Typography>
-          </Box>
-          {/* KPI Cards - Stack on mobile */}
-          <Box sx={{ 
-            marginTop: "10px", 
-            width: "100%", 
-            display: "flex", 
-            flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
-            alignItems: { xs: "flex-start", sm: "center" }, 
-            justifyContent: "space-between",
-            gap: { xs: 2, sm: 0 } // Add gap when stacked
-          }}>
-            <Box sx={{ 
-              display: "flex", 
-              flexDirection: "column",
-              width: { xs: "100%", sm: "auto" }
-            }}>
-              <Typography sx={{ 
-                textAlign: { xs: "center", sm: "start" },
-                fontSize: "16px", 
-                fontWeight: "600", 
-                color: "#1F2937" 
-              }}>
+      <Box sx={{ marginLeft: { xs: "0px", sm: "40px" }, marginTop: { xs: "20px", sm: "0px" }}}>
+        <Box sx={{ width: "100%", marginTop: "10px", marginBottom: "20px"}}>
+          <Box sx={{ marginTop: "10px", width: "100%", display: "flex", flexDirection: { xs: "column", sm: "row" }, alignItems: { xs: "flex-start", sm: "center" }, justifyContent: "space-between", gap: { xs: 2, sm: 0 }}}>
+            <Box sx={{ display: "flex", flexDirection: "column", width: { xs: "100%", sm: "auto" }}}>
+              <Typography sx={{ textAlign: { xs: "center", sm: "start" }, fontSize: "16px", fontWeight: "600", color: "#1F2937"}}>
                 Total
               </Typography>
-              <Typography sx={{ 
-                fontSize: { xs: "32px", sm: "40px" }, 
-                fontWeight: "600", 
-                color: "#1F2937",
-                textAlign: { xs: "center", sm: "left" }
-              }}>
+              <Typography sx={{ fontSize: { xs: "32px", sm: "40px" }, fontWeight: "600", color: "#1F2937", textAlign: { xs: "center", sm: "left" }}}>
                 {isKpiLoading ? <CircularProgress thickness={5} size={20} sx={{ color: "#333" }} /> : categoriesKPIResponse?.data?.totalCategories || 0}
               </Typography>
             </Box>
-            <Divider 
-              orientation={isMobile ? "horizontal" : "vertical"} 
-              sx={{ 
-                borderWidth: "1px", 
-                width: { xs: "100%", sm: "auto" },
-                height: { xs: "auto", sm: "80px" }
-              }} 
-            />
+            <Divider orientation={isMobile ? "horizontal" : "vertical"} sx={{ borderWidth: "1px", width: { xs: "100%", sm: "auto" },height: { xs: "auto", sm: "80px" }}}/>
             <Box sx={{ 
               display: "flex", 
               flexDirection: "column",
@@ -543,21 +418,8 @@ const Categories = () => {
           </Box>
           <Divider sx={{ width: "100%", borderWidth: "1px", color: "#333", marginTop: { xs: "20px", sm: "0px" } }} />
         </Box>
-
-        {/* Filters and Actions Section */}
-        <Box sx={{ 
-          display: "flex", 
-          width: "100%", 
-          flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
-          justifyContent: "space-between", 
-          marginTop: "20px",
-          gap: { xs: 2, sm: 0 } // Add gap when stacked
-        }}>
-          {/* Export Button */}
-          <Box sx={{ 
-            order: { xs: 2, sm: 1 }, // Reorder on mobile
-            width: { xs: "100%", sm: "auto" }
-          }}>
+        <Box sx={{ display: "flex", width: "100%", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between",  marginTop: "20px", gap: { xs: 2, sm: 0 }}}>
+          <Box sx={{ order: { xs: 2, sm: 1 },width: { xs: "100%", sm: "auto" }}}>
             <Button 
               variant="contained" 
               onClick={handleExport} 
@@ -575,29 +437,15 @@ const Categories = () => {
                 textTransform: 'none', 
                 fontSize: '14px', 
                 fontWeight: "500",
-                width: { xs: "100%", sm: "auto" } // Full width on mobile
+                width: { xs: "100%", sm: "auto" } 
               }}
             >
               {exportCategoriesMutation.isPending ? 'Exporting...' : 'Export CSV'}
             </Button>
           </Box>
 
-          {/* Filters */}
-          <Box sx={{ 
-            display: "flex", 
-            flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
-            gap: "20px", 
-            alignItems: { xs: "stretch", sm: "center" },
-            order: { xs: 1, sm: 2 }, // Reorder on mobile
-            width: { xs: "100%", sm: "auto" }
-          }}>
-            {/* Date Pickers */}
-            <Box sx={{ 
-              display: "flex", 
-              flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
-              gap: "10px",
-              width: { xs: "100%", sm: "auto" }
-            }}>
+          <Box sx={{  display: "flex", flexDirection: { xs: "column", sm: "row" },  gap: "20px", alignItems: { xs: "stretch", sm: "center" }, order: { xs: 1, sm: 2 },  width: { xs: "100%", sm: "auto" }}}>
+            <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: "10px", width: { xs: "100%", sm: "auto" }}}>
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <DatePicker 
                   disableFuture 
@@ -607,7 +455,7 @@ const Categories = () => {
                   slotProps={{ 
                     textField: { 
                       size: 'small', 
-                      sx: { width: { xs: "100%", sm: 150 } } // Full width on mobile
+                      sx: { width: { xs: "100%", sm: 150 } }
                     }
                   }}
                 />
@@ -620,7 +468,7 @@ const Categories = () => {
                     textField: {
                       placeholder: "Select end date", 
                       size: 'small',
-                      sx: { width: { xs: "100%", sm: 150 } } // Full width on mobile
+                      sx: { width: { xs: "100%", sm: 150 } }
                     }
                   }}
                 />
@@ -629,15 +477,7 @@ const Categories = () => {
                     variant="outlined"
                     size="small"
                     onClick={handleClearDates}
-                    sx={{
-                      borderRadius: "8px",
-                      borderColor: "#D1D5DB",
-                      textTransform: "none",
-                      color: "#333",
-                      height: '40px',
-                      width: { xs: "100%", sm: "auto" } // Full width on mobile
-                    }}
-                  >
+                    sx={{ borderRadius: "8px", borderColor: "#D1D5DB", textTransform: "none", color: "#333", height: '40px', width: { xs: "100%", sm: "auto" }}}>
                     Clear dates
                   </Button>
                 )}
@@ -645,19 +485,13 @@ const Categories = () => {
             </Box>
 
             {/* Status Select and Search */}
-            <Box sx={{ 
-              display: "flex", 
-              flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
-              gap: "10px",
-              width: { xs: "100%", sm: "auto" }
-            }}>
+            <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: "10px", width: { xs: "100%", sm: "auto" }}}>
               <Box sx={{ width: { xs: "100%", sm: "200px" } }}>
                 <Select
                   displayEmpty
                   renderValue={value => value === '' ? 'Select Status' : value}
                   size="small"
-                  sx={{
-                    width: "100%",
+                  sx={{  width: "100%",
                     '& .MuiOutlinedInput-notchedOutline': { borderWidth: "1px", borderColor: '#D1D5DB' },
                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#D1D5DB' },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth: "1px", borderColor: '#D1D5DB' }
@@ -670,23 +504,14 @@ const Categories = () => {
                   <MenuItem value={"INACTIVE"}>Inactive</MenuItem>
                 </Select>
               </Box>
-              <CustomSearchTextField
-                value={searchTerm}
-                onChange={handleSearchChange}
-                placeholder="Search category..."
-                sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
+              <CustomSearchTextField value={searchTerm} onChange={handleSearchChange} placeholder="Search category..." sx={{ width: { xs: "100%", sm: "auto" } }}
               />
             </Box>
           </Box>
         </Box>
 
         {/* Category Modal */}
-        <Modal 
-          open={open} 
-          onClose={handleClose} 
-          aria-labelledby="modal-modal-title" 
-          aria-describedby="modal-modal-description"
-        >
+        <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
           <Box sx={getModalStyle(isMobile)}>
             <form style={{ width: "100%" }} onSubmit={CategoryFormik.handleSubmit}>
               <Typography sx={{ fontSize: { xs: "18px", sm: "20px" }, fontWeight: "700" }}>
@@ -715,33 +540,15 @@ const Categories = () => {
                   onBlur={CategoryFormik.handleBlur}
                   errorMessage={CategoryFormik.touched.description && CategoryFormik.errors.description}
                 />
-                <Box sx={{
-                  marginBottom: "20px",
-                  marginTop: "10px",
-                  gap: "20px",
-                  width: "100%",
-                  display: "flex",
-                  flexDirection: { xs: "column", sm: "row" }, // Stack buttons on mobile
-                  justifyContent: "space-between",
-                  alignItems: "center"
-                }}>
-                  <CustomCancelButton 
-                    onClick={handleClose} 
-                    label="Cancel" 
-                    sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
-                  />
-                  <CustomSubmitButton
-                    loading={CategoryFormik.isSubmitting}
-                    label={updatingCategory ? "Update Category" : "Create Category"}
-                    sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
-                  />
+                <Box sx={{ marginBottom: "20px", marginTop: "10px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <CustomCancelButton onClick={handleClose} label="Cancel" sx={{ width: { xs: "100%", sm: "auto" } }} />
+                  <CustomSubmitButton  loading={CategoryFormik.isSubmitting} label={updatingCategory ? "Update Category" : "Create Category"} sx={{ width: { xs: "100%", sm: "auto" } }}/>
                 </Box>
               </Box>
             </form>
           </Box>
         </Modal>
 
-        {/* Delete Modal */}
         <CustomDeleteComponent
           loading={isDeleting}
           open={openDeleteModal}
@@ -751,13 +558,7 @@ const Categories = () => {
           itemT0Delete={`${categoryName} category`}
         />
 
-        {/* DataGrid */}
-        <Box sx={{ 
-          width: "100%", 
-          height: { xs: "400px", sm: "70vh" }, // Adjust height for mobile
-          marginTop: "20px",
-          overflow: "auto" // Ensure horizontal scrolling on mobile
-        }}>
+        <Box sx={{ width: "100%", height: { xs: "400px", sm: "70vh" }, marginTop: "20px",overflow: "auto" }}>
           <CustomDataGrid
             loading={isLoading}
             rows={categoriesList}
@@ -766,14 +567,6 @@ const Categories = () => {
             paginationModel={paginationModel}
             onPaginationModelChange={handlePaginationModelChange}
             columns={columns}
-            sx={{
-              '& .MuiDataGrid-cell': {
-                fontSize: { xs: '0.75rem', sm: '0.875rem' } // Smaller font on mobile
-              },
-              '& .MuiDataGrid-columnHeader': {
-                fontSize: { xs: '0.75rem', sm: '0.875rem' } // Smaller header font on mobile
-              }
-            }}
           />
         </Box>
       </Box>

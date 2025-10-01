@@ -39,7 +39,7 @@ export const getAllCategoriesService = async (params?:GetCategoriesParams):Promi
 
 export const deleteCategoryService =  async (code:string)=>{
   try {
-    const response = await apiClient(`aims/categories/${code}`);
+    const response = await apiClient.delete(`aims/categories/delete/${code}`);
     return response;
   } catch (error) {
     console.log(error);
