@@ -183,54 +183,49 @@ const Pallets = () => {
     setOpen(true);
   }, []);
 
-  // Responsive columns
   const columns: GridColDef[] = [
     {
       field: 'type',
       headerName: 'Type',
       flex: 1,
-      minWidth: isSmallMobile ? 80 : 100
+      minWidth:  100
     },
     {
       field: 'currentStackCode',
       headerName: 'Current Stack Code',
       flex: 1,
-      minWidth: isSmallMobile ? 120 : 150,
-      display: isMobile ? 'none' : 'flex' // Hide on mobile
+      minWidth:  150,
     },
     {
       field: 'currentLocation',
       headerName: 'Current Location',
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120
+      minWidth: 120
     },
     {
       field: 'owner',
       headerName: 'Owner',
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120
+      minWidth:  120
     },
     {
       field: 'lastReference',
       headerName: 'Last Reference',
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120,
-      display: isMobile ? 'none' : 'flex' // Hide on mobile
+      minWidth:120,
     },
     {
       field: 'lastMoveAt',
       headerName: 'Last Moved At',
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120,
-      display: isSmallMobile ? 'none' : 'flex', // Hide on very small screens
+      minWidth: 120,
       renderCell: (params) => dateFormatter(params.value)
     },
     {
       field: 'notes',
       headerName: 'Notes',
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120,
-      display: isMobile ? 'none' : 'flex' // Hide on mobile
+      minWidth: 120,
     },
     {
       field: 'status',
@@ -242,16 +237,14 @@ const Pallets = () => {
       field: 'createdAt',
       headerName: 'Created At',
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120,
-      display: isSmallMobile ? 'none' : 'flex', // Hide on very small screens
+      minWidth:  120,
       renderCell: (params) => dateFormatter(params.value)
     },
     {
       field: 'updatedAt',
       headerName: 'Updated At',
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120,
-      display: isMobile ? 'none' : 'flex', // Hide on mobile
+      minWidth: 120,
       renderCell: (params) => dateFormatter(params.value)
     },
     {
@@ -339,12 +332,7 @@ const Pallets = () => {
         />
       </Box>
 
-      {/* Breadcrumbs */}
-      <Box sx={{
-        width: "100%",
-        marginTop: { xs: "-16px", sm: "-10px" },
-        marginLeft: { xs: "30px", sm: "40px" }
-      }}>
+      <Box sx={{ width: "100%", marginTop: { xs: "-16px", sm: "-10px" }, marginLeft: { xs: "30px", sm: "40px" }}}>
         <Breadcrumbs
           style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }}
           aria-label="breadcrumb"
@@ -354,20 +342,8 @@ const Pallets = () => {
         </Breadcrumbs>
       </Box>
 
-      {/* Main Content */}
-      <Box sx={{
-        marginLeft: { xs: "0px", sm: "40px" },
-        marginTop: { xs: "20px", sm: "0px" }
-      }}>
-        {/* Filters Section */}
-        <Box sx={{
-          display: "flex",
-          width: "100%",
-          flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
-          justifyContent: "space-between",
-          marginTop: "20px",
-          gap: { xs: 2, sm: 0 }
-        }}>
+      <Box sx={{ marginLeft: { xs: "0px", sm: "40px" }, marginTop: { xs: "20px", sm: "0px" }}}>
+        <Box sx={{ display: "flex", width: "100%", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", marginTop: "20px", gap: { xs: 2, sm: 0 }}}>
           <Box sx={{ order: { xs: 2, sm: 1 } }}></Box>
           <Box sx={{
             display: "flex",
@@ -474,6 +450,8 @@ const Pallets = () => {
                   type="text"
                   name="notes"
                   label="Notes"
+                  multiline
+                  rows={3}
                   placeholder="Notes"
                   onChange={PalletFormik.handleChange}
                   value={PalletFormik.values.notes}
