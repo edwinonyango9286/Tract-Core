@@ -75,8 +75,6 @@ const SubCategories = () => {
   const isDeleting = deleteSubCategoryMutation.isPending;
   const { data: getCategoriesReponse } = useGetCategories();
   const categoriesList = getCategoriesReponse?.data.content || []
-
-  // Responsive breakpoints
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -249,54 +247,55 @@ const SubCategories = () => {
       showSnackbar(err.response?.data.message || err.message)
     }
   }
-
-  // Responsive columns
   const columns: GridColDef[] = [
     {
       field: 'code',
       headerName: 'Code',
       flex: 1,
-      minWidth: isSmallMobile ? 80 : 100
+      minWidth: 100
     },
     {
       field: 'name',
       headerName: 'Name',
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120
+      minWidth:  120
     },
     {
       field: 'description',
       headerName: 'Description',
       flex: 1,
-      minWidth: isSmallMobile ? 120 : 150,
-      display: isSmallMobile ? 'none' : 'flex' // Hide description on very small screens
+      minWidth:  150,
     },
     {
       field: 'categoryName',
       headerName: 'Category',
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120
-    },
-    {
-      field: "status",
-      headerName: "status",
-      flex: 1,
-      minWidth: isSmallMobile ? 80 : 100
+      minWidth: 120
     },
     {
       field: "createdAt",
       headerName: "Created At",
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120,
+      minWidth: 120,
       renderCell: (params) => dateFormatter(params.value)
     },
     {
       field: "updatedAt",
       headerName: "Updated At",
       flex: 1,
-      minWidth: isSmallMobile ? 100 : 120,
-      display: isMobile ? 'none' : 'flex', // Hide on mobile
+      minWidth: 120,
       renderCell: (params) => dateFormatter(params.value)
+    },
+     {
+      field: "status",
+      headerName: "status",
+      flex: 1,
+      minWidth: 100,
+          renderCell:(params)=>(
+           <Box sx={{ marginTop:"10px",borderRadius:"16px", display:"flex", justifyContent:"center", alignItems:"center",width: params.value === "ACTIVE" ? "70px" : params.value === "INACTIVE" ? "80px" : "90px", padding:"4px", backgroundColor: params.value === "ACTIVE" ? "#ECFDF3": params.value === "INACTIVE" ? "#FEF3F2" : ""}}>
+             <Typography sx={{ fontSize:"12px", fontWeight:"500", textAlign:"center", color:params.value === "ACTIVE" ? "#027A48": params.value === "INACTIVE" ? "#B42318"  :"#333"}}>{params.value}</Typography>
+          </Box>
+       )
     },
     {
       field: 'action',
@@ -306,49 +305,14 @@ const SubCategories = () => {
       renderCell: (params) => {
         return (
           <Box sx={{ display: "flex", gap: "5px" }}>
-            <IconButton
-              size={isSmallMobile ? "small" : "medium"}
-              onClick={() => handleEdit(params.row as SubCategory)}
-            >
-              <img
-                src={editIcon}
-                alt="editIcon"
-                style={{
-                  width: isSmallMobile ? "18px" : "21px",
-                  height: isSmallMobile ? "18px" : "21px"
-                }}
-              />
+            <IconButton size={isSmallMobile ? "small" : "medium"} onClick={() => handleEdit(params.row as SubCategory)}>
+              <img src={editIcon} alt="editIcon" style={{ width: isSmallMobile ? "18px" : "21px", height: isSmallMobile ? "18px" : "21px" }}/>
             </IconButton>
-            <IconButton
-              size={isSmallMobile ? "small" : "medium"}
-              onClick={() => { handleOpenDeleteModal(params?.row?.code); setSubCategoryName(params?.row?.name) }}
-            >
-              <img
-                src={deleteIcon}
-                alt="deleteIconSmall"
-                style={{
-                  width: isSmallMobile ? "20px" : "24px",
-                  height: isSmallMobile ? "20px" : "24px"
-                }}
-              />
+            <IconButton size={isSmallMobile ? "small" : "medium"} onClick={() => { handleOpenDeleteModal(params?.row?.code); setSubCategoryName(params?.row?.name)}}>
+              <img src={deleteIcon} alt="deleteIconSmall"style={{ width: isSmallMobile ? "20px" : "24px", height: isSmallMobile ? "20px" : "24px" }}/>
             </IconButton>
-            <IconButton
-              sx={{}}
-              size={isSmallMobile ? "small" : "medium"}
-              id="action-menu-button"
-              aria-controls={openActionMenu ? 'action-menu' : undefined}
-              aria-haspopup="true"
-              aria-expanded={openActionMenu ? 'true' : undefined}
-              onClick={(event) => handleClickActionMenu(event, params.row as SubCategory)}
-            >
-              <img
-                src={dotsVertical}
-                alt="deleteIconSmall"
-                style={{
-                  width: isSmallMobile ? "20px" : "24px",
-                  height: isSmallMobile ? "20px" : "24px"
-                }}
-              />
+            <IconButton  sx={{}} size={isSmallMobile ? "small" : "medium"} id="action-menu-button" aria-controls={openActionMenu ? 'action-menu' : undefined} aria-haspopup="true" aria-expanded={openActionMenu ? 'true' : undefined} onClick={(event) => handleClickActionMenu(event, params.row as SubCategory)}>
+              <img src={dotsVertical} alt="deleteIconSmall" style={{ width: isSmallMobile ? "20px" : "24px", height: isSmallMobile ? "20px" : "24px"}}/>
             </IconButton>
 
             {/* dots vertical action menu here */}
@@ -387,119 +351,35 @@ const SubCategories = () => {
   };
 
   return (
-    <Box sx={{
-      width: "100%",
-      minHeight: "100vh",
-      padding: { xs: "10px", sm: "20px" } // Responsive padding
-    }}>
-      {/* Header Section */}
-      <Box sx={{
-        width: "100%",
-        display: "flex",
-        flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
-        justifyContent: "space-between",
-        alignItems: { xs: "flex-start", sm: "center" },
-        gap: { xs: 2, sm: 0 }
-      }}>
-        <Box sx={{
-          display: "flex",
-          alignItems: "center",
-          width: { xs: "100%", sm: "auto" }
-        }}>
-          <IconButton
-            onClick={() => navigate(-1)}
-            size={isSmallMobile ? "small" : "medium"}
-          >
+    <Box sx={{ width: "100%", minHeight: "100vh"}}>
+      <Box sx={{ width: "100%", display: "flex",  justifyContent: "space-between", alignItems: { xs: "flex-start", sm: "center" }, gap: { xs: 2, sm: 0 }}}>
+        <Box sx={{ display: "flex",alignItems: "center", width: { xs: "100%", sm: "auto" }}}>
+          <IconButton onClick={() => navigate(-1)} size={isSmallMobile ? "small" : "medium"}>
             <ArrowBackIosNewIcon fontSize={isSmallMobile ? "small" : "medium"} />
           </IconButton>
-          <Typography sx={{
-            fontSize: { xs: "20px", sm: "25px" },
-            fontWeight: "600",
-            color: "#032541"
-          }}>
+          <Typography sx={{fontSize: { xs: "20px", sm: "25px" },fontWeight: "600",color: "#032541"}}>
             Sub Categories
           </Typography>
         </Box>
 
-        <Box sx={{
-          display: 'flex',
-          gap: 2,
-          width: { xs: "100%", sm: "auto" },
-          justifyContent: { xs: "flex-start", sm: "flex-end" }
-        }}>
-          <CustomAddButton
-            variant="contained"
-            label="Add Sub category"
-            onClick={handleOpen}
-            sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on mobile
-          />
+        <Box sx={{display: 'flex',gap: 2, width: { xs: "100%", sm: "auto" },justifyContent: { xs: "flex-start", sm: "flex-end" }}}>
+          <CustomAddButton style={{ width:"140px"}}  variant="contained" label="Add Sub category" onClick={handleOpen}/>
         </Box>
       </Box>
-
-      {/* Breadcrumbs */}
-      <Box sx={{
-        width: "100%",
-        marginTop: { xs: "10px", sm: "-10px" },
-        marginLeft: { xs: "0px", sm: "40px" }
-      }}>
-        <Breadcrumbs
-          style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }}
-          aria-label="breadcrumb"
-          separator={<FiberManualRecord style={{ fontSize: "0.625rem", fontFamily: "Poppins", color: "#e1e5e8" }} />}
-        >
+      <Box sx={{ width: "100%", marginTop: { xs: "-10px", sm: "-10px" },marginLeft: { xs: "30px", sm: "40px" }}}>
+        <Breadcrumbs style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }} aria-label="breadcrumb" separator={<FiberManualRecord style={{ fontSize: "0.625rem", fontFamily: "Poppins", color: "#e1e5e8" }} />}>
           {breadcrumbs}
         </Breadcrumbs>
       </Box>
 
-      {/* Main Content */}
-      <Box sx={{
-        marginLeft: { xs: "0px", sm: "40px" },
-        marginTop: { xs: "20px", sm: "0px" }
-      }}>
-        {/* Overview Section */}
-        <Box sx={{
-          width: "100%",
-          marginTop: "10px",
-          marginBottom: "20px"
-        }}>
-          <Box sx={{ width: "100%" }}>
-            <Typography sx={{
-              fontSize: { xs: "16px", sm: "18px" },
-              fontWeight: "600",
-              color: "#032541"
-            }}>
-              Sub Categories Overview
-            </Typography>
-          </Box>
-          {/* KPI Cards - Stack on mobile */}
-          <Box sx={{
-            marginTop: "10px",
-            width: "100%",
-            display: "flex",
-            flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
-            alignItems: { xs: "flex-start", sm: "center" },
-            justifyContent: "space-between",
-            gap: { xs: 2, sm: 0 }
-          }}>
-            <Box sx={{
-              display: "flex",
-              flexDirection: "column",
-              width: { xs: "100%", sm: "auto" }
-            }}>
-              <Typography sx={{
-                textAlign: { xs: "center", sm: "start" },
-                fontSize: "16px",
-                fontWeight: "600",
-                color: "#1F2937"
-              }}>
+      <Box sx={{ marginLeft: { xs: "0px", sm: "40px" }, marginTop: { xs: "20px", sm: "0px" }}}>
+        <Box sx={{ width: "100%",marginTop: "10px", marginBottom: "20px"}}>
+          <Box sx={{ marginTop: "10px", width: "100%", display: "flex", flexDirection: { xs: "column", sm: "row" }, alignItems: { xs: "flex-start", sm: "center" }, justifyContent: "space-between", gap: { xs: 2, sm: 0 }}}>
+            <Box sx={{ display: "flex",flexDirection: "column", width: { xs: "100%", sm: "auto" }}}>
+              <Typography sx={{ textAlign: { xs: "center", sm: "start" },fontSize: "16px", fontWeight: "600", color: "#1F2937"}}>
                 Total
               </Typography>
-              <Typography sx={{
-                fontSize: { xs: "32px", sm: "40px" },
-                fontWeight: "600",
-                color: "#1F2937",
-                textAlign: { xs: "center", sm: "left" }
-              }}>
+              <Typography sx={{ fontSize: { xs: "32px", sm: "40px" }, fontWeight: "600", color: "#1F2937", textAlign: { xs: "center", sm: "left" }}}>
                 {isKpiLoading ? <CircularProgress thickness={5} size={20} sx={{ color: "#333" }} /> : subCategoriesKpiData?.totalSubCategories || 0}
               </Typography>
             </Box>
@@ -565,22 +445,19 @@ const SubCategories = () => {
               </Typography>
             </Box>
           </Box>
-
           <Divider sx={{ width: "100%", borderWidth: "1px", color: "#333", marginTop: { xs: "20px", sm: "0px" } }} />
         </Box>
 
-        {/* Filters and Actions Section */}
         <Box sx={{
           display: "flex",
           width: "100%",
-          flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
+          flexDirection: { xs: "column", sm: "row" },
           justifyContent: "space-between",
           marginTop: "10px",
           gap: { xs: 2, sm: 0 }
         }}>
-          {/* Export Button */}
           <Box sx={{
-            order: { xs: 2, sm: 1 }, // Reorder on mobile
+            order: { xs: 2, sm: 1 }, 
             width: { xs: "100%", sm: "auto" }
           }}>
             <Button
@@ -668,11 +545,9 @@ const SubCategories = () => {
                 )}
               </LocalizationProvider>
             </Box>
-
-            {/* Status and Search */}
             <Box sx={{
               display: "flex",
-              flexDirection: { xs: "column", sm: "row" }, // Stack on mobile
+              flexDirection: { xs: "column", sm: "row" }, 
               gap: "10px",
               width: { xs: "100%", sm: "auto" }
             }}>
