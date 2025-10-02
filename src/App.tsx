@@ -17,6 +17,7 @@ import Stacks from "./pages/Inventory/Stacks";
 import Pallets from "./pages/Inventory/Pallets";
 import Categories from "./pages/assets/Categories";
 import SubCategories from "./pages/assets/SubCategories";
+import NotFound from "./pages/NotFound";
 
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ function App() {
       <SnackbarProvider autoHideDuration={6000}>
         <BrowserRouter>
           <Routes>
+            <Route path="*" element={<NotFound/>}></Route>
              <Route element={<PublicRoutes/>}>
                <Route path="/" element={<SignIn />} />
                <Route path="/create-account" element={<CreateAccount />} />

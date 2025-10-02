@@ -44,13 +44,6 @@ const stackUtilizationData = inventoryKPIData?.stackUtilization.map(stack => ({
   capacity: stack.capacity
 })) || [];
 
-const flowData = inventoryKPIData ? [
-  { name: 'Dispatches', count: inventoryKPIData.flow.dispatchCount },
-  { name: 'Returns', count: inventoryKPIData.flow.returnCount },
-  { name: 'Avg Return Days', count: inventoryKPIData.flow.avgDispatchToReturnDays },
-] : [];
-
-
 const [paginationModel,setPaginationModel] = useState({ page:0, pageSize:10})
 const {data:getAssetsResponse , isLoading:loadingAssets } = useGetAssets({ page:paginationModel.page, size:paginationModel.pageSize });
 const handlePaginationModelChange =(newModel:GridPaginationModel)=>{

@@ -6,6 +6,11 @@ export interface CreateUserPayload {
   phone?: string;
   role?: string;
 }
+export interface Decoded  {
+ role:string;
+ id:number;
+ sub:string;
+}
 export interface User {
   id: number;
   firstname: string;

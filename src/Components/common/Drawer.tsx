@@ -34,7 +34,7 @@ type DrawerProps = {
 };
 
 const drawerWidth = 232;
-
+const userRole = localStorage.getItem("userRole")
 const Drawer = ({open, toggleDrawer, children}: DrawerProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -136,9 +136,9 @@ const Drawer = ({open, toggleDrawer, children}: DrawerProps) => {
   return (
     <MuiDrawer  variant={isMobile ? "temporary" : "persistent"} open={open} onClose={isMobile ? toggleDrawer : undefined} sx={{width: { xs: "60%", sm: drawerWidth }, flexShrink: 0, '& .MuiDrawer-paper': { width: { xs: "60%", sm: drawerWidth }, boxSizing: 'border-box', overflowX: 'hidden', display: 'flex', flexDirection: 'column', backgroundColor : "#032541",borderRight:"1px solid #E5E7EB"}}}>
       <Box onClick={()=>navigate("")} sx={{ gap:"20px", cursor:"pointer", position: "relative",  padding: { xs: "16px", sm: "20px" },  display: "flex",alignItems: "center",justifyContent: { xs: "space-between", sm: "center" }, width: "100%",height: { xs: "60px", sm: "68px" },flexShrink: 0}}>
-        <Typography sx={{ display:"flex", textWrap:"nowrap", wordWrap:"normal", color:"#fff", alignItems:"center", textAlign:"start", fontSize: { xs: "18px", sm: "20px" }, fontWeight:"700"}}>TRACT CORE </Typography>
+        <Typography sx={{ display:"flex", textWrap:"nowrap", wordWrap:"normal", color:"#fff", alignItems:"center", textAlign:"start", fontSize: { xs: "18px", sm: "20px" }, fontWeight:"700"}}>TRACK CORE </Typography>
         <Box sx={{ display:"flex", borderRadius:"4px", alignItems:"center", justifyContent:"center", padding: { xs: "6px", sm: "8px" }, width:"auto", backgroundColor:"#fff", height: { xs: "24px", sm: "26px" }}}>
-         <Typography sx={{  fontSize: { xs: "12px", sm: "14px" }, fontWeight:"500", color:"#333"}}>Admin</Typography>
+         <Typography sx={{  fontSize:"12px", fontWeight:"600", color:"#333"}}>{userRole}</Typography>
          </Box>
       </Box>
       <Box sx={{ overflowY: 'auto', flexGrow: 1 }}>
@@ -149,6 +149,9 @@ const Drawer = ({open, toggleDrawer, children}: DrawerProps) => {
       {children && (
         <Box sx={{padding: { xs: "12px", sm: "16px" }, borderTop: '1px solid rgba(0, 0, 0, 0.12)',flexShrink: 0 }}>{children}</Box>
       )}
+      <Box sx={{alignSelf:"center", marginBottom:"20px"}}>
+        <Typography sx={{ textAlign:"center", fontSize:"14px", fontWeight:"500", color:"#f5f5f5"}}>©{new Date().getFullYear()} Track. All rights reserved.   Version 1.0.1</Typography>
+      </Box>
     </MuiDrawer>
   );
 };

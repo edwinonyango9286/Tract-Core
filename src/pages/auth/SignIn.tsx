@@ -14,6 +14,9 @@ import type { AxiosError } from "axios"
 import { useSnackbar } from "../../hooks/useSnackbar"
 import { signInUserService } from "../../services/authService"
 import Cookies from "js-cookie"
+import { jwtDecode }from 'jwt-decode';
+import { getUserService } from "../../services/userService"
+import type { Decoded } from "../../types/user"
 
 
 const SignInSchema = Yup.object<SignInPayload>({
@@ -24,6 +27,19 @@ const SignIn = () => {
   const navigate = useNavigate();
   const {showSnackbar} = useSnackbar();
 
+
+  const handleGetUserDetails =  async (userId:number)=>{
+    try {
+      const response = await getUserService(userId);
+      if(response?.status === 200){
+          localStorage.setItem("userData",JSON.stringify(response.data.data))
+          navigate("/dashboard");
+      }
+    } catch (error) {
+      const err = error as AxiosError<{message?:string}>
+      showSnackbar(err?.response?.data.message || err.message, "error")
+    }
+  }
  const formik = useFormik<SignInPayload>({
     initialValues: {
       username: "",
@@ -34,17 +50,18 @@ const SignIn = () => {
       try {
        const response = await signInUserService(values);
        if(response.status === 200){
-        // cookies will be cleared after 24 hours so the user will have to login again
         Cookies.set("access_token",response.data.data.access_token,{expires:1, secure:true, sameSite:"strict"});
         Cookies.set("refresh_token", response.data.data.refresh_token, {expires:1, secure:true, sameSite:"strict"});
-        navigate("/dashboard")
-        resetForm();
+        const decoded :Decoded = await jwtDecode(response.data.data.access_token);
+        localStorage.setItem("userRole", decoded.role)
+        await handleGetUserDetails(decoded.id);
         }
       } catch (error) {
         const err = error as AxiosError<{message?:string}>
         showSnackbar(err?.response?.data.message || err.message, "error")
       } finally {
         setSubmitting(false);
+        resetForm();
       }
     },
   });
