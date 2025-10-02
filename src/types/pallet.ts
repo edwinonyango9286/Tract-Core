@@ -4,6 +4,11 @@ export interface CreatePalletPayload {
   initialStackCode: string;
   initialLocation: string;
   notes: string;
+  description:string;
+  quantity:number;
+  weight:number;
+  height:number;
+  width:number;
 }
 
 export interface Pallet {
@@ -16,7 +21,13 @@ export interface Pallet {
   lastReference?: string;
   lastMoveAt?: string;
   notes?: string;
+  description?:string;
+  quantity?:number;
+  weight?:number;
+  height?:number;
+  width?:number;
 }
+
 export interface GetPalletsParams {
   page?: number;
   size?: number;

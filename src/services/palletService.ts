@@ -44,7 +44,7 @@ export const deletePalletService = async (code: string) => {
 
 export const updatePalletService = async ({ code, ...palletData }: Pallet) => {
   try {
-    const response = await apiClient.put(`aims/pallets/${code}`, palletData);
+    const response = await apiClient.put(`aims/pallets/update/${code}`, palletData);
     return response;
   } catch (error) {
     console.log(error);
