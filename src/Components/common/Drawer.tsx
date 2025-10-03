@@ -134,14 +134,14 @@ const Drawer = ({open, toggleDrawer, children}: DrawerProps) => {
   };
 
   return (
-    <MuiDrawer  variant={isMobile ? "temporary" : "persistent"} open={open} onClose={isMobile ? toggleDrawer : undefined} sx={{width: { xs: "60%", sm: drawerWidth }, flexShrink: 0, '& .MuiDrawer-paper': { width: { xs: "60%", sm: drawerWidth }, boxSizing: 'border-box', overflowX: 'hidden', display: 'flex', flexDirection: 'column', backgroundColor : "#032541",borderRight:"1px solid #E5E7EB"}}}>
+    <MuiDrawer  variant={isMobile ? "temporary" : "persistent"} open={open} onClose={isMobile ? toggleDrawer : undefined} sx={{width: { xs: "60%", sm: drawerWidth }, flexShrink: 0, '& .MuiDrawer-paper': { width: { xs: "60%", sm: drawerWidth }, boxSizing: 'border-box', overflowX: 'hidden', display: 'flex', flexDirection: 'column', backgroundColor : "#032541", borderTopRightRadius:"12px", borderBottomRightRadius:"12px"}}}>
       <Box onClick={()=>navigate("")} sx={{ gap:"20px", cursor:"pointer", position: "relative",  padding: { xs: "16px", sm: "20px" },  display: "flex",alignItems: "center",justifyContent: { xs: "space-between", sm: "center" }, width: "100%",height: { xs: "60px", sm: "68px" },flexShrink: 0}}>
         <Typography sx={{ display:"flex", textWrap:"nowrap", wordWrap:"normal", color:"#fff", alignItems:"center", textAlign:"start", fontSize: { xs: "18px", sm: "20px" }, fontWeight:"700"}}>TRACK CORE </Typography>
         <Box sx={{ display:"flex", borderRadius:"4px", alignItems:"center", justifyContent:"center", padding: { xs: "6px", sm: "8px" }, width:"auto", backgroundColor:"#fff", height: { xs: "24px", sm: "26px" }}}>
          <Typography sx={{  fontSize:"12px", fontWeight:"600", color:"#333"}}>{userRole}</Typography>
          </Box>
       </Box>
-      <Box sx={{ overflowY: 'auto', flexGrow: 1 }}>
+      <Box sx={{ overflowY: "auto", overflowX:"hidden", flexGrow: 1 }}>
         <List>
           {navItems.map((item) => renderItem(item))}
         </List>
