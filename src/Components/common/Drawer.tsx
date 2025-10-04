@@ -37,7 +37,7 @@ const drawerWidth = 232;
 const userRole = localStorage.getItem("userRole")
 const Drawer = ({open, toggleDrawer, children}: DrawerProps) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const location = useLocation();
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});

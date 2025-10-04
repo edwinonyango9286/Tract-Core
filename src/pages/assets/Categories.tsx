@@ -350,7 +350,7 @@ const Categories = () => {
           {breadcrumbs}
         </Breadcrumbs>
       </Box>
-      <Box sx={{ marginLeft: { xs: "0px", sm: "40px" }, marginTop: { xs: "20px", sm: "0px" }}}>
+      <Box sx={{ marginTop: { xs: "20px", sm: "0px" }}}>
         <Box sx={{ width: "100%", marginTop: "10px", marginBottom: "20px"}}>
           <Box sx={{ marginTop: "10px", width: "100%", display: "flex", flexDirection: { xs: "column", sm: "row" }, alignItems: { xs: "flex-start", sm: "center" }, justifyContent: "space-between", gap: { xs: 2, sm: 0 }}}>
             <Box sx={{ display: "flex", flexDirection: "column", width: { xs: "100%", sm: "auto" }}}>

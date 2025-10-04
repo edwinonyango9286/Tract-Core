@@ -253,7 +253,7 @@ const Stacks = () => {
   ];
 
   return (
-    <Box sx={{ marginTop:{ xs:"-6px" , sm:"-10px"}, width: "100%", minHeight: "100vh", }}>
+    <Box sx={{ overflow:"hidden", marginTop:{ xs:"-6px" , sm:"-10px"}, width: "100%", minHeight: "100vh", }}>
       <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: { xs: "flex-start", sm: "center" }, gap: { xs: 2, sm: 0 }}}>
         <Box sx={{ display: "flex", alignItems: "center", width: { xs: "100%", sm: "auto" }}}>
           <IconButton onClick={() => navigate(-1)} size={isSmallMobile ? "small" : "medium"}>
@@ -272,7 +272,7 @@ const Stacks = () => {
         </Breadcrumbs>
       </Box>
 
-      <Box sx={{ marginLeft: { xs: "0px", sm: "40px" }, marginTop: { xs: "20px", sm: "0px" }}}>
+      <Box sx={{ marginTop: { xs: "20px", sm: "0px" }}}>
         <Box sx={{ display: "flex", width: "100%", justifyContent: "flex-end", marginTop: "20px"}}>
           <CustomSearchTextField value={searchTerm} onChange={handleSearchChange} placeholder="Search stack..." sx={{ width: { xs: "100%", sm: "auto" } }}/>
         </Box>

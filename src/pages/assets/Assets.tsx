@@ -476,7 +476,7 @@ const updateStatusModalStyle = {
   return (
     <Box sx={{ width: "100%", minHeight: "100vh", overflow:"hidden", }}>
       <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between", gap: 2 }}>
-        <Box sx={{ display: "flex", alignItems: "center" }}>
+        <Box  sx={{ display: "flex", alignItems: "center" }}>
           <IconButton onClick={() => navigate(-1)} size="small">
             <ArrowBackIosNewIcon sx={{ fontSize:"20px"}} />
           </IconButton>
@@ -493,9 +493,7 @@ const updateStatusModalStyle = {
 
        <Box sx={{ width:"100%" }}>
         <Box sx={{ width: "100%", mb: 3 }}>
-        <Box sx={{ mt: 2, width: "100%", display: "flex", flexDirection: { xs: "column", sm: "row" }, alignItems: "center", justifyContent: "space-between", gap: 2 }}>
-
-           <Paper sx={{ width:"" }}></Paper>
+        <Box  sx={{ mt: 2, width: "100%", display: "flex", flexDirection: { xs: "column", sm: "row" }, alignItems: "center", justifyContent: "space-between", gap: 2 }}>
           <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}>
               <Typography sx={{ textAlign: "center", fontSize: { xs: "14px", sm: "16px" }, fontWeight: "600", color: "#1F2937" }}>Total</Typography>
               <Typography sx={{ fontSize: { xs: "30px", sm: "40px" }, fontWeight: "600", color: "#1F2937"}}>{ isKpiLoading? <CircularProgress thickness={5} size={20} sx={{ color:"#333"}}/>  : assetKPIResponse?.data.totalAssets || 0}</Typography>
@@ -626,13 +624,7 @@ const updateStatusModalStyle = {
               <MenuItem value={"DISPOSED"}>Disposed</MenuItem>
             </Select>
           </Box>
-          
-          <CustomSearchTextField 
-            value={searchTerm} 
-            onChange={handleSearchChange} 
-            placeholder="Search asset..."
-            sx={{ width: { xs: "100%", sm: 250 } }}
-          />
+          <CustomSearchTextField value={searchTerm} onChange={handleSearchChange} placeholder="Search asset..." sx={{ width: { xs: "100%", sm: 250 } }}/>
         </Box>
       </Box>
 
@@ -912,7 +904,6 @@ const updateStatusModalStyle = {
         </Box>
       </Modal>
 
-      {/* CHANGED: Moved all modals outside of the column render to prevent duplication */}
 
       {/* Update Status Modal */}
       <Modal open={openUpdateStatusModal} onClose={handleCloseUpdateStatusModal} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
@@ -1113,7 +1104,6 @@ const updateStatusModalStyle = {
         </Box>
       </Modal>
 
-      {/* delete modal here */}
       <CustomDeleteComponent
         loading={isDeleting}
         open={openDeleteModal}

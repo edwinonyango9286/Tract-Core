@@ -84,10 +84,10 @@ const columns: GridColDef[] = [
     )
      },]
   return (
-    <Box sx={{ marginTop:"-20px", width:"100%", padding: { xs: "16px", sm: "24px" }}} > 
+    <Box sx={{ marginTop:"-20px", width:"100%", overflow:"hidden", }} > 
       <Box sx={{width:"100%",display:"flex",alignItems:"start",gap:"12px", flexDirection:"column"}}>
-      <Box sx={{ width:"100%", display: 'grid', gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)", lg:"repeat(6, 1fr)"}, gap: { xs: 2, sm: 3, md: "20px" }, marginBottom:"24px" }}>
-        <Paper style={{ }} component={"button"} onClick={()=>navigate("/dashboard/assets")} elevation={0} sx={{ display:"flex", flexDirection:"column",border:"1px solid #EAECF0", borderRadius:"8px", cursor:"pointer", padding: { xs: "16px", sm: "20px 16px" }, boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)" }}>
+      <Box sx={{ width:"100%", display: 'grid', gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)", xl:"repeat(4, 1fr)"}, gap: { xs: 2, sm: 3, md: "20px" }, marginBottom:"24px" }}>
+        <Paper  component={"button"} onClick={()=>navigate("/dashboard/assets")} elevation={0} sx={{ display:"flex", flexDirection:"column",border:"1px solid #EAECF0", borderRadius:"8px", cursor:"pointer", padding: { xs: "16px", sm: "20px 16px" }, boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)" }}>
           <Box sx={{display:"flex", justifyContent:"space-between"}}>
            <Typography sx={{textAlign:"start", color:"#032541", fontSize: { xs: "14px", sm: "16px" }, fontWeight:"700"}} variant="h6">Total Assets</Typography>
            <IconButton sx={{ padding: { xs: "4px", sm: "8px" } }}>
@@ -219,7 +219,7 @@ const columns: GridColDef[] = [
           <Paper elevation={0} sx={{padding: { xs: "16px", sm: "24px" },width:"100%", height: { xs: "400px", sm: "500px", md: "600px" }, backgroundColor:"#fff",boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)"}}>
             <Box sx={{ width:"100%",display:"flex",flexDirection:"column", gap:"10px"}}> 
               <Box sx={{width:"100%", display:"flex", flexDirection: { xs: "column", sm: "row" }, justifyContent:"space-between", gap: { xs: 2, sm: 0 }}}>
-                <Typography variant='body2' sx={{color:"#1F2937", fontWeight:"700", fontSize: { xs: "18px", sm: "20px" }, textAlign:"start"}}>
+                <Typography variant='body2' sx={{color:"#1F2937", fontWeight:"700", fontSize: { xs: "14px", sm: "16px" }, textAlign:"start"}}>
                   Pallet Status Overview (Total: {inventoryKPIData?.totals.totalPallets || 0})
                 </Typography>
                 <Box sx={{display:"flex", justifyContent: { xs: "start", sm: "end" }, gap:"8px", width: { xs: "100%", sm: "50%" }}}>

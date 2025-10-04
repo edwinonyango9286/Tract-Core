@@ -7,7 +7,7 @@ import AppBar from '../common/AppBar';
 
 const DashboardLayout = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [drawerOpen, setDrawerOpen] = useState(!isMobile);
   
   const toggleDrawer = () => {

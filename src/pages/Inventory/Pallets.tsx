@@ -231,7 +231,7 @@ const Pallets = () => {
   const stackList = stackResponse?.data || [];
 
   return (
-    <Box sx={{ width: "100%", minHeight: "100vh" }}>
+    <Box sx={{ overflow:"hidden", width: "100%", minHeight: "100vh" }}>
       <Box sx={{width: "100%", display: "flex", justifyContent: "space-between", alignItems: { xs: "flex-start", sm: "center" }, gap: { xs: 2, sm: 0 }}}>
         <Box sx={{
           display: "flex",
@@ -270,7 +270,7 @@ const Pallets = () => {
         </Breadcrumbs>
       </Box>
 
-      <Box sx={{ marginLeft: { xs: "0px", sm: "40px" }, marginTop: { xs: "20px", sm: "0px" }}}>
+      <Box sx={{ marginTop: { xs: "20px", sm: "0px" }}}>
         <Box sx={{ display: "flex", width: "100%", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", marginTop: "20px", gap: { xs: 2, sm: 0 }}}>
           <Box sx={{ order: { xs: 2, sm: 1 } }}></Box>
           <Box sx={{

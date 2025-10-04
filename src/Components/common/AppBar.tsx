@@ -16,7 +16,7 @@ interface AppBarProps {
 }
 const AppBar = ({ open, toggleDrawer }:AppBarProps) => {
 const theme = useTheme();
-const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 const { showSnackbar } = useSnackbar()
 const navigate = useNavigate()
  

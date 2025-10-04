@@ -12,16 +12,7 @@ interface CustomDataGridProps {
   pageSizeOptions?: number[];
 }
 
-const CustomDataGrid: React.FC<CustomDataGridProps> = ({ 
-  columns,
-  rows,
-  rowCount,
-  loading,
-  getRowId,
-  paginationModel,
-  onPaginationModelChange,
-  pageSizeOptions = [10, 20, 50, 100]
-}) => {
+const CustomDataGrid: React.FC<CustomDataGridProps> = ({ columns, rows, rowCount,loading,getRowId, paginationModel, onPaginationModelChange,pageSizeOptions = [10, 20, 50, 100]}) => {
   return (
     <DataGrid
       columns={columns}

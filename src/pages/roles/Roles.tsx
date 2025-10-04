@@ -279,7 +279,7 @@ const handleDeleteRole =  useCallback(async()=>{
   };
 
   return (
-    <Box sx={{ marginTop:{ xs:"-10px", sm:"-20px"}, width:"100%", minHeight:"100vh" }}>
+    <Box sx={{ marginTop:{ xs:"-10px", sm:"-20px"}, width:"100%", overflow:"hidden", minHeight:"100vh" }}>
       <Box sx={{ width:"100%", display:"flex", justifyContent:"space-between", alignItems: { xs: "flex-start", sm: "center" }, gap: { xs: 2, sm: 0 }}}>
         <Box sx={{ display:"flex", alignItems:"center", width: { xs: "100%", sm: "auto" }}}>
           <IconButton onClick={()=>navigate(-1)} size={isSmallMobile ? "small" : "medium"}>
@@ -298,7 +298,7 @@ const handleDeleteRole =  useCallback(async()=>{
       </Box>
 
       {/* Main Content */}
-      <Box sx={{ marginLeft: { xs: "0px", sm: "40px" }, marginTop: { xs: "20px", sm: "0px" }}}>
+      <Box sx={{ marginTop: { xs: "20px", sm: "0px" }}}>
         <Box sx={{ display: "flex", width: "100%", justifyContent: "flex-end", marginTop: "20px"}}>
           <CustomSearchTextField   value={searchTerm} onChange={handleSearchChange} placeholder="Search roles..." sx={{ width: { xs: "100%", sm: "auto" } }}/>
         </Box>

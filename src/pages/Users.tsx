@@ -303,7 +303,7 @@ const Users = () => {
   ]
 
   return (
-    <Box sx={{ width: "100%", minHeight: "100vh",  }}>
+    <Box sx={{ width: "100%", minHeight: "100vh", overflow:"hidden"}}>
       <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: { xs: "flex-start", sm: "center" }, gap: { xs: 2, sm: 0 }}}>
         <Box sx={{ width: "100%", alignItems: "center", display: "flex" }}>
           <IconButton onClick={() => navigate(-1)} size={isSmallMobile ? "small" : "medium"}>
@@ -323,7 +323,7 @@ const Users = () => {
         </Breadcrumbs>
       </Box>
 
-      <Box sx={{ marginLeft: { xs: "0px", sm: "40px" }, marginTop: { xs: "20px", sm: "0px" }}}>
+      <Box sx={{ marginTop: { xs: "20px", sm: "0px" }}}>
         <Box sx={{ display: "flex", width: "100%", justifyContent: "flex-end",  marginTop: "20px" }}>
           <CustomSearchTextField value={searchTerm} onChange={handleSearchChange} placeholder="Search user..." sx={{ width: { xs: "100%", sm: "auto" } }}/>
         </Box>

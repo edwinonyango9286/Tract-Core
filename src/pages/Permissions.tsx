@@ -303,7 +303,7 @@ const handleRefreshPermissions = useCallback(async () => {
 
 
   return (
-    <Box sx={{ width: "100%", height: "auto", marginTop:{ sm:"-10px"} }}>
+    <Box sx={{ width: "100%", height: "auto", overflow:"hidden", marginTop:{ sm:"-10px"} }}>
       <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between", gap: { xs: 2, sm: 0 } }}>
         <Box sx={{ width: "100%", alignItems: "center", display: "flex" }}>
           <IconButton onClick={() => navigate(-1)} sx={{ padding: { xs: "4px", sm: "8px" } }}>
