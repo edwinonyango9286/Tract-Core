@@ -84,7 +84,7 @@ const columns: GridColDef[] = [
     )
      },]
   return (
-    <Box sx={{ marginTop:"-20px", width:"100%", overflow:"hidden", }} > 
+    <Box sx={{ marginTop:"-10px", width:"100%", overflow:"hidden", }} > 
       <Box sx={{width:"100%",display:"flex",alignItems:"start",gap:"12px", flexDirection:"column"}}>
       <Box sx={{ width:"100%", display: 'grid', gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)", xl:"repeat(4, 1fr)"}, gap: { xs: 2, sm: 3, md: "20px" }, marginBottom:"24px" }}>
         <Paper  component={"button"} onClick={()=>navigate("/dashboard/assets")} elevation={0} sx={{ display:"flex", flexDirection:"column",border:"1px solid #EAECF0", borderRadius:"8px", cursor:"pointer", padding: { xs: "16px", sm: "20px 16px" }, boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)" }}>
@@ -280,7 +280,6 @@ const columns: GridColDef[] = [
             </Box>
           </Paper>
 
-         {/* Users and Movements Cards */}
          <Box sx={{ display:"flex", flexDirection: { xs: "column", md: "row" }, gap:"20px", width:"100%" }}>
           <Paper elevation={0} sx={{ display:"flex" , flexDirection:"column", gap:"16px", padding: { xs: "16px", sm: "24px" }, width: { xs: "100%", md: "50%" },height: { xs: "auto", md: "400px" }, backgroundColor:"#fff", boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)" }}>
             <Box sx={{ width:"100%", display:"flex", justifyContent:"space-between"}}>
@@ -341,20 +340,13 @@ const columns: GridColDef[] = [
          </Box>
         </Box>
 
-        {/* Activity Sidebar */}
         <Paper elevation={0} sx={{ padding: { xs: "16px", sm: "20px 16px" }, width: { xs: "100%", lg: "24%" }, height: { xs: "auto", lg: "1020px" }, backgroundColor:"#fff" , boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)"}}>
           <Box sx={{display:"flex", flexDirection:"column", gap:"10px"}}>
            <Box sx={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between"}}>
               <Typography sx={{ fontSize: { xs: "18px", sm: "20px" }, fontWeight:"700", color:"#101828"}}>Activity</Typography>
               <Link to={"/"} style={{ color:"#3B82F6", fontSize:"14px", fontWeight:"500", textDecoration:"none"}} >View all</Link>
            </Box>
-           <Box sx={{ display:"flex", gap:"12px"}}>
-              <Avatar src={userImage} alt='userImage' sx={{ width: { xs: 32, sm: 40 }, height: { xs: 32, sm: 40 } }} />
-            <Box sx={{ display:"flex", flexDirection:"column",}}>
-                 <Typography variant='body2' sx={{fontSize: { xs: "14px", sm: "16px" }, fontWeight:"600", color:"#344054"}}>Demi Wikinson<span style={{ marginLeft: "40px", color:"#344054", fontWeight:"400", fontSize: "12px" }}>2 Hours ago</span></Typography>
-                 <Typography variant='body2' sx={{fontSize: { xs: "13px", sm: "14px" }, fontWeight:"500", color:"#4B5563"}}>Added Property<span style={{ marginLeft:"4px", color:"#3B82F6", fontWeight:"400", fontSize: "14px" }}>:Garden City Estates</span> </Typography>
-            </Box>
-           </Box>
+    
           </Box>
         </Paper> 
       </Box>
