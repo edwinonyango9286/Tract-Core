@@ -18,6 +18,11 @@ export interface PermissionsResponse {
   totalElements: number;
 }
 
+export interface DeactivatePermissionPayload {
+  id?:number;
+  status?:string;
+}
+
 export interface GetPermissionsParams {
   page?: number;
   size?: number;

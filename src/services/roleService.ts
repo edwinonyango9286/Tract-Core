@@ -1,4 +1,4 @@
-import type { GetRolesParams, Role, RolesApiResponse, RolesPayload } from "../types/roles";
+import type { GetRolesKPIResponse, GetRolesParams, Role, RolesApiResponse, RolesPayload } from "../types/roles";
 import { apiClient } from "../utils/apiClient";
 
 export const createRoleService = async (roleData: RolesPayload) => {
@@ -39,5 +39,16 @@ export const deletRoleService = async(roleCode:number)=>{
   } catch (error) {
     console.log(error);
     throw error;
+  }
+}
+
+
+export const getRolesKPIService = async ():Promise<GetRolesKPIResponse>=>{
+  try {
+    const response = await apiClient.get(`aims/roles/kpi`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error
   }
 }

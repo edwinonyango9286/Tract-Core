@@ -14,12 +14,12 @@ export interface GetRolesParams {
   search?: string;
 }
 
- export interface Role {
+export interface Role {
   roleCode: number;
   roleName: string;
   roleShortDesc: string;
   roleDescription: string;
-  roleStatus: 'ACTIVE' | 'INACTIVE'; 
+  roleStatus: "ACTIVE" | "INACTIVE";
   createDate: string;
   lastModified: string | null;
   createdBy: string | null;
@@ -36,4 +36,14 @@ export interface RolesApiResponse {
   data: Role[];
   timestamp: string;
   requestId: string | null;
+}
+
+
+export interface GetRolesKPIResponse {
+  data:{
+  totalRoles: number;
+  activeCount: number;
+  inactiveCount: number;
+  deletedCount: number;
+  }
 }

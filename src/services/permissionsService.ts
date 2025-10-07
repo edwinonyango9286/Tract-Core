@@ -1,4 +1,4 @@
-import type { GetPermissionsParams, PermissionsPayload, PermissionsResponse } from "../types/permissions";
+import type { DeactivatePermissionPayload, GetPermissionsParams, PermissionsPayload, PermissionsResponse } from "../types/permissions";
 import { apiClient } from "../utils/apiClient";
 import type { Permission } from "../types/permissions";
 
@@ -55,10 +55,6 @@ export const deletePermissionService = async (id: number): Promise<void> => {
   }
 };
 
-export interface DeactivatePermissionPayload {
-  id?:number;
-  status?:string;
-}
 
 export const deactivatePermissionService = async (deactivateData:DeactivatePermissionPayload)=>{
   try {
