@@ -50,7 +50,6 @@ const breadcrumbs = [
 const Permissions = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
   const { showSnackbar } = useSnackbar();
   const navigate = useNavigate();
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
@@ -258,8 +257,6 @@ const handleDeletePermission = useCallback(async () => {
             <IconButton sx={{ padding: { xs: "2px", sm: "8px" } }}  id="action-menu-button"  aria-controls={openActionMenu ? 'action-menu' : undefined} aria-haspopup="true" aria-expanded={openActionMenu ? 'true' : undefined} onClick={(event) => handleClickActionMenu(event, params.row as Permission)}>
               <img src={dotsVertical} alt="deleteIconSmall" style={{ height:"24px", width:"24px" }} />
             </IconButton>
-      
-            {/* dots vertical action menu here */}
             <Menu id="action-menu" anchorEl={anchorElelementAction}  open={openActionMenu} onClose={handleCloseActionMenu}  slotProps={{ list: { 'aria-labelledby': 'action-menu-button'}}}>
                <MenuItem onClick={handleCloseActionMenu}>View Details</MenuItem>
                {selectedPermission?.status === "ACTIVE" && (<MenuItem onClick={handleDeactivatePermission}>{isDeactivating ? <CircularProgress  thickness={5} size={20} sx={{ marginLeft:"30px", color:"#333"}} /> : "Deactivate"}</MenuItem>)} 
@@ -319,10 +316,7 @@ const handleRefreshPermissions = useCallback(async () => {
           {breadcrumbs}
         </Breadcrumbs>
       </Box>
-
-      {/* Filters Section */}
       <Box sx={{ display: "flex", flexDirection: { xs: "column", lg: "row" }, alignItems: { xs: "stretch", lg: "center" }, width: "100%", justifyContent: "space-between", marginTop: "20px", gap: 2 }}>
-        {/* Page Size and Refresh */}
         <Box sx={{ display: "flex", backgroundColor: "#fff", alignItems: "center", padding: "12px", border: "1px solid #D1D5DB", borderRadius: "8px", width:  { xs:"100px", sm:"112px"} , height: { xs: "40px", sm: "44px" } }}>
           <Box  id="page-size-button" aria-controls={openPageSizeMenu ? 'page-size-menu' : undefined} aria-haspopup="true" aria-expanded={openPageSizeMenu ? 'true' : undefined} onClick={handleClick} sx={{ border: "none", alignItems: "center", justifyContent: "center", cursor: "pointer", display: "flex" }}>
             <Typography sx={{ fontSize: "14px", fontWeight: "500", textAlign: "center" }}>
@@ -379,7 +373,6 @@ const handleRefreshPermissions = useCallback(async () => {
         </Box>
       </Box>
 
-      {/* Add/Edit Permission Modal */}
       <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
         <Box sx={style}>
           <form style={{ width: "100%" }} onSubmit={PermissionsFormik.handleSubmit}>
@@ -413,14 +406,13 @@ const handleRefreshPermissions = useCallback(async () => {
               />
               <Box sx={{ marginBottom: "20px", marginTop: "10px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <CustomCancelButton onClick={handleClose} label="Cancel" fullWidth={isMobile} />
-                <CustomSubmitButton loading={PermissionsFormik.isSubmitting} label={updatingPermission ? "Update Permission" : "Create Permission"} fullWidth={isMobile}/>
+                <CustomSubmitButton loading={PermissionsFormik.isSubmitting} label={updatingPermission ? "Update permission" : "Create permission"} fullWidth={isMobile}/>
               </Box>
             </Box>
           </form>
         </Box>
       </Modal>
 
-      {/* delete modal here */}
       <CustomDeleteComponent 
         loading={isDeleting}
         open={openDeleteModal}  

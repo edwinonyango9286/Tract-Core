@@ -3,7 +3,7 @@ import * as Yup from "yup"
 import type { Role, RolesApiResponse, RolesPayload } from "../../types/roles"
 import type { AxiosError } from "axios"
 import { useSnackbar } from "../../hooks/useSnackbar"
-import { Box, Breadcrumbs, IconButton, Modal, Typography, type SelectChangeEvent, useTheme, useMediaQuery } from "@mui/material"
+import { Box, Breadcrumbs, IconButton, Modal, Typography, type SelectChangeEvent, useTheme, useMediaQuery, Divider, CircularProgress } from "@mui/material"
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import { useNavigate } from "react-router-dom"
 import CustomAddButton from "../../Components/common/CustomAddButton"
@@ -13,7 +13,7 @@ import CustomMultiSelect from "../../Components/common/CustomMultiSelect"
 import CustomSubmitButton from "../../Components/common/CustomSubmitButton"
 import CustomCancelButton from "../../Components/common/CustomCancelButton"
 import CustomDataGrid from "../../Components/common/CustomDataGrid"
-import { useCreateRole, useDeleteRole, useRoles, useUpdateRole } from "../../hooks/useRoles"
+import { useCreateRole, useDeleteRole, useGetRolesKPI, useRoles, useUpdateRole } from "../../hooks/useRoles"
 import { FiberManualRecord } from "@mui/icons-material"
 import { useDebounce } from "../../hooks/useDebounce"
 import CustomSearchTextField from "../../Components/common/CustomSearchTextField"
@@ -43,7 +43,6 @@ const breadcrumbs = [
   </Typography>,
 ];
 
-// Responsive modal style
 const getModalStyle = (isMobile: boolean) => ({
   position: 'absolute',
   top: '50%',
@@ -76,7 +75,6 @@ const Roles = () => {
   const deleteRoleMutation =useDeleteRole();
   const isDeletingRole = deleteRoleMutation.isPending 
 
-  // Responsive breakpoints
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -108,7 +106,7 @@ const Roles = () => {
      onSubmit: async (values, { setSubmitting, resetForm }) => {
       try {
         if(updatingRole && roleData){
-          const updatePayload = {...values, roleCode:roleData.roleCode}
+        const updatePayload = {...values, roleCode:roleData.roleCode}
         await updateRoleMutation.mutateAsync(updatePayload);
         showSnackbar("Role updated successfully.", "success");
         }else{
@@ -182,87 +180,29 @@ const handleDeleteRole =  useCallback(async()=>{
 },[selectedRoleCode, showSnackbar, deleteRoleMutation])
 
   const columns: GridColDef[] = [
-      { 
-        field: 'roleName', 
-        headerName: 'Name', 
-        flex:1,
-        minWidth: 120
-      },
-      { 
-        field: 'roleShortDesc', 
-        headerName: 'Short Description', 
-        flex:1,
-        minWidth: 150,
-      },
-      
-      { 
-        field: 'createDate', 
-        headerName: 'Created At', 
-        flex:1,
-        minWidth: isSmallMobile ? 100 : 120,
-        renderCell:(params)=>(dateFormatter(params.row.createDate))
-      },
-      { 
-        field: 'lastModified', 
-        headerName: 'Updated At', 
-        flex:1,
-        minWidth: 120,
-        renderCell:(params)=>(dateFormatter(params.row.lastModified))
-      },
-      { 
-        field: 'roleStatus', 
-        headerName: 'Status', 
-        flex:1,
-        minWidth: 100,
+      { field: 'roleName',headerName: 'Name',flex:1, minWidth: 120},
+      { field: 'roleShortDesc',headerName: 'Short Description',flex:1,minWidth: 150 },
+      { field: 'createDate', headerName: 'Created At', flex:1, minWidth: isSmallMobile ? 100 : 120, renderCell:(params)=>(dateFormatter(params.row.createDate))},
+      { field: 'lastModified', headerName: 'Updated At', flex:1, minWidth: 120,renderCell:(params)=>(dateFormatter(params.row.lastModified))},
+      { field: 'roleStatus', headerName: 'Status', flex:1, minWidth: 100,
         renderCell:(params)=>(
         <Box sx={{ marginTop:"10px",borderRadius:"16px", display:"flex", justifyContent:"center", alignItems:"center",width: params.value === "ACTIVE" ? "70px" : params.value === "INACTIVE" ? "80px" : "90px", padding:"4px", backgroundColor: params.value === "ACTIVE" ? "#ECFDF3": params.value === "INACTIVE" ? "#FEF3F2" : ""}}>
            <Typography sx={{ fontSize:"12px", fontWeight:"500", textAlign:"center", color:params.value === "ACTIVE" ? "#027A48": params.value === "INACTIVE" ? "#B42318"  :"#333"}}>{params.value}</Typography>
         </Box>
       )
       },
-      {
-        field: 'action', 
-        headerName: 'Action', 
-        flex: 1,
-        minWidth: 150,
+      { field: 'action', headerName: 'Action', flex: 1, minWidth: 150,
         renderCell: (params) => {
           return (
             <Box sx={{ display: "flex", gap: "5px" }}>
-              <IconButton 
-                size={isSmallMobile ? "small" : "medium"}
-                onClick={() => handleEdit(params.row as Role)}
-              >
-                <img 
-                  src={editIcon} 
-                  alt="editIcon" 
-                  style={{ 
-                    width: isSmallMobile ? "18px" : "21px", 
-                    height: isSmallMobile ? "18px" : "21px" 
-                  }} 
-                />
+              <IconButton size={isSmallMobile ? "small" : "medium"} onClick={() => handleEdit(params.row as Role)}>
+                <img src={editIcon} alt="editIcon" style={{ width: isSmallMobile ? "18px" : "21px", height: isSmallMobile ? "18px" : "21px" }} />
               </IconButton>
-              <IconButton 
-                size={isSmallMobile ? "small" : "medium"}
-                onClick={()=>{handleOpenDeleteModal(params.row.roleCode); setSelectedRoleName(params.row.roleName)}}
-              >
-                <img 
-                  src={deleteIcon}  
-                  alt="deleteIconSmall" 
-                  style={{ 
-                    width: isSmallMobile ? "20px" : "24px", 
-                    height: isSmallMobile ? "20px" : "24px" 
-                  }} 
-                />
+              <IconButton size={isSmallMobile ? "small" : "medium"} onClick={()=>{handleOpenDeleteModal(params.row.roleCode); setSelectedRoleName(params.row.roleName)}}>
+                <img src={deleteIcon} alt="deleteIconSmall" style={{ width: isSmallMobile ? "20px" : "24px", height: isSmallMobile ? "20px" : "24px"}} />
               </IconButton>
               <IconButton size={isSmallMobile ? "small" : "medium"}>
-                <img 
-                  src={dotsVertical} 
-                  alt="deleteIconSmall" 
-                  style={{ 
-                    width: isSmallMobile ? "20px" : "24px", 
-                    height: isSmallMobile ? "20px" : "24px" 
-                  }} 
-                />
+                <img src={dotsVertical} alt="deleteIconSmall" style={{ width: isSmallMobile ? "20px" : "24px", height: isSmallMobile ? "20px" : "24px" }} />
               </IconButton>
             </Box>
           );
@@ -278,8 +218,11 @@ const handleDeleteRole =  useCallback(async()=>{
     roleFormik.setFieldValue('permissions', event.target.value);
   };
 
+  const {data:rolesKPISResponse,isLoading:isKpiLoading } = useGetRolesKPI();
+  const rolesKPIData = rolesKPISResponse?.data 
+
   return (
-    <Box sx={{ marginTop:{ xs:"-10px", sm:"-20px"}, width:"100%", overflow:"hidden", minHeight:"100vh" }}>
+    <Box sx={{ marginTop:"-10px", width:"100%", overflow:"hidden", minHeight:"100vh" }}>
       <Box sx={{ width:"100%", display:"flex", justifyContent:"space-between", alignItems: { xs: "flex-start", sm: "center" }, gap: { xs: 2, sm: 0 }}}>
         <Box sx={{ display:"flex", alignItems:"center", width: { xs: "100%", sm: "auto" }}}>
           <IconButton onClick={()=>navigate(-1)} size={isSmallMobile ? "small" : "medium"}>
@@ -289,13 +232,42 @@ const handleDeleteRole =  useCallback(async()=>{
         </Box>
         <CustomAddButton style={{ width:"120px"}} variant="contained" label="Add role" onClick={handleOpen}/>
       </Box>
-
-      {/* Breadcrumbs */}
       <Box sx={{ width:"100%",  marginTop:{ xs: "-16px", sm:"-10px"}, marginLeft:{ xs: "30px", sm:"40px"} }}>
         <Breadcrumbs style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }} aria-label="breadcrumb" separator={ <FiberManualRecord style={{ fontSize: "0.625rem", fontFamily: "Poppins", color: "#e1e5e8" }}/>}> 
           {breadcrumbs}
         </Breadcrumbs>
       </Box>
+       <Box sx={{ width: "100%", mb: 3 }}>
+              <Box  sx={{ mt: 2, width: "100%", display: "flex", flexDirection: { xs: "column", sm: "row" }, alignItems: "center", justifyContent: "space-between", gap: 2 }}>
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}>
+                    <Typography sx={{ textAlign: "center", fontSize: { xs: "14px", sm: "16px" }, fontWeight: "600", color: "#1F2937" }}>Total</Typography>
+                    <Typography sx={{ fontSize: { xs: "30px", sm: "40px" }, fontWeight: "600", color: "#1F2937"}}>{ isKpiLoading? <CircularProgress thickness={5} size={20} sx={{ color:"#333"}}/>  : rolesKPIData?.totalRoles || 0 }</Typography>
+                </Box>
+                
+                <Divider orientation={isMobile ? "horizontal" : "vertical"} sx={{ borderWidth:"1px", width: isMobile ? "100%" : "auto", height: isMobile ? "1px" : "80px"}} />
+                 
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}>
+                    <Typography sx={{ textAlign: "center", fontSize: { xs: "14px", sm: "16px" }, fontWeight: "600", color: "#059669" }}>Active</Typography>
+                    <Typography sx={{ fontSize: { xs: "30px", sm: "40px" }, fontWeight: "600", color: "#059669"}}>{ isKpiLoading? <CircularProgress thickness={5} size={20} sx={{ color:"#333"}}/>: rolesKPIData?.activeCount || 0}</Typography>
+                </Box>
+                 
+                <Divider orientation={isMobile ? "horizontal" : "vertical"} sx={{ borderWidth:"1px", width: isMobile ? "100%" : "auto", height: isMobile ? "1px" : "80px"}} />
+                 
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}>
+                    <Typography sx={{ textAlign: "center", fontSize: { xs: "14px", sm: "16px" }, fontWeight: "600", color: "#D97706" }}>Inactive</Typography>
+                    <Typography sx={{ fontSize: { xs: "30px", sm: "40px" }, fontWeight: "600", color: "#D97706"}}>{ isKpiLoading? <CircularProgress thickness={5} size={20} sx={{ color:"#333"}}/>: rolesKPIData?.inactiveCount || 0}</Typography>
+                </Box>
+                  
+                <Divider orientation={isMobile ? "horizontal" : "vertical"} sx={{ borderWidth:"1px", color:"#333", width: isMobile ? "100%" : "auto", height: isMobile ? "1px" : "80px"}} />
+
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}>
+                    <Typography sx={{ textAlign: "center", fontSize: { xs: "14px", sm: "16px" }, fontWeight: "600", color: "#DC2626" }}>Deleted</Typography>
+                    <Typography sx={{ fontSize: { xs: "30px", sm: "40px" }, fontWeight: "600", color: "#DC2626"}}>{ isKpiLoading? <CircularProgress thickness={5} size={20} sx={{ color:"#333"}}/> : rolesKPIData?.deletedCount || 0}</Typography>
+                </Box>
+              </Box>
+      
+              <Divider sx={{ width:"100%", borderWidth:"1px", color:"#333", mt: 2 }}/>
+            </Box>
 
       {/* Main Content */}
       <Box sx={{ marginTop: { xs: "20px", sm: "0px" }}}>
@@ -374,9 +346,9 @@ const handleDeleteRole =  useCallback(async()=>{
           loading={isDeletingRole}
           open={openDeleteModal}  
           onClose={handleCloseDeleteModal} 
-          title={"Delete Permission"} 
+          title={"Delete Role"} 
           onConfirm={handleDeleteRole} 
-          itemT0Delete={`${selectedRoleName} permission`}
+          itemT0Delete={`${selectedRoleName} role`}
         />
 
         {/* Data Grid */}
