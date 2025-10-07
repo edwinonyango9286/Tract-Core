@@ -4,11 +4,21 @@ import type { Permission } from "../types/permissions";
 
 export const getPermissionsService = async (params?: GetPermissionsParams): Promise<PermissionsResponse> => {
   try {
-    const { page = 0, size = 10, search = "", status = "" } = params || {}
-    let url=`bursary-hub/permissions/search?page=${page}&size=${size}&sortBy=createdAt&sortDir=DESC`
+    const { page = 0, size = 10, search = "", status = "", startDate = "" , endDate="" } = params || {};
+    let url = `bursary-hub/permissions/search?page=${page}&size=${size}&sortBy=createdAt&sortDir=DESC`
     if(search){
-      url =`bursary-hub/permissions/search?keyword=${encodeURIComponent(search.trim())}&page=${page}&size=${size}&sortBy=createdAt&sortDir=DESC`
+      url += `&keyword=${encodeURIComponent(search.trim())}`
     }
+    if(status){
+      url += `&status=${encodeURIComponent(status)}`
+    }
+    if(startDate){
+      url += `&startDate=${encodeURIComponent(startDate)}`
+    }
+    if(endDate){
+      url += `&endDate=${encodeURIComponent(endDate)}`
+    }
+  
     const response = await apiClient.get(url);
     return response.data;
   } catch (error) {

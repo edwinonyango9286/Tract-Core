@@ -7,7 +7,7 @@ interface PrivateRoutesProps {
 }
 
 export const PrivateRoutes = ({ children }: PrivateRoutesProps) => {
-  const accessToken = Cookies.get("accessToken");
+  const accessToken = Cookies.get("access_token");
   const location = useLocation();
   if (accessToken) {
    return <>{children}</>

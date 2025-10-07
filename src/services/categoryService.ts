@@ -1,4 +1,4 @@
-import type { Category, CreateCategoryPayload, GetAllCategoriesResponse, GetCategoriesParams } from "../types/category";
+import type { CategoriesKPIResponse, Category, CreateCategoryPayload, GetAllCategoriesResponse, GetCategoriesParams } from "../types/category";
 import { apiClient } from "../utils/apiClient";
 
 
@@ -15,10 +15,19 @@ export const createCategoryService = async (categoryData:CreateCategoryPayload) 
 
 export const getAllCategoriesService = async (params?:GetCategoriesParams):Promise<GetAllCategoriesResponse>=>{
     try {
-       const {page = 0, size= 10 ,search=""} = params || {};
-       let url =`aims/categories?page=${page}&size=${size}`;
+       const {page = 0, size= 10 ,search="" ,categoryStatus ="" ,startDate="",endDate = "" } = params || {};
+       let url =`aims/categories/global-search?page=${page}&size=${size}&sort=createdAt%2CDESC`;
         if(search){
-          url = `/aims/categories/search?q=${search}&page=${page}&size=${size}`
+          url += `&keyword=${encodeURIComponent(search.trim())}`;
+        }
+        if(categoryStatus){
+          url += `&categoryStatus=${encodeURIComponent(categoryStatus)}`
+        }
+        if(startDate){
+          url+= `&startDate=${encodeURIComponent(startDate)}`
+        }
+        if(endDate){
+          url += `&endDate=${encodeURIComponent(endDate)}`;
         }
         const response = await apiClient.get(url);
         return response.data;
@@ -30,7 +39,7 @@ export const getAllCategoriesService = async (params?:GetCategoriesParams):Promi
 
 export const deleteCategoryService =  async (code:string)=>{
   try {
-    const response = await apiClient(`aims/categories/${code}`);
+    const response = await apiClient.delete(`aims/categories/delete/${code}`);
     return response;
   } catch (error) {
     console.log(error);
@@ -47,4 +56,40 @@ export const updateCategoryService  = async ({code, ...categoryData}:Category)=>
     console.log(error);
     throw error;
   }
+}
+
+export const updateCategoryStatusService = async(categoryData:Category)=>{
+  try {
+    const response = await apiClient.patch(`/aims/categories/${categoryData.code}/status?status=${categoryData.status}`);
+    return response;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export const getCategoriesKPIService = async():Promise<CategoriesKPIResponse>=>{
+  try {
+    const response = await apiClient.get(`aims/categories/kpi`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export const exportCategoriesService = async (): Promise<Blob> => {
+    try {
+        const response = await apiClient.get(`aims/categories/export`, {
+            headers: {
+                'Accept': 'text/csv', 
+                'Content-Type': 'text/csv',
+            },
+            responseType: 'blob',
+        });
+        return response.data;
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
 }

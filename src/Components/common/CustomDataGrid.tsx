@@ -12,16 +12,7 @@ interface CustomDataGridProps {
   pageSizeOptions?: number[];
 }
 
-const CustomDataGrid: React.FC<CustomDataGridProps> = ({ 
-  columns,
-  rows,
-  rowCount,
-  loading,
-  getRowId,
-  paginationModel,
-  onPaginationModelChange,
-  pageSizeOptions = [10, 20, 50, 100]
-}) => {
+const CustomDataGrid: React.FC<CustomDataGridProps> = ({ columns, rows, rowCount,loading,getRowId, paginationModel, onPaginationModelChange,pageSizeOptions = [10, 20, 50, 100]}) => {
   return (
     <DataGrid
       columns={columns}
@@ -40,6 +31,9 @@ const CustomDataGrid: React.FC<CustomDataGridProps> = ({
         "& .MuiDataGrid-columnHeaderTitle": {
           fontWeight: "700",
           fontSize: "14px",
+        },
+           "& .MuiDataGrid-columnHeader": {
+          backgroundColor: "#E5E7EB", 
         },
       }}
     />

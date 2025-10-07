@@ -1,4 +1,5 @@
 export interface PermissionsPayload {
+  status?:string;
   permissionName: string;
   permissionDescription: string;
 }
@@ -7,9 +8,9 @@ export interface Permission {
   id: number;
   permissionName: string;
   permissionDescription: string;
-  status:string;
-  createdAt?:string;
-  updatedAt?:string;
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface PermissionsResponse {
@@ -22,4 +23,6 @@ export interface GetPermissionsParams {
   size?: number;
   search?: string;
   status?: string;
+  startDate?: string;
+  endDate?: string;
 }

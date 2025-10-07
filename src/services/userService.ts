@@ -12,6 +12,16 @@ export const createUserService = async (userData: CreateUserPayload) => {
   }
 };
 
+export const getUserService = async (userId:number)=>{
+  try {
+    const response = await apiClient.get(`aims/users/${userId}`);
+    return response;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
 
 export const getAllUsersService = async (params?: GetUsersParams): Promise<GetAllUsersResponse> => {
   try {

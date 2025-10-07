@@ -1,20 +1,26 @@
 export interface CreateUserPayload {
-  firstName:string;
+  firstName: string;
   lastName: string;
   email: string;
-  idNo?:number;
-  phone?:string;
-  role?:number;
+  idNo?: string;
+  phone?: string;
+  role?: string;
+}
+export interface Decoded  {
+ role:string;
+ id:number;
+ sub:string;
 }
 export interface User {
   id: number;
-  firstname:string;
-  lastname:string;
-  email:string;
-  userPhoneNumber:string;
-  userIdNumber?:number;
+  firstname: string;
+  lastname: string;
+  email: string;
+  userPhoneNumber: string;
+  userIdNumber?: string;
   phoneVerified: boolean;
-  roleDescription?:string;
+  roleDescription?: string;
+  secure_url?:string;
 }
 
 export interface GetUsersParams {
@@ -30,11 +36,8 @@ export interface GetAllUsersResponse {
   message: string;
   data: {
     content: User[];
-    totalElements:number
-  }
+    totalElements: number;
+  };
   timestamp: string;
   requestId: string | null;
 }
-
-
-     

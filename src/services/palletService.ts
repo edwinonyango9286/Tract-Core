@@ -15,10 +15,13 @@ export const createPalletService = async (palletData: CreatePalletPayload) => {
 
 export const getAllPalletsService = async (params?: GetPalletsParams): Promise<GetAllPalletsResponse> => {
   try {
-    const { page = 0, size = 10, search = "" } = params || {};
+    const { page = 0, size = 10, search = "", status ="" } = params || {};
     let url = `aims/pallets/search?page=${page}&size=${size}&sortBy=lastMoveAt&direction=desc`;
     if (search) {
-      url = `aims/pallets/search?keyword=${encodeURIComponent(search.trim())}page=${page}&size=${size}&sortBy=lastMoveAt&direction=desc`;
+      url += `&keyword=${encodeURIComponent(search.trim())}`;
+    }
+    if(status){
+      url += `&status=${encodeURIComponent(status)}`
     }
     const response = await apiClient.get(url);
     return response.data;
@@ -41,7 +44,7 @@ export const deletePalletService = async (code: string) => {
 
 export const updatePalletService = async ({ code, ...palletData }: Pallet) => {
   try {
-    const response = await apiClient.put(`aims/pallets/${code}`, palletData);
+    const response = await apiClient.put(`aims/pallets/update/${code}`, palletData);
     return response;
   } catch (error) {
     console.log(error);

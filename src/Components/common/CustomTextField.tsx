@@ -17,9 +17,11 @@ interface CustomTextFieldProps extends Omit<TextFieldProps, 'variant'> {
   variant?: CustomVariant;
   placeholder?: string;
   errorMessage?:string | false;
+  rows?:number;
+  multiline?:boolean;
 }
 
- const CustomTextField = ({onChange,onBlur,type,disabled,style,id,label,value,variant,placeholder, errorMessage, startAdornment, endAdornment}:CustomTextFieldProps) => {
+ const CustomTextField = ({ multiline=false, rows, onChange,onBlur,type,disabled,style,id,label,value,variant,placeholder, errorMessage, startAdornment, endAdornment}:CustomTextFieldProps) => {
    return (
     <Box sx={{ display:"flex", flexDirection:"column", gap:"4px"}}>
      <InputLabel sx={{ fontSize:"14px", fontWeight:"500", color:"#032541"}}>{label}</InputLabel>
@@ -27,6 +29,7 @@ interface CustomTextFieldProps extends Omit<TextFieldProps, 'variant'> {
        fullWidth
        onChange={onChange}
        onBlur={onBlur}
+       multiline={multiline}
        type={type}
        disabled={disabled}
        style={style}
@@ -35,6 +38,7 @@ interface CustomTextFieldProps extends Omit<TextFieldProps, 'variant'> {
        error={!!errorMessage}
        value={value}
        variant={variant}
+       rows={rows}
        InputProps={{
         startAdornment:startAdornment,
         endAdornment:endAdornment,

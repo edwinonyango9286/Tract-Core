@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, IconButton, Modal, Typography } from "@mui/material"
+import { Box, Breadcrumbs, IconButton, MenuItem, Modal, Select, Typography, type SelectChangeEvent, useTheme, useMediaQuery } from "@mui/material"
 import { FiberManualRecord } from "@mui/icons-material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import { useNavigate } from "react-router-dom";
@@ -24,6 +24,8 @@ import CustomSubmitButton from "../../Components/common/CustomSubmitButton";
 import CustomDeleteComponent from "../../Components/common/CustomDeleteComponent";
 import CustomDataGrid from "../../Components/common/CustomDataGrid";
 import CustomSelect from "../../Components/common/CustomSelect";
+import { useGetStacks } from "../../hooks/useStacks";
+import type { Stack } from "../../types/stack";
 
 const breadcrumbs = [
   <Typography key={1} style={{ cursor: "pointer", color: "#707070", fontSize: "14px" }}>
@@ -34,28 +36,36 @@ const breadcrumbs = [
   </Typography>,
 ];
 
-const style = {
+const getModalStyle = () => ({
   position: 'absolute',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 400,
+  width: { xs: '90%', sm: '80%', md: 600 },
+  maxWidth: '90vw',
   bgcolor: 'background.paper',
   boxShadow: 24,
   paddingY: "10px",
-  paddingX: "30px",
+  paddingX: { xs: "15px", sm: "20px", md: "30px" },
   borderRadius: "8px",
   maxHeight: "90vh",
   overflowY: "auto"
-};
+});
 
 const PalletSchema = Yup.object<CreatePalletPayload>({
   type: Yup.string().required("Please provide select pallet type."),
   owner: Yup.string().required("Please provide pallet owner."),
   initialStackCode: Yup.string().required("Please select pallet stack."),
   initialLocation: Yup.string().required("Please provide pallet location."),
-  notes: Yup.string() 
+  notes: Yup.string().optional(),
+  description:Yup.string().optional(),
+  quantity:Yup.number().optional(),
+  weight:Yup.number().optional(),
+  height:Yup.number().optional(),
+  width:Yup.number().optional(),
 })
+
+
 
 const Pallets = () => {
   const navigate = useNavigate();
@@ -65,10 +75,20 @@ const Pallets = () => {
   const [searchTerm, setSearchTerm] = useState<string>("")
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
   const isDeleting = deletePalletMutation.isPending;
-  const { data: palletsList, isLoading } = useGetPallets({ page: paginationModel.page, size: paginationModel.pageSize, search: debouncedSearchTerm })
+
+  // Responsive breakpoints
+  const theme = useTheme();
+  // const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const [status, setStatus] = useState<string>("");
+  const handleChangeStatus = (e: SelectChangeEvent<string>) => {
+    setStatus(e.target.value);
+  }
+  const { data: palletsList, isLoading } = useGetPallets({ page: paginationModel.page, size: paginationModel.pageSize, search: debouncedSearchTerm, status })
   const createPalletMutation = useCreatePallet();
   const updatePalletMutation = useUpdatePallet();
-  const [palletData, setPalletData] = useState<Pallet | null>(null)
+  const [palletData, setPalletData] = useState<Pallet | null>(null);
 
   const { rows, rowCount } = useMemo(() => {
     if (!palletsList) {
@@ -120,6 +140,7 @@ const Pallets = () => {
   }, [selectedPalletId, showSnackbar, deletePalletMutation])
 
   const [updatingPallet, setUpdatingPallet] = useState<boolean>(false)
+
   const PalletFormik = useFormik<CreatePalletPayload>({
     initialValues: {
       type: palletData?.type || "",
@@ -127,6 +148,11 @@ const Pallets = () => {
       initialStackCode: palletData?.currentStackCode || "",
       initialLocation: palletData?.currentLocation || "",
       notes: palletData?.notes || "",
+      description: palletData?.description || "",
+      quantity : palletData?.quantity || 0,
+      weight :  palletData?.weight || 0,
+      height : palletData?.height || 0,
+      width :palletData?.width || 0
     },
     validationSchema: PalletSchema,
     enableReinitialize: true,
@@ -170,35 +196,30 @@ const Pallets = () => {
   }, []);
 
   const columns: GridColDef[] = [
-    { field: 'type', headerName: 'type', flex: 1 },
-    { field: 'currentStackCode', headerName: 'Current Stack Code', flex: 1 },
-    { field: 'currentLocation', headerName: 'Current Location', flex: 1 },
-    { field: 'owner', headerName: 'Owner', flex: 1 },
-    { field: 'lastReference', headerName: 'Last Reference', flex: 1 },
-    { field: 'lastMoveAt', headerName: 'Last Moved At', flex: 1 },
-    { field: 'notes', headerName: 'Notes', flex: 1 },
-    { field: 'status', headerName: 'Status', flex: 1 },
-    {
-      field: 'createdAt', headerName: 'Created At', flex: 1,
-      renderCell: (params) => dateFormatter(params.value)
-    },
-    {
-      field: 'updatedAt', headerName: 'Updated At', flex: 1,
-      renderCell: (params) => dateFormatter(params.value)
-    },
-    {
-      field: 'action', headerName: 'Action', flex: 1,
+    {field: 'type', headerName: 'Type', flex: 1,minWidth:  100},
+    {field: 'currentStackCode',headerName: 'Current Stack Code', flex: 1,minWidth:  150},
+    {field: 'currentLocation',headerName: 'Current Location',flex: 1,minWidth: 120},
+    {field: 'owner',headerName: 'Owner',flex: 1,minWidth:  120},
+    {field: 'quantity',headerName: 'Quantity',flex: 1,minWidth:120},
+    {field: 'weight',headerName: 'Weight',flex: 1,minWidth:120},
+    {field: 'height',headerName: 'Height',flex: 1,minWidth:120},
+    {field: 'width',headerName: 'Width',flex: 1,minWidth:120},
+    {field: 'lastMoveAt',headerName: 'Last Moved At',flex: 1,minWidth: 120,renderCell: (params) => dateFormatter(params.value)},
+    {field: 'createdAt',headerName: 'Created At',flex: 1,minWidth:  120, renderCell: (params) => dateFormatter(params.value)},
+    {field: 'updatedAt',headerName: 'Updated At',flex: 1,minWidth: 120,renderCell: (params) => dateFormatter(params.value)},
+    {field: 'status',headerName: 'Status',flex: 1,minWidth: 100 },
+    {field: 'action', headerName: 'Action',flex: 1,minWidth: 150,
       renderCell: (params) => {
         return (
-          <Box sx={{ display: "flex", gap: "10px" }}>
-            <IconButton onClick={() => handleEdit(params.row as Pallet)}>
-              <img src={editIcon} alt="editIcon" style={{ width: "21px", height: "21px" }} />
+          <Box sx={{ display: "flex", gap: "5px" }}>
+            <IconButton size={isSmallMobile ? "small" : "medium"} onClick={() => handleEdit(params.row as Pallet)}>
+              <img src={editIcon} alt="editIcon" style={{ width: isSmallMobile ? "18px" : "21px", height: isSmallMobile ? "18px" : "21px"}}/>
             </IconButton>
-            <IconButton onClick={() => { handleOpenDeleteModal(params?.row?.code); setPalletName(params?.row?.name) }}>
-              <img src={deleteIcon} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
+            <IconButton size={isSmallMobile ? "small" : "medium"} onClick={() => { handleOpenDeleteModal(params?.row?.code); setPalletName(params?.row?.code)}}>
+              <img src={deleteIcon} alt="deleteIconSmall" style={{ width: isSmallMobile ? "20px" : "24px", height: isSmallMobile ? "20px" : "24px" }}/>
             </IconButton>
-            <IconButton>
-              <img src={dotsVertical} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
+            <IconButton size={isSmallMobile ? "small" : "medium"}>
+              <img  src={dotsVertical} alt="deleteIconSmall" style={{ width: isSmallMobile ? "20px" : "24px", height: isSmallMobile ? "20px" : "24px"}}/>
             </IconButton>
           </Box>
         );
@@ -206,19 +227,40 @@ const Pallets = () => {
     },
   ];
 
+  const { data: stackResponse } = useGetStacks();
+  const stackList = stackResponse?.data || [];
+
   return (
-    <Box sx={{ width: "100%", height: "100vh" }}>
-      <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
-        <Box sx={{ width: "100%", alignItems: "center", display: "flex" }}>
-          <IconButton onClick={() => navigate(-1)}>
-            <ArrowBackIosNewIcon />
+    <Box sx={{ overflow:"hidden", width: "100%", minHeight: "100vh" }}>
+      <Box sx={{width: "100%", display: "flex", justifyContent: "space-between", alignItems: { xs: "flex-start", sm: "center" }, gap: { xs: 2, sm: 0 }}}>
+        <Box sx={{
+          display: "flex",
+          alignItems: "center",
+          width: { xs: "100%", sm: "auto" }
+        }}>
+          <IconButton
+            onClick={() => navigate(-1)}
+            size={isSmallMobile ? "small" : "medium"}
+          >
+            <ArrowBackIosNewIcon fontSize={isSmallMobile ? "small" : "medium"} />
           </IconButton>
-          <Typography sx={{ fontSize: "25px", fontWeight: "600", color: "#032541" }}>Pallets</Typography>
+          <Typography sx={{
+            fontSize: { xs: "20px", sm: "25px" },
+            fontWeight: "600",
+            color: "#032541"
+          }}>
+            Pallets
+          </Typography>
         </Box>
-        <CustomAddButton variant="contained" label="Add Pallet" onClick={handleOpen} />
+        <CustomAddButton
+          variant="contained"
+          label="Add Pallet"
+          onClick={handleOpen}
+          style={{ width:"140px"}}
+        />
       </Box>
 
-      <Box sx={{ width: "100%", marginTop: "-10px", marginLeft: "40px" }}>
+      <Box sx={{ width: "100%", marginTop: { xs: "-16px", sm: "-10px" }, marginLeft: { xs: "30px", sm: "40px" }}}>
         <Breadcrumbs
           style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }}
           aria-label="breadcrumb"
@@ -228,30 +270,69 @@ const Pallets = () => {
         </Breadcrumbs>
       </Box>
 
-      <Box sx={{ display: "flex", width: "100%", justifyContent: "flex-start", marginTop: "20px" }}>
-        <CustomSearchTextField
-          value={searchTerm}
-          onChange={handleSearchChange}
-          placeholder="Search pallet..."
-        />
-      </Box>
+      <Box sx={{ marginTop: { xs: "20px", sm: "0px" }}}>
+        <Box sx={{ display: "flex", width: "100%", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", marginTop: "20px", gap: { xs: 2, sm: 0 }}}>
+          <Box sx={{ order: { xs: 2, sm: 1 } }}></Box>
+          <Box sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            gap: { xs: "10px", sm: "20px" },
+            alignItems: { xs: "stretch", sm: "center" },
+            order: { xs: 1, sm: 2 },
+            width: { xs: "100%", sm: "auto" }
+          }}>
+            <Box sx={{ width: { xs: "100%", sm: "200px" } }}>
+              <Select
+                displayEmpty
+                renderValue={value => value === '' ? 'Select Status' : value}
+                size="small"
+                sx={{
+                  height: "45px",
+                  width: "100%",
+                  '& .MuiOutlinedInput-notchedOutline': { borderWidth: "1px", borderColor: '#D1D5DB' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#D1D5DB' },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth: "1px", borderColor: '#D1D5DB' }
+                }}
+                id="status"
+                value={status}
+                onChange={handleChangeStatus}
+              >
+                <MenuItem value={"IN_STACK"}>In Stack</MenuItem>
+                <MenuItem value={"OUTBOUND"}>Out Bound</MenuItem>
+                <MenuItem value={"RETURNED"}>Returned</MenuItem>
+                <MenuItem value={"IN_REPAIR"}>In Repair</MenuItem>
+                <MenuItem value={"QUARANTINE"}>Quarantined</MenuItem>
+                <MenuItem value={"SCRAP"}>Scrap</MenuItem>
+              </Select>
+            </Box>
+            <CustomSearchTextField value={searchTerm} onChange={handleSearchChange} placeholder="Search pallet..." sx={{ width: { xs: "100%", sm: "auto" } }}/>
+          </Box>
+        </Box>
 
-      {/* pallet modal */}
-      <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
-        <Box sx={style}>
-          <form style={{ width: "100%" }} onSubmit={PalletFormik.handleSubmit}>
-            <Typography sx={{ fontSize: "20px", fontWeight: "700" }}>
-              {updatingPallet ? "Update Pallet Details" : "Add Pallet"}
-            </Typography>
-            <Box sx={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "20px" }}>
-                <CustomSelect
+        {/* Pallet Modal */}
+        <Modal open={open}
+          onClose={handleClose}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <Box sx={getModalStyle}>
+            <form style={{ width: "100%" }} onSubmit={PalletFormik.handleSubmit}>
+              <Typography sx={{ color:"#032541", fontSize: { xs: "18px", sm: "20px" }, fontWeight: "700" }}>
+                {updatingPallet ? "Update pallet details" : "Add pallet"}
+              </Typography>
+              <Box sx={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "20px" }}>
+                <Box sx={{ width:"100%", display:"flex", gap:"15px"}}>
+                  <Box sx={{ width:"50%"}}>
+                  <CustomSelect
                   id="type"
                   name="type"
                   label="Type"
                   searchable
                   options={[
-                    {value:"Individual",label:"Individual"},
-                    {value:"Organization",label:"Organization"}
+                    { value: "PLASTIC", label: "Plastic" },
+                    { value: "EURO", label: "Euro" },
+                    { value: "WOODEN", label: "Wooden" },
+                    { value: "HEAVY_DUTY", label: "Heavy Duty" },
                   ]}
                   onChange={PalletFormik.handleChange}
                   value={PalletFormik.values.type}
@@ -259,7 +340,10 @@ const Pallets = () => {
                   error={PalletFormik.touched.type && Boolean(PalletFormik.errors.type)}
                   helperText={PalletFormik.touched.type && PalletFormik.errors.type}
                 />
-                <CustomTextField
+                </Box>
+                
+                <Box sx={{ width:"50%"}}>
+                 <CustomTextField
                   id="owner"
                   name="owner"
                   label="Pallet Owner"
@@ -270,24 +354,28 @@ const Pallets = () => {
                   onBlur={PalletFormik.handleBlur}
                   errorMessage={PalletFormik.touched.owner && PalletFormik.errors.owner}
                 />
-                  <CustomSelect
+                </Box>
+                </Box>
+                
+              <Box sx={{ display:"flex", gap:"15px" }}>
+                <Box sx={{ width:"50%"}}>
+                <CustomSelect
                   id="initialStackCode"
                   name="initialStackCode"
                   label="Initial Stack"
                   searchable
-                  options={[
-                    {value:"Individual",label:"Individual"},
-                    {value:"Organization",label:"Organization"}
-                  ]}
+                  options={stackList?.map((stack: Stack) => ({ value: stack.code, label: stack.warehouse }))}
                   onChange={PalletFormik.handleChange}
                   value={PalletFormik.values.initialStackCode}
                   onBlur={PalletFormik.handleBlur}
                   error={PalletFormik.touched.initialStackCode && Boolean(PalletFormik.errors.initialStackCode)}
                   helperText={PalletFormik.touched.initialStackCode && PalletFormik.errors.initialStackCode}
                 />
-                 <CustomTextField
+                </Box>
+                <Box sx={{ width:"50%"}}>
+                <CustomTextField
                   id="initialLocation"
-                  type="initialLocation"
+                  type="text"
                   name="initialLocation"
                   label="Initial Location"
                   placeholder="Initial Location"
@@ -296,11 +384,73 @@ const Pallets = () => {
                   onBlur={PalletFormik.handleBlur}
                   errorMessage={PalletFormik.touched.initialLocation && PalletFormik.errors.initialLocation}
                 />
+                </Box>
+                </Box> 
+
+                <Box sx={{ display:"flex", gap:"15px" }}>
+                <Box sx={{ width:"50%"}}>
+                  <CustomTextField
+                  id="quantity"
+                  type="number"
+                  name="quantity"
+                  label="Quantity"
+                  placeholder="Quantity"
+                  onChange={PalletFormik.handleChange}
+                  value={PalletFormik.values.quantity}
+                  onBlur={PalletFormik.handleBlur}
+                  errorMessage={PalletFormik.touched.quantity && PalletFormik.errors.quantity}
+                />
+                </Box>
+                <Box sx={{ width:"50%"}}>
+                <CustomTextField
+                  id="weight"
+                  type="number"
+                  name="weight"
+                  label="Weight"
+                  placeholder="Weight"
+                  onChange={PalletFormik.handleChange}
+                  value={PalletFormik.values.weight}
+                  onBlur={PalletFormik.handleBlur}
+                  errorMessage={PalletFormik.touched.weight && PalletFormik.errors.weight}
+                />
+                </Box>
+                </Box> 
+
+                 <Box sx={{ display:"flex", gap:"15px" }}>
+                <Box sx={{ width:"50%"}}>
+                  <CustomTextField
+                  id="height"
+                  type="number"
+                  name="height"
+                  label="Height"
+                  placeholder="Height"
+                  onChange={PalletFormik.handleChange}
+                  value={PalletFormik.values.height}
+                  onBlur={PalletFormik.handleBlur}
+                  errorMessage={PalletFormik.touched.height && PalletFormik.errors.height}
+                />
+                </Box>
+                <Box sx={{ width:"50%"}}>
+                <CustomTextField
+                  id="width"
+                  type="number"
+                  name="width"
+                  label="Width"
+                  placeholder="Width"
+                  onChange={PalletFormik.handleChange}
+                  value={PalletFormik.values.width}
+                  onBlur={PalletFormik.handleBlur}
+                  errorMessage={PalletFormik.touched.width && PalletFormik.errors.width}
+                />
+                </Box>
+                </Box> 
                 <CustomTextField
                   id="notes"
                   type="text"
                   name="notes"
                   label="Notes"
+                  multiline
+                  rows={3}
                   placeholder="Notes"
                   onChange={PalletFormik.handleChange}
                   value={PalletFormik.values.notes}
@@ -308,34 +458,34 @@ const Pallets = () => {
                   errorMessage={PalletFormik.touched.notes && PalletFormik.errors.notes}
                 />
               </Box>
-              <Box sx={{ marginBottom: "20px", marginTop: "30px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-                <CustomCancelButton onClick={handleClose} label="Cancel" />
-                <CustomSubmitButton loading={PalletFormik.isSubmitting} label={updatingPallet ? "Update Pallet" : "Create Pallet"}/>
+              <Box sx={{ marginBottom: "20px",marginTop: "30px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between",alignItems: "center"}}>
+                <CustomCancelButton onClick={handleClose} label="Cancel" sx={{ width: { xs: "100%", sm: "auto" } }}/>
+                <CustomSubmitButton loading={PalletFormik.isSubmitting} label={updatingPallet ? "Update Pallet" : "Create Pallet"} sx={{ width: { xs: "100%", sm: "auto" } }} />
               </Box>
-          </form>
-        </Box>
-      </Modal>
+            </form>
+          </Box>
+        </Modal>
 
-      {/* delete modal here */}
-      <CustomDeleteComponent
-        loading={isDeleting}
-        open={openDeleteModal}
-        onClose={handleCloseDeleteModal}
-        title={"Delete Pallet"}
-        onConfirm={handleDeletePallet}
-        itemT0Delete={`${palletName} pallet`}
-      />
-
-      <Box sx={{ width: "100%", height: "70vh", marginTop: "20px" }}>
-        <CustomDataGrid
-          loading={isLoading}
-          rows={rows}
-          rowCount={rowCount}
-          getRowId={(row) => row.id}
-          paginationModel={paginationModel}
-          onPaginationModelChange={handlePaginationModelChange}
-          columns={columns}
+        <CustomDeleteComponent
+          loading={isDeleting}
+          open={openDeleteModal}
+          onClose={handleCloseDeleteModal}
+          title={"Delete Pallet"}
+          onConfirm={handleDeletePallet}
+          itemT0Delete={`${palletName} pallet`}
         />
+
+        <Box sx={{ width: "100%", height: { xs: "400px", sm: "70vh" }, marginTop: "20px", overflow: "auto"}}>
+          <CustomDataGrid
+            loading={isLoading}
+            rows={rows}
+            rowCount={rowCount}
+            getRowId={(row) => row.code}
+            paginationModel={paginationModel}
+            onPaginationModelChange={handlePaginationModelChange}
+            columns={columns}
+          />
+        </Box>
       </Box>
     </Box>
   )

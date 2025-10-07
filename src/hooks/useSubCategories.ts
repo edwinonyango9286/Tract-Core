@@ -16,6 +16,7 @@ export const useCreateSubCategory = () => {
     mutationFn: createSubCategoryService,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subCategories"] });
+      queryClient.invalidateQueries({ queryKey: ["subcategory-kpi"]})
     },
   });
 };

@@ -2,7 +2,6 @@ import axios from "axios";
 import type { AxiosInstance, AxiosRequestConfig, RawAxiosRequestHeaders } from "axios";
 
 const base_url: string = import.meta.env.VITE_BASE_URL ?? "";
-console.log(base_url, "=> baseurlhere.......");
 
 interface CustomHeaders extends RawAxiosRequestHeaders {
   Accept: string;

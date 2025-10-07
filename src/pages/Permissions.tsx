@@ -1,7 +1,7 @@
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import type { AxiosError } from "axios";
-import { Box, Breadcrumbs, CircularProgress, Divider, IconButton, Menu, MenuItem, Modal, Typography } from "@mui/material";
+import { Box, Breadcrumbs, Button, CircularProgress, Divider, FormControl, IconButton, InputLabel, Menu, MenuItem, Modal, Select, Typography, type SelectChangeEvent, useMediaQuery, useTheme } from "@mui/material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import { useNavigate } from "react-router-dom";
 import { useState, useCallback, useMemo } from "react";
@@ -27,6 +27,11 @@ import { dateFormatter } from "../utils/dateFormatter";
 import dropDownIcon from "../assets/icons/dropDownIcon.svg";
 import refreshIcon from "../assets/icons/refreshIcon.svg"
 import type { DeactivatePermissionPayload } from "../services/permissionsService";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { formatISO } from 'date-fns';
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+
 
 const PermissionsSchema = Yup.object<PermissionsPayload>({
   permissionName: Yup.string().required("Please provide permission name."),
@@ -43,12 +48,39 @@ const breadcrumbs = [
 ];
 
 const Permissions = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
   const { showSnackbar } = useSnackbar();
   const navigate = useNavigate();
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
   const [searchTerm, setSearchTerm] = useState<string>("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500); 
-  const { data: permissionsList, isLoading, refetch } = usePermissions({page: paginationModel.page , size: paginationModel.pageSize, search: debouncedSearchTerm});
+
+  const [startDate,setStartDate] = useState<Date | null>(null);
+  const [endDate,setEndDate] = useState<Date | null>(null);
+
+  const handleStartDateChange = (date:Date | null)=>{
+    setStartDate(date);
+    setPaginationModel((prev)=>({...prev, page:0}));
+  }
+  const handleEndDateChange = (date:Date | null) =>{
+    setEndDate(date);
+    setPaginationModel((prev)=>({...prev, page:0}));
+  }
+
+  const handleClearDates = ()=>{
+    setStartDate(null);
+    setEndDate(null);
+    setPaginationModel((prev)=>({...prev, page:0 }))
+  }
+
+  const [status,setStatus ] = useState<string>("");
+  const handleChangeStatus = (e:SelectChangeEvent<string>)=>{
+     setStatus(e.target.value);
+  }
+
+  const { data: permissionsList, isLoading, refetch } = usePermissions({ status, page: paginationModel.page , size: paginationModel.pageSize, search: debouncedSearchTerm ,startDate: startDate ? formatISO(startDate) : '',  endDate: endDate ? formatISO(endDate) : ''  });
   const createPermissionMutation = useCreatePermission();
   const deletePermissionMutation = useDeletePermission();
   const updatePermissionMutation = useUpdatePermission();
@@ -100,11 +132,11 @@ const Permissions = () => {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: 400,
+    width: { xs: "90%", sm: "400px" },
     bgcolor: 'background.paper',
     boxShadow: 24,
     paddingY: "10px",
-    paddingX: "30px",
+    paddingX: { xs: "20px", sm: "30px" },
     borderRadius: "8px"
   };
 
@@ -200,34 +232,38 @@ const handleDeletePermission = useCallback(async () => {
     }
   }
 
-
-
   const columns: GridColDef[] =  [
-    { field: 'permissionName', headerName: 'Name', flex: 1 },
-    { field: 'permissionDescription', headerName: 'Description', flex: 1 },
-    { field: 'createdAt', headerName: 'Created At', flex: 1,renderCell:(params)=>dateFormatter(params.value)},
-    { field: 'updatedAt', headerName: 'Updated At', flex: 1,renderCell:(params)=> dateFormatter(params.value)},
-    { field: 'status', headerName:"Status", flex:1},
+    { field: 'permissionName', headerName: 'Name', flex: 1, minWidth: 150 },
+    { field: 'permissionDescription', headerName: 'Description', flex: 1, minWidth: 150 },
+    { field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 150, renderCell:(params)=>dateFormatter(params.value)},
+    { field: 'updatedAt', headerName: 'Updated At', flex: 1, minWidth: 150, renderCell:(params)=> dateFormatter(params.value)},
+    { field: 'status', headerName:"Status", flex: 1, minWidth: 100,
+      renderCell:(params)=>(
+        <Box sx={{ marginTop:"10px",borderRadius:"16px", display:"flex", justifyContent:"center", alignItems:"center",width: params.value === "ACTIVE" ? "70px" : params.value === "INACTIVE" ? "80px" : "90px", padding:"4px", backgroundColor: params.value === "ACTIVE" ? "#ECFDF3": params.value === "INACTIVE" ? "#FEF3F2" : ""}}>
+           <Typography sx={{ fontSize:"12px", fontWeight:"500", textAlign:"center", color:params.value === "ACTIVE" ? "#027A48": params.value === "INACTIVE" ? "#B42318"  :"#333"}}>{params.value}</Typography>
+        </Box>
+      )
+    },
     {
-      field: 'action', headerName: 'Action', flex: 1,
+      field: 'action', headerName: 'Action', flex: 1, minWidth: 120,
       renderCell: (params) => {
         return (
-          <Box sx={{ display: "flex", gap: "10px" }}>
-            <IconButton onClick={() => handleEdit(params.row as Permission)}>
-              <img src={editIcon} alt="editIcon" style={{ width: "21px", height: "21px" }} />
+          <Box sx={{ display: "flex", gap: { xs: "5px", sm: "10px" } }}>
+            <IconButton sx={{ padding: { xs: "2px", sm: "8px" } }} onClick={() => handleEdit(params.row as Permission)}>
+              <img src={editIcon} alt="editIcon" style={{ width:"21px", height:"21px"  }}  />
             </IconButton>
-            <IconButton onClick={()=>{handleOpenDeleteModal(params?.row?.id); setPermissionName(params?.row?.permissionName)}}>
-              <img src={deleteIcon} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
+            <IconButton sx={{ padding: { xs: "2px", sm: "8px" } }} onClick={()=>{handleOpenDeleteModal(params?.row?.id); setPermissionName(params?.row?.permissionName)}}>
+              <img src={deleteIcon} alt="deleteIconSmall" style={{width:"24px", height:"24px" }} />
             </IconButton>
-            <IconButton sx={{ }}  id="action-menu-button"  aria-controls={openActionMenu ? 'action-menu' : undefined} aria-haspopup="true" aria-expanded={openActionMenu ? 'true' : undefined} onClick={(event) => handleClickActionMenu(event, params.row as Permission)}>
-              <img src={dotsVertical} alt="deleteIconSmall" style={{ width: "24px", height: "24px" }} />
+            <IconButton sx={{ padding: { xs: "2px", sm: "8px" } }}  id="action-menu-button"  aria-controls={openActionMenu ? 'action-menu' : undefined} aria-haspopup="true" aria-expanded={openActionMenu ? 'true' : undefined} onClick={(event) => handleClickActionMenu(event, params.row as Permission)}>
+              <img src={dotsVertical} alt="deleteIconSmall" style={{ height:"24px", width:"24px" }} />
             </IconButton>
       
             {/* dots vertical action menu here */}
             <Menu id="action-menu" anchorEl={anchorElelementAction}  open={openActionMenu} onClose={handleCloseActionMenu}  slotProps={{ list: { 'aria-labelledby': 'action-menu-button'}}}>
                <MenuItem onClick={handleCloseActionMenu}>View Details</MenuItem>
                {selectedPermission?.status === "ACTIVE" && (<MenuItem onClick={handleDeactivatePermission}>{isDeactivating ? <CircularProgress  thickness={5} size={20} sx={{ marginLeft:"30px", color:"#333"}} /> : "Deactivate"}</MenuItem>)} 
-               {selectedPermission?.status === "INACTIVE" && (<MenuItem onClick={handleDeactivatePermission}> {isDeactivating ? <CircularProgress thickness={5} size={20} sx={{ marginLeft:"30px", alignSelf:"center", color:"#333"}} /> : "Active"}</MenuItem>)} 
+               {selectedPermission?.status === "INACTIVE" && (<MenuItem onClick={handleDeactivatePermission}> {isDeactivating ? <CircularProgress thickness={5} size={20} sx={{ marginLeft:"30px", alignSelf:"center", color:"#333"}} /> : "Activate"}</MenuItem>)} 
             </Menu>
           </Box>
         );
@@ -265,59 +301,90 @@ const handleRefreshPermissions = useCallback(async () => {
     handleClosePageSizeMenu()
   }
 
+
   return (
-    <Box sx={{ width: "100%", height: "auto" }}>
-      <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
+    <Box sx={{ width: "100%", height: "auto", overflow:"hidden", marginTop:{ sm:"-10px"} }}>
+      <Box sx={{ width: "100%", display: "flex", justifyContent: "space-between", gap: { xs: 2, sm: 0 } }}>
         <Box sx={{ width: "100%", alignItems: "center", display: "flex" }}>
-          <IconButton onClick={() => navigate(-1)}>
-            <ArrowBackIosNewIcon />
+          <IconButton onClick={() => navigate(-1)} sx={{ padding: { xs: "4px", sm: "8px" } }}>
+            <ArrowBackIosNewIcon  sx={{ fontSize: "20px" }} />
           </IconButton>
-          <Typography sx={{ fontSize: "25px", fontWeight: "600", color: "#032541" }}>Permissions</Typography>
-        </Box>
-        <CustomAddButton variant="contained" label="Add Permission" onClick={handleOpen} />
+            <Typography sx={{ fontSize: { xs: "20px", sm: "25px" },fontWeight:"600", color:"#032541" }}>Permissions</Typography>
+          </Box>
+          <CustomAddButton style={{ width:"164px"}} variant="contained" label="Add Permission" onClick={handleOpen} />
       </Box>
 
-      <Box sx={{ width: "100%", marginTop: "-10px", marginLeft: "40px" }}>
-        <Breadcrumbs
-          style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }}
-          aria-label="breadcrumb"
-          separator={<FiberManualRecord style={{ fontSize: "0.625rem", fontFamily: "Poppins", color: "#e1e5e8" }} />}
-        >
+      <Box sx={{ width: "100%", marginTop: { xs: "-10px", sm: "-10px" }, marginLeft: { xs: "30px", sm: "40px" } }}>
+        <Breadcrumbs style={{ fontFamily: "Poppins", fontSize: "14px", marginTop: "5px" }} aria-label="breadcrumb" separator={<FiberManualRecord style={{ fontSize: "0.625rem", fontFamily: "Poppins", color: "#e1e5e8" }} />}>
           {breadcrumbs}
         </Breadcrumbs>
       </Box>
-      <Box sx={{  alignItems:"center", display: "flex", width: "100%", justifyContent: "space-between", marginTop: "20px" }}>
-         <Box sx={{ display:"flex", backgroundColor:"#fff", alignItems:"center", padding:"12px", border:"1px solid #D1D5DB", borderRadius:"8px",  width:"112px", height:"44px"}}>
-          <Box id="page-size-button" aria-controls={openPageSizeMenu ? 'page-size-menu' : undefined}  aria-haspopup="true" aria-expanded={openPageSizeMenu ? 'true' : undefined} onClick={handleClick} sx={{ border:"none", alignItems:"center", justifyContent:"center", cursor:"pointer", display:"flex"}}>
-            <Typography   sx={{ fontSize:"14px", fontWeight:"500", textAlign:"center"}}>
+
+      {/* Filters Section */}
+      <Box sx={{ display: "flex", flexDirection: { xs: "column", lg: "row" }, alignItems: { xs: "stretch", lg: "center" }, width: "100%", justifyContent: "space-between", marginTop: "20px", gap: 2 }}>
+        {/* Page Size and Refresh */}
+        <Box sx={{ display: "flex", backgroundColor: "#fff", alignItems: "center", padding: "12px", border: "1px solid #D1D5DB", borderRadius: "8px", width:  { xs:"100px", sm:"112px"} , height: { xs: "40px", sm: "44px" } }}>
+          <Box  id="page-size-button" aria-controls={openPageSizeMenu ? 'page-size-menu' : undefined} aria-haspopup="true" aria-expanded={openPageSizeMenu ? 'true' : undefined} onClick={handleClick} sx={{ border: "none", alignItems: "center", justifyContent: "center", cursor: "pointer", display: "flex" }}>
+            <Typography sx={{ fontSize: "14px", fontWeight: "500", textAlign: "center" }}>
               {paginationModel.pageSize}
-           </Typography>
-           <IconButton>
-            <img src={dropDownIcon} alt={"drop down icon"} />
-           </IconButton>
+            </Typography>
+            <IconButton sx={{ padding: { xs: "4px", sm: "8px" } }}>
+              <img src={dropDownIcon} alt={"drop down icon"} />
+            </IconButton>
           </Box>
-            <Divider orientation="vertical" sx={{ height:"42px", borderWidth:"1px" }}/>
-          <Box sx={{ }}>
-           <IconButton onClick={handleRefreshPermissions} disabled={isRefreshing} sx={{ transition: 'transform 0.3s','&:hover': { transform: 'rotate(90deg)' }, '&:disabled': {  opacity: 0.5}}}>
-              <img src={refreshIcon} alt="refresh icon" style={{ marginLeft:"2px", width: "20px", height: "20px", animation: isRefreshing ? 'spin 1s linear infinite' : 'none'}}/>
-          </IconButton>
+          <Divider orientation="vertical" sx={{ height: "42px", borderWidth: "1px" }} />
+          <Box sx={{ display:"flex", alignItems:"center", justifyContent:"center"}}>
+            <IconButton onClick={handleRefreshPermissions} disabled={isRefreshing} sx={{ padding: { xs: "4px", sm: "8px" }, transition: 'transform 0.3s', '&:hover': { transform: 'rotate(90deg)' }, '&:disabled': { opacity: 0.5 } }}>
+              <img src={refreshIcon} alt="refresh icon" style={{ marginLeft: "2px", width: "20px", height: "20px", animation: isRefreshing ? 'spin 1s linear infinite' : 'none' }} />
+            </IconButton>
           </Box>
-         </Box>
-        <Menu  id="page-size-menu" anchorEl={anchorElementPageSizeMenu} open={openPageSizeMenu} onClose={handleClosePageSizeMenu} slotProps={{ list: {'aria-labelledby': 'page-size-button'}}}>
-          {[10,20,50,100].map((pageSize, index)=>(
-           <MenuItem key={index} onClick={ ()=>{handlePageSizeSelection(pageSize)}}>{pageSize}</MenuItem>
+        </Box>
+        <Menu id="page-size-menu" anchorEl={anchorElementPageSizeMenu} open={openPageSizeMenu} onClose={handleClosePageSizeMenu} slotProps={{ list: { 'aria-labelledby': 'page-size-button' } }}>
+          {[10, 20, 50, 100].map((pageSize, index) => (
+            <MenuItem key={index} onClick={() => { handlePageSizeSelection(pageSize) }}>{pageSize}</MenuItem>
           ))}
-       </Menu>
-       <Box sx={{ display:"flex", gap:"20px" }}></Box>
-        <CustomSearchTextField value={searchTerm} onChange={handleSearchChange}  placeholder="Search permissions..." />
+        </Menu>
+
+        {/* Date Pickers, Status and Search */}
+        <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: { xs: 2, md: "20px" }, alignItems: { xs: "stretch", md: "center" }, width: { xs: "100%", lg: "auto" } }}>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: { xs: 2, sm: "10px" } }}>
+              <DatePicker disableFuture label="Start Date" value={startDate} onChange={handleStartDateChange}
+                slotProps={{ textField: { size: 'small', sx: { width: { xs: "100%", sm: 150 } } } }}
+              />
+              <DatePicker disableFuture label="End Date" value={endDate} onChange={handleEndDateChange}
+                slotProps={{ textField: { placeholder: "Select end date", size: 'small', sx: { width: { xs: "100%", sm: 150 } } } }}
+              />
+              {(startDate || endDate) && (
+                <Button variant="outlined" size="small" onClick={handleClearDates} sx={{ borderRadius: "8px", borderColor: "#D1D5DB", textTransform: "none", color: "#333", height: '40px', width: { xs: "100%", sm: "auto" } }}>Clear dates</Button>
+              )}
+            </Box>
+          </LocalizationProvider>
+
+          <Box sx={{ width: { xs: "100%", sm: "200px" } }}>
+            <Select
+              displayEmpty
+              renderValue={value => value === '' ? 'Select Status' : value}
+              size="small"
+              sx={{ width: "100%", '& .MuiOutlinedInput-notchedOutline': { borderWidth: "1px", borderColor: '#D1D5DB' }, '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#D1D5DB' },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth: "1px", borderColor: '#D1D5DB' } }} id="status" value={status} onChange={handleChangeStatus}>
+              <MenuItem value={"ACTIVE"}>Active</MenuItem>
+              <MenuItem value={"INACTIVE"}>Inactive</MenuItem>
+            </Select>
+          </Box>
+
+          <Box sx={{ width: { xs: "100%", sm: "250px", md: "300px" } }}>
+            <CustomSearchTextField value={searchTerm} onChange={handleSearchChange} placeholder="Search permissions..."/>
+          </Box>
+        </Box>
       </Box>
 
       {/* Add/Edit Permission Modal */}
       <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
         <Box sx={style}>
           <form style={{ width: "100%" }} onSubmit={PermissionsFormik.handleSubmit}>
-            <Typography sx={{ fontSize: "20px", fontWeight: "700" }}>
-              {updatingPermission ? "Update Permission Details" : "Add Permission"}
+            <Typography sx={{ color:"#032541", fontSize: { xs: "18px", sm: "20px" }, fontWeight: "700" }}>
+              {updatingPermission ? "Update permission details" : "Add permission"}
             </Typography>
             <Box sx={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "20px" }}>
               <CustomTextField
@@ -330,6 +397,7 @@ const handleRefreshPermissions = useCallback(async () => {
                 value={PermissionsFormik.values.permissionName}
                 onBlur={PermissionsFormik.handleBlur}
                 errorMessage={PermissionsFormik.touched.permissionName && PermissionsFormik.errors.permissionName}
+                fullWidth
               />
               <CustomTextField
                 id="permissionDescription"
@@ -341,21 +409,11 @@ const handleRefreshPermissions = useCallback(async () => {
                 value={PermissionsFormik.values.permissionDescription}
                 onBlur={PermissionsFormik.handleBlur}
                 errorMessage={PermissionsFormik.touched.permissionDescription && PermissionsFormik.errors.permissionDescription}
+                fullWidth
               />
-              <Box sx={{
-                marginBottom: "20px",
-                marginTop:"10px",
-                gap: "20px",
-                width: "100%",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center"
-              }}>
-                <CustomCancelButton onClick={handleClose} label="Cancel" />
-                <CustomSubmitButton
-                  loading={PermissionsFormik.isSubmitting}
-                  label={updatingPermission ? "Update Permission" : "Create Permission"}
-                />
+              <Box sx={{ marginBottom: "20px", marginTop: "10px", gap: "20px", width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <CustomCancelButton onClick={handleClose} label="Cancel" fullWidth={isMobile} />
+                <CustomSubmitButton loading={PermissionsFormik.isSubmitting} label={updatingPermission ? "Update Permission" : "Create Permission"} fullWidth={isMobile}/>
               </Box>
             </Box>
           </form>
@@ -363,16 +421,16 @@ const handleRefreshPermissions = useCallback(async () => {
       </Modal>
 
       {/* delete modal here */}
-    <CustomDeleteComponent 
-      loading={isDeleting}
-      open={openDeleteModal}  
-      onClose={handleCloseDeleteModal} 
-      title={"Delete Permission"} 
-      onConfirm={handleDeletePermission} 
-      itemT0Delete={`${permissionName} permission`}
+      <CustomDeleteComponent 
+        loading={isDeleting}
+        open={openDeleteModal}  
+        onClose={handleCloseDeleteModal} 
+        title={"Delete Permission"} 
+        onConfirm={handleDeletePermission} 
+        itemT0Delete={`${permissionName} permission`}
       />
 
-      <Box sx={{ width: "100%", height: "70vh", marginTop: "20px" }}>
+      <Box sx={{ width: "100%", height: { xs: "60vh", sm: "70vh" }, marginTop: "20px" }}>
         <CustomDataGrid
           loading={isLoading || isRefreshing}
           rows={rows}
