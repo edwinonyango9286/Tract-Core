@@ -232,10 +232,7 @@ const Assets = () => {
     setOpen(true);
   }, []);
 
-  // CHANGED: Replace single anchorEl with a map to track menus for each row
   const [anchorElMap, setAnchorElMap] = useState<Record<string, HTMLElement | null>>({});
-  
-  // CHANGED: Update menu handlers to be row-specific
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>, assetCode: string) => {
     setAnchorElMap(prev => ({ ...prev, [assetCode]: event.currentTarget }));
   };
@@ -405,7 +402,6 @@ const updateStatusModalStyle = {
         </Box>
       )
      },
-
     {
       field: 'action', headerName: 'Action', flex: 1, minWidth: 130,
       renderCell: (params) => {

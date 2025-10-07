@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getRolesService, createRoleService, updateRoleService, deletRoleService } from "../services/roleService";
+import { getRolesService, createRoleService, updateRoleService, deletRoleService, getRolesKPIService } from "../services/roleService";
 import type { GetRolesParams } from "../types/roles";
 
 export const useRoles = (params?:GetRolesParams) => {
@@ -16,6 +16,7 @@ export const useCreateRole = () => {
     mutationFn: createRoleService,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["roles"] });
+      queryClient.invalidateQueries({ queryKey: ["rolesKPI"]})
     },
   });
 };
@@ -36,6 +37,16 @@ export const useDeleteRole =()=>{
     mutationFn:deletRoleService,
     onSuccess:()=>{
       queryClient.invalidateQueries({ queryKey:["roles"]})
+      queryClient.invalidateQueries({queryKey:["rolesKPI"] })
     }
+  })
+}
+
+export const useGetRolesKPI = ()=>{
+  return useQuery({
+    queryKey:["rolesKPI"],
+    queryFn: getRolesKPIService,
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 10 * 60 * 1000,
   })
 }
